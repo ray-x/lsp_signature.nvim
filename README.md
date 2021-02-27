@@ -8,7 +8,7 @@ Need neovim-0.5+ and nvim-lsp support.
 # Install:
 
 ```vim
-dein#add('ray-x/signature.nvim')
+dein#add('ray-x/lsp_signature.nvim')
 ```
 
 And in your init.lua
