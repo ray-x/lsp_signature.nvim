@@ -5,7 +5,7 @@ local vim = vim
 local api = vim.api
 local M = {}
 
-manager = {
+local manager = {
   insertChar          = false,  -- flag for InsertCharPre event, turn off imediately when performing completion
   insertLeave         = false,  -- flag for InsertLeave, prevent every completion if true
   changedTick         = 0,      -- handle changeTick
@@ -89,15 +89,7 @@ function M.on_InsertLeave()
   manager.insertLeave = true
 end
 
-function M.confirmCompletion(completed_item)
-  print("confirm completion ...")
-  manager.confirmedCompletion = true
-end
-
 function M.on_InsertEnter()
-  -- if enable == nil or enable == 0 then
-  --   return
-  -- end
   local timer = vim.loop.new_timer()
   -- setup variable
   manager.init()
@@ -117,22 +109,19 @@ function M.on_InsertEnter()
 end
 
 -- handle completion confirmation and dismiss hover popup
+-- Note: this function may not work, depends on if complete plugin add parents or not
 function M.on_CompleteDone()
-  if manager.confirmedCompletion then
-    manager.confirmedCompletion = false
-    signature()
-  end
+  signature()
 end
 
 
-M.on_attach = function(option)
+M.on_attach = function()
   api.nvim_command("augroup Signature")
-    print("register events ")
     api.nvim_command("autocmd! * <buffer>")
     api.nvim_command("autocmd InsertEnter <buffer> lua require'lsp_signature'.on_InsertEnter()")
     api.nvim_command("autocmd InsertLeave <buffer> lua require'lsp_signature'.on_InsertLeave()")
     api.nvim_command("autocmd InsertCharPre <buffer> lua require'lsp_signature'.on_InsertCharPre()")
-    api.nvim_command("autocmd CompleteDone <buffer> lua require'lsp_signature'.on_CompleteDone()")
+    api.nvim_command("autocmd CompleteDone * lua require'lsp_signature'.on_CompleteDone()")
   api.nvim_command("augroup end")
 end
 
