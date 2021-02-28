@@ -111,7 +111,8 @@ end
 -- handle completion confirmation and dismiss hover popup
 -- Note: this function may not work, depends on if complete plugin add parents or not
 function M.on_CompleteDone()
-  signature()
+  -- need auto brackets to make things work
+  -- signature()
 end
 
 
@@ -121,7 +122,7 @@ M.on_attach = function()
     api.nvim_command("autocmd InsertEnter <buffer> lua require'lsp_signature'.on_InsertEnter()")
     api.nvim_command("autocmd InsertLeave <buffer> lua require'lsp_signature'.on_InsertLeave()")
     api.nvim_command("autocmd InsertCharPre <buffer> lua require'lsp_signature'.on_InsertCharPre()")
-    api.nvim_command("autocmd CompleteDone * lua require'lsp_signature'.on_CompleteDone()")
+    -- api.nvim_command("autocmd CompleteDone * lua require'lsp_signature'.on_CompleteDone()")
   api.nvim_command("augroup end")
 end
 
