@@ -67,7 +67,7 @@ local signature = function()
       if vim.tbl_isempty(lines) then
         return
       end
-      local bufnr, _ = vim.lsp.util.focusable_preview(method, function()
+      local bufnr, _ = vim.lsp.util.focusable_preview(method .. 'lsp_signature', function()
         -- TODO show popup when signatures is empty?
         lines = vim.lsp.util.trim_empty_lines(lines)
         return lines, vim.lsp.util.try_trim_markdown_code_blocks(lines)
