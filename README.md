@@ -28,3 +28,19 @@ And in your init.lua
 ```lua
 require'lsp_signature'.on_attach()
 ```
+
+Some users reported the plugin not working for packer(which has nice lazy-loading feature). If the plugin does not work, Suggested to attach the function in the lsp client on_attach. e.g.
+
+```lua
+local golang_setup = {
+  on_attach = function(client, bufnr)
+    if lsp_status ~= nil then
+      lsp_status.on_attach(client, bufnr)
+    end
+    require "lsp_signature".on_attach()  -- Note: add in lsp client on-attach
+    diagnostic_map(bufnr),
+    ...
+  end,
+  ...
+}
+```
