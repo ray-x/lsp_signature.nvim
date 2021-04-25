@@ -25,9 +25,8 @@ local check_trigger_char = function(line_to_cursor, trigger_character)
     if current_char == ch then
       return true
     end
-    if current_char == ' ' and #line_to_cursor > #ch then
+    if current_char == ' ' and #line_to_cursor > #ch + 1 then
       local pre_char = string.sub(line_to_cursor, #line_to_cursor - #ch, #line_to_cursor - 1)
-      print (ch, line_to_cursor, pre_char)
       if pre_char == ch then
         return true
       end
