@@ -1,6 +1,4 @@
--- Code leverage from https://github.com/nvim-lua/completion-nvim
-
-local vim = vim
+local vim = vim  -- suppress warning
 local api = vim.api
 local M = {}
 
@@ -14,6 +12,42 @@ function manager.init()
   manager.insertLeave = false
   manager.insertChar = false
   manager.confirmedCompletion = false
+end
+
+local match_parameter = function(result)
+  local signatures = result.signatures
+  if #signatures < 1 then
+    return result
+  end
+
+  local signature = signatures[1]
+  local activeParameter = result.activeParameter or signature.activeParameter
+  if activeParameter == nil then
+    return result
+  end
+
+  if #signature.parameters < 2 or activeParameter + 1 > #signature.parameters then
+    return result
+  end
+
+  local nextParameter = signature.parameters[activeParameter + 1]
+
+  local label = signature.label
+  if type(nextParameter.label) == "table" then -- label = {2, 4} c style
+    local range = nextParameter.label
+    label =
+      label:sub(1, range[1]) ..
+      [[`]] .. label:sub(range[1] + 1, range[2]) .. [[`]] .. label:sub(range[2] + 1, #label + 1)
+    signature.label = label
+  else
+    if type(nextParameter.label) == "string" then -- label = 'par1 int'
+      local i, j = label:find(nextParameter.label, 1, true)
+      if i ~= nil then
+        label = label:sub(1, i - 1) .. [[`]] .. label:sub(i, j) .. [[`]] .. label:sub(j + 1, #label + 1)
+        signature.label = label
+      end
+    end
+  end
 end
 
 local check_trigger_char = function(line_to_cursor, trigger_character)
@@ -35,9 +69,9 @@ local check_trigger_char = function(line_to_cursor, trigger_character)
   return false
 end
 
-----------------------
---  signature help  --
-----------------------
+-- ----------------------
+-- --  signature help  --
+-- ----------------------
 local signature = function()
   local pos = api.nvim_win_get_cursor(0)
   local line = api.nvim_get_current_line()
@@ -98,12 +132,15 @@ local signature = function()
         if not (result and result.signatures and result.signatures[1]) then
           return
         end
+        match_parameter(result)
+        -- print(vim.inspect(result))
         local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result)
         if vim.tbl_isempty(lines) then
           return
         end
-        local bufnr, _ =
-          vim.lsp.util.focusable_preview(
+        --
+        -- local bufnr, _ =
+        vim.lsp.util.focusable_preview(
           method .. "lsp_signature",
           function()
             -- TODO show popup when signatures is empty?
@@ -111,8 +148,7 @@ local signature = function()
             return lines, vim.lsp.util.try_trim_markdown_code_blocks(lines)
           end
         )
-        -- setup a variable for floating window, fix #223
-        vim.api.nvim_buf_set_var(bufnr, "lsp_floating", true)
+        -- vim.api.nvim_buf_set_var(bufnr, "lsp_floating", true)
       end
     )
   end
@@ -170,4 +206,51 @@ M.on_attach = function()
   api.nvim_command("augroup end")
 end
 
+-- test:
+-- local signature1 = {
+--   activeParameter = 1,
+--   activeSignature = 0,
+--   signatures = {
+--     {
+--       label = "newPerson2(name string, say string)",
+--       parameters = {
+--         {
+--           label = "name string"
+--         },
+--         {
+--           label = "say string"
+--         }
+--       }
+--     }
+--   }
+-- }
+
+-- local sig = match_parameter(signature1)
+-- -- vim.inspect(signature1)
+
+-- -- vim.inspect(sig)
+-- local testlines2 = {"function t2(k: number, m: number)", " t2 a function return add"}
+-- local signature2 = {
+--   signatures = {
+--     {
+--       activeParameter = 1,
+--       documentation = {
+--         kind = "markdown",
+--         value = " t2 a function return add"
+--       },
+--       label = "function t2(k: number, m: number)",
+--       parameters = {
+--         {
+--           label = {12, 21}
+--         },
+--         {
+--           label = {23, 32}
+--         }
+--       }
+--     }
+--   }
+-- }
+-- sig = match_parameter(signature2)
+-- vim.inspect(signature2)
+-- vim.inspect(sig)
 return M
