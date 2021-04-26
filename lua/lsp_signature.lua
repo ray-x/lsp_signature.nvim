@@ -25,7 +25,7 @@ local check_trigger_char = function(line_to_cursor, trigger_character)
     if current_char == ch then
       return true
     end
-    if current_char == ' ' and #line_to_cursor > #ch + 1 then
+    if current_char == " " and #line_to_cursor > #ch + 1 then
       local pre_char = string.sub(line_to_cursor, #line_to_cursor - #ch, #line_to_cursor - 1)
       if pre_char == ch then
         return true
@@ -52,8 +52,13 @@ local signature = function()
 
   local triggered_chars = {}
   for _, value in pairs(vim.lsp.buf_get_clients(0)) do
+    if value == nil then
+      goto continue
+    end
     if value.resolved_capabilities.signature_help == true or value.server_capabilities.signatureHelpProvider ~= nil then
       signature_cap = true
+    else
+      goto continue
     end
 
     if value.resolved_capabilities.hover == true then
@@ -69,6 +74,7 @@ local signature = function()
       triggered_chars = value.server_capabilities.signature_help_trigger_characters
     end
     triggered = check_trigger_char(line_to_cursor, triggered_chars)
+    ::continue::
   end
 
   if signature_cap == false or hover_cap == false then
