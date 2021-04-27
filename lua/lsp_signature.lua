@@ -34,6 +34,7 @@ local signature = function()
   local signature_cap = false
   local hover_cap = false
 
+
   local triggered_chars = {}
   for _, value in pairs(vim.lsp.buf_get_clients(0)) do
     if value == nil then
@@ -90,6 +91,7 @@ local signature = function()
         end
         --
         -- local bufnr, _ =
+        if vim.fn.pumvisible() ~= 0 then return end
         vim.lsp.util.focusable_preview(
           method .. "lsp_signature",
           function()
