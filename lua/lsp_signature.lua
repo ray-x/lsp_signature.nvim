@@ -22,6 +22,34 @@ end
 -- ----------------------
 -- --  signature help  --
 -- ----------------------
+local function signature_handler(err, method, result, client_id, bufnr, config)
+  -- log(result)
+  if config.check_client_handlers then
+    local client = vim.lsp.get_client_by_id(client_id)
+    local handler = client and client.handlers["textDocument/signatureHelp"]
+    if handler then
+      handler(err, method, result, client_id, bufnr, config)
+      return
+    end
+  end
+  if not (result and result.signatures and result.signatures[1]) then
+    return
+  end
+  match_parameter(result)
+  local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result)
+  if vim.tbl_isempty(lines) then
+    return
+  end
+  if config.check_pumvisible and vim.fn.pumvisible() ~= 0 then return end
+  vim.lsp.util.focusable_preview(
+    method .. "lsp_signature",
+    function()
+      lines = vim.lsp.util.trim_empty_lines(lines)
+      return lines, vim.lsp.util.try_trim_markdown_code_blocks(lines), config
+    end
+  )
+end
+
 local signature = function()
   local pos = api.nvim_win_get_cursor(0)
   local line = api.nvim_get_current_line()
@@ -73,35 +101,14 @@ local signature = function()
       0,
       "textDocument/signatureHelp",
       params,
-      function(err, method, result, client_id)
-        local client = vim.lsp.get_client_by_id(client_id)
-        local handler = client and client.handlers["textDocument/signatureHelp"]
-        if handler then
-          handler(err, method, result, client_id)
-          return
-        end
-        if not (result and result.signatures and result.signatures[1]) then
-          return
-        end
-        match_parameter(result)
-        -- print(vim.inspect(result))
-        local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result)
-        if vim.tbl_isempty(lines) then
-          return
-        end
-        --
-        -- local bufnr, _ =
-        if vim.fn.pumvisible() ~= 0 then return end
-        vim.lsp.util.focusable_preview(
-          method .. "lsp_signature",
-          function()
-            -- TODO show popup when signatures is empty?
-            lines = vim.lsp.util.trim_empty_lines(lines)
-            return lines, vim.lsp.util.try_trim_markdown_code_blocks(lines)
-          end
-        )
-        -- vim.api.nvim_buf_set_var(bufnr, "lsp_floating", true)
-      end
+      vim.lsp.with(
+        -- Try using the already binded one, otherwise use it without custom config.
+        vim.lsp.handlers["textDocument/signatureHelp"] or signature_handler,
+        {
+          check_pumvisible = true,
+          check_client_handlers =  true,
+        }
+      )
     )
   end
 end
@@ -148,25 +155,6 @@ function M.on_CompleteDone()
   -- signature()
 end
 
-local function signature_handler(err, method, result, _, bufnr, config)
-  -- log(result)
-  if not (result and result.signatures and result.signatures[1]) then
-    return
-  end
-  match_parameter(result)
-  local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result)
-  if vim.tbl_isempty(lines) then
-    return
-  end
-  vim.lsp.util.focusable_preview(
-    method .. "lsp_signature",
-    function()
-      lines = vim.lsp.util.trim_empty_lines(lines)
-      return lines, vim.lsp.util.try_trim_markdown_code_blocks(lines)
-    end
-  )
-end
-
 M.on_attach = function(cfg)
   api.nvim_command("augroup Signature")
   api.nvim_command("autocmd! * <buffer>")
@@ -176,8 +164,9 @@ M.on_attach = function(cfg)
   -- api.nvim_command("autocmd CompleteDone * lua require'lsp_signature'.on_CompleteDone()")
   api.nvim_command("augroup end")
   cfg = cfg or {bind = true}
+  local handler_opts = cfg.handler_opts or {}
   if cfg.bind then
-    vim.lsp.handlers["textDocument/signatureHelp"] = signature_handler
+    vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(signature_handler, handler_opts)
   end
 end
 
