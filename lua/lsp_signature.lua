@@ -26,6 +26,10 @@ local match_parameter = function(result)
     return result
   end
 
+  if signature.parameters == nil then
+    return result
+  end
+
   if #signature.parameters < 2 or activeParameter + 1 > #signature.parameters then
     return result
   end
