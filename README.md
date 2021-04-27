@@ -49,11 +49,8 @@ Some users reported the plugin not working for packer(which has a nice lazy-load
 ```lua
 local golang_setup = {
   on_attach = function(client, bufnr)
-    if lsp_status ~= nil then
-      lsp_status.on_attach(client, bufnr)
-    end
+    ...
     require "lsp_signature".on_attach()  -- Note: add in lsp client on-attach
-    diagnostic_map(bufnr),
     ...
   end,
   ...
@@ -61,21 +58,20 @@ local golang_setup = {
 ```
 
 ## Floating window borders
+
 If you have a recent enough build of Neovim, you can configure borders in the signature help
 floating window:
+
 ```lua
 local example_setup = {
   on_attach = function(client, bufnr)
-    if lsp_status ~= nil then
-      lsp_status.on_attach(client, bufnr)
-    end
+    ...
     require "lsp_signature".on_attach({
       bind = true, -- This is mandatory, otherwise border config won't get registered.
       handler_opts = {
         border = "single"
       }
     })
-    diagnostic_map(bufnr),
     ...
   end,
   ...
