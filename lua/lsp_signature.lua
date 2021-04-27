@@ -1,6 +1,11 @@
-local vim = vim  -- suppress warning
+local vim = vim -- suppress warning
 local api = vim.api
 local M = {}
+
+local helper = require "lsp_signature_helper"
+
+local match_parameter = helper.match_parameter
+local check_trigger_char = helper.check_trigger_char
 
 local manager = {
   insertChar = false, -- flag for InsertCharPre event, turn off imediately when performing completion
@@ -12,65 +17,6 @@ function manager.init()
   manager.insertLeave = false
   manager.insertChar = false
   manager.confirmedCompletion = false
-end
-
-local match_parameter = function(result)
-  local signatures = result.signatures
-  if #signatures < 1 then
-    return result
-  end
-
-  local signature = signatures[1]
-  local activeParameter = result.activeParameter or signature.activeParameter
-  if activeParameter == nil then
-    return result
-  end
-
-  if signature.parameters == nil then
-    return result
-  end
-
-  if #signature.parameters < 2 or activeParameter + 1 > #signature.parameters then
-    return result
-  end
-
-  local nextParameter = signature.parameters[activeParameter + 1]
-
-  local label = signature.label
-  if type(nextParameter.label) == "table" then -- label = {2, 4} c style
-    local range = nextParameter.label
-    label =
-      label:sub(1, range[1]) ..
-      [[`]] .. label:sub(range[1] + 1, range[2]) .. [[`]] .. label:sub(range[2] + 1, #label + 1)
-    signature.label = label
-  else
-    if type(nextParameter.label) == "string" then -- label = 'par1 int'
-      local i, j = label:find(nextParameter.label, 1, true)
-      if i ~= nil then
-        label = label:sub(1, i - 1) .. [[`]] .. label:sub(i, j) .. [[`]] .. label:sub(j + 1, #label + 1)
-        signature.label = label
-      end
-    end
-  end
-end
-
-local check_trigger_char = function(line_to_cursor, trigger_character)
-  if trigger_character == nil then
-    return false
-  end
-  for _, ch in ipairs(trigger_character) do
-    local current_char = string.sub(line_to_cursor, #line_to_cursor - #ch + 1, #line_to_cursor)
-    if current_char == ch then
-      return true
-    end
-    if current_char == " " and #line_to_cursor > #ch + 1 then
-      local pre_char = string.sub(line_to_cursor, #line_to_cursor - #ch, #line_to_cursor - 1)
-      if pre_char == ch then
-        return true
-      end
-    end
-  end
-  return false
 end
 
 -- ----------------------
@@ -200,7 +146,26 @@ function M.on_CompleteDone()
   -- signature()
 end
 
-M.on_attach = function()
+local function signature_handler(err, method, result, _, bufnr, config)
+  -- log(result)
+  if not (result and result.signatures and result.signatures[1]) then
+    return
+  end
+  match_parameter(result)
+  local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result)
+  if vim.tbl_isempty(lines) then
+    return
+  end
+  vim.lsp.util.focusable_preview(
+    method .. "lsp_signature",
+    function()
+      lines = vim.lsp.util.trim_empty_lines(lines)
+      return lines, vim.lsp.util.try_trim_markdown_code_blocks(lines)
+    end
+  )
+end
+
+M.on_attach = function(cfg)
   api.nvim_command("augroup Signature")
   api.nvim_command("autocmd! * <buffer>")
   api.nvim_command("autocmd InsertEnter <buffer> lua require'lsp_signature'.on_InsertEnter()")
@@ -208,53 +173,10 @@ M.on_attach = function()
   api.nvim_command("autocmd InsertCharPre <buffer> lua require'lsp_signature'.on_InsertCharPre()")
   -- api.nvim_command("autocmd CompleteDone * lua require'lsp_signature'.on_CompleteDone()")
   api.nvim_command("augroup end")
+  cfg = cfg or {bind = true}
+  if cfg.bind then
+    vim.lsp.handlers["textDocument/signatureHelp"] = signature_handler
+  end
 end
 
--- test:
--- local signature1 = {
---   activeParameter = 1,
---   activeSignature = 0,
---   signatures = {
---     {
---       label = "newPerson2(name string, say string)",
---       parameters = {
---         {
---           label = "name string"
---         },
---         {
---           label = "say string"
---         }
---       }
---     }
---   }
--- }
-
--- local sig = match_parameter(signature1)
--- -- vim.inspect(signature1)
-
--- -- vim.inspect(sig)
--- local testlines2 = {"function t2(k: number, m: number)", " t2 a function return add"}
--- local signature2 = {
---   signatures = {
---     {
---       activeParameter = 1,
---       documentation = {
---         kind = "markdown",
---         value = " t2 a function return add"
---       },
---       label = "function t2(k: number, m: number)",
---       parameters = {
---         {
---           label = {12, 21}
---         },
---         {
---           label = {23, 32}
---         }
---       }
---     }
---   }
--- }
--- sig = match_parameter(signature2)
--- vim.inspect(signature2)
--- vim.inspect(sig)
 return M
