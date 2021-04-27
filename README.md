@@ -60,4 +60,26 @@ local golang_setup = {
 }
 ```
 
+## Floating window borders
+If you have a recent enough build of Neovim, you can configure borders in the signature help
+floating window:
+```lua
+local example_setup = {
+  on_attach = function(client, bufnr)
+    if lsp_status ~= nil then
+      lsp_status.on_attach(client, bufnr)
+    end
+    require "lsp_signature".on_attach({
+      bind = true, -- This is mandatory, otherwise border config won't get registered.
+      handler_opts = {
+        border = "single"
+      }
+    })
+    diagnostic_map(bufnr),
+    ...
+  end,
+  ...
+}
+```
+
 If you are using [navigator.lua](https://github.com/ray-x/navigator.lua). navigator will setup lsp_signature for you.
