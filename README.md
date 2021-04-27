@@ -17,7 +17,11 @@ You can argue that using _parameter1_ or **parameter1**. But those are hard to t
 not as good as web browser
 
 ![lsp_signature_help.gif](https://github.com/ray-x/files/blob/master/img/sigature.gif?raw=true "signature")
+
 ![lua](https://user-images.githubusercontent.com/1681295/109505092-5b73fd80-7af0-11eb-9ec7-15b297c6e3be.png?raw=true "lua")
+
+The plugin also re-write the builtin lsp sigature allow the parameter highlight
+![show_signature](https://github.com/ray-x/files/blob/master/img/navigator/show_signnature.gif?raw=true "show_signature")
 
 # Install:
 
@@ -55,3 +59,5 @@ local golang_setup = {
   ...
 }
 ```
+
+If you are using [navigator.lua](https://github.com/ray-x/navigator.lua). navigator will setup lsp_signature for you.
