@@ -40,7 +40,9 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
   if vim.tbl_isempty(lines) then
     return
   end
-  if config.check_pumvisible and vim.fn.pumvisible() ~= 0 then return end
+  if config.check_pumvisible and vim.fn.pumvisible() ~= 0 then
+    return
+  end
   vim.lsp.util.focusable_preview(
     method .. "lsp_signature",
     function()
@@ -58,10 +60,9 @@ local signature = function()
     return
   end
 
-  local triggered
+  local triggered = false
   local signature_cap = false
   local hover_cap = false
-
 
   local triggered_chars = {}
   for _, value in pairs(vim.lsp.buf_get_clients(0)) do
@@ -86,11 +87,17 @@ local signature = function()
     elseif value.resolved_capabilities ~= nil and value.resolved_capabilities.signature_help_trigger_characters ~= nil then
       triggered_chars = value.server_capabilities.signature_help_trigger_characters
     end
-    triggered = check_trigger_char(line_to_cursor, triggered_chars)
+    if triggered == false then
+      triggered = check_trigger_char(line_to_cursor, triggered_chars)
+    end
     ::continue::
   end
 
-  if signature_cap == false or hover_cap == false then
+  if hover_cap == false then
+    -- the popup may not display correctly
+    print("hover not supported")
+  end
+  if signature_cap == false then
     return
   end
 
@@ -106,7 +113,7 @@ local signature = function()
         vim.lsp.handlers["textDocument/signatureHelp"] or signature_handler,
         {
           check_pumvisible = true,
-          check_client_handlers =  true,
+          check_client_handlers = true
         }
       )
     )
