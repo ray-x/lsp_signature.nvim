@@ -16,7 +16,7 @@ This does not mean parameter1 is a string type.
 You can argue that using _parameter1_ or **parameter1**. But those are hard to tell as the font rendering in terminal are
 not as good as web browser
 
-![lsp_signature_help.gif](https://github.com/ray-x/files/blob/master/img/sigature.gif?raw=true "signature")
+![lsp_signature_help.gif](https://github.com/ray-x/files/blob/master/img/signature/sigature.gif?raw=true "signature")
 
 ![lua](https://user-images.githubusercontent.com/1681295/109505092-5b73fd80-7af0-11eb-9ec7-15b297c6e3be.png?raw=true "lua")
 
@@ -77,5 +77,8 @@ local example_setup = {
   ...
 }
 ```
+
+Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
+![lsp_signature_border](https://github.com/ray-x/files/blob/master/img/signature/signature_boarder.jpg?raw=true "signature")
 
 If you are using [navigator.lua](https://github.com/ray-x/navigator.lua). navigator will setup lsp_signature for you.
