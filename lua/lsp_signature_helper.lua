@@ -22,6 +22,10 @@ helper.match_parameter = function(result)
 
   local nextParameter = signature.parameters[activeParameter + 1]
 
+  if nextParameter == nil then
+    return result
+  end
+
   local label = signature.label
   if type(nextParameter.label) == "table" then -- label = {2, 4} c style
     local range = nextParameter.label
