@@ -8,7 +8,7 @@ helper.match_parameter = function(result)
 
   local signature = signatures[1]
   local activeParameter = result.activeParameter or signature.activeParameter
-  if activeParameter == nil then
+  if activeParameter == nil or activeParameter < 0 then
     return result
   end
 
