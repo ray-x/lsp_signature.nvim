@@ -25,6 +25,9 @@ not as good as web browser
 The plugin also re-write the builtin lsp sigature allow the parameter highlight
 ![show_signature](https://github.com/ray-x/files/blob/master/img/navigator/show_signnature.gif?raw=true "show_signature")
 
+Using virtual text to show next parameter
+![virtual_hint](https://github.com/ray-x/files/blob/master/img/signature/virtual_text.jpg?raw=true "show_virtual_text")
+
 # Install:
 
 ```vim
@@ -89,15 +92,22 @@ Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
 
 ```lua
 
- {
+ cfg = {
   bind = true, -- This is mandatory, otherwise border config won't get registered.
+  doc_lines = 10, -- only show one line of comment set to 0 if you do not want API comments be shown
+
+  hint_enable = true, -- virtual hint enable
+  hint_prefix = "🐼 ",  -- Panda for parameter
+  hint_scheme = "String",
+
   handler_opts = {
-    border = "single"   -- double, none, shadow
+    border = "shadow"   -- double, single, shadow, none
   },
-  decorator = {"`", "`"}  -- or decorator = {"***", "***"}  decorator = {"**", "**"}
+  decorator = {"`", "`"}  -- or decorator = {"***", "***"}  decorator = {"**", "**"} see markdown help
 
 }
 
+require'lsp_signature'.on_attach(cfg)
 ```
 
 If you are using [navigator.lua](https://github.com/ray-x/navigator.lua). navigator will setup lsp_signature for you.
