@@ -1,4 +1,4 @@
-local helper={}
+local helper = {}
 
 helper.match_parameter = function(result)
   local signatures = result.signatures
@@ -25,13 +25,17 @@ helper.match_parameter = function(result)
   if nextParameter == nil then
     return result
   end
-  local dec_pre = _LSP_SIG_CFG.decorator[1] or "`"
-  local dec_after = _LSP_SIG_CFG.decorator[2] or "`"
+  local dec_pre = _LSP_SIG_CFG.decorator[1] or "***"
+  local dec_after = _LSP_SIG_CFG.decorator[2] or "***"
   local label = signature.label
+  local nexp = ""
   if type(nextParameter.label) == "table" then -- label = {2, 4} c style
     local range = nextParameter.label
-    label = label:sub(1, range[1]) ..  dec_pre .. label:sub(range[1] + 1, range[2]) .. dec_after .. label:sub(range[2] + 1, #label + 1)
+    label =
+      label:sub(1, range[1]) ..
+      dec_pre .. label:sub(range[1] + 1, range[2]) .. dec_after .. label:sub(range[2] + 1, #label + 1)
     signature.label = label
+    nexp = label:sub(range[1] + 1, range[2])
   else
     if type(nextParameter.label) == "string" then -- label = 'par1 int'
       local i, j = label:find(nextParameter.label, 1, true)
@@ -39,8 +43,14 @@ helper.match_parameter = function(result)
         label = label:sub(1, i - 1) .. dec_pre .. label:sub(i, j) .. dec_after .. label:sub(j + 1, #label + 1)
         signature.label = label
       end
+      nexp = nextParameter.label
     end
   end
+
+  -- test markdown hl
+  -- signature.label = "```lua\n"..signature.label.."\n```"
+
+  return result, nexp
 end
 
 helper.check_trigger_char = function(line_to_cursor, trigger_character)
