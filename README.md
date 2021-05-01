@@ -5,6 +5,8 @@ Need neovim-0.5+ and enable nvim-lsp.
 
 Part of the code was ported from [completion-nvim](https://github.com/nvim-lua/completion-nvim), which does have lots of cool features.
 
+Fully asynchronous lsp buf request.
+
 In order to highlight the parameters that are typing, I am using "\`" to force highlight in markdown. So the hint will look
 like :
 
@@ -57,7 +59,9 @@ local golang_setup = {
 }
 ```
 
-## Floating window borders
+## Configure
+
+### Floating window borders
 
 If you have a recent enough build of Neovim, you can configure borders in the signature help
 floating window:
@@ -80,5 +84,20 @@ local example_setup = {
 
 Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
 ![lsp_signature_border](https://github.com/ray-x/files/blob/master/img/signature/signature_boarder.jpg?raw=true "signature")
+
+### Full configuren
+
+```lua
+
+ {
+  bind = true, -- This is mandatory, otherwise border config won't get registered.
+  handler_opts = {
+    border = "single"   -- double, none, shadow
+  },
+  decorator = {"`", "`"}  -- or decorator = {"***", "***"}  decorator = {"**", "**"}
+
+}
+
+```
 
 If you are using [navigator.lua](https://github.com/ray-x/navigator.lua). navigator will setup lsp_signature for you.
