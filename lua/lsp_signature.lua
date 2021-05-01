@@ -13,6 +13,15 @@ local manager = {
   changedTick = 0, -- handle changeTick
   confirmedCompletion = false -- flag for manual confirmation of completion
 }
+
+_LSP_SIG_CFG = {
+  bind = true, -- This is mandatory, otherwise border config won't get registered.
+  handler_opts = {
+    border = "single"
+  },
+  decorator = {"`", "`"}
+}
+
 function manager.init()
   manager.insertLeave = false
   manager.insertChar = false
@@ -162,6 +171,14 @@ function M.on_CompleteDone()
   -- signature()
 end
 
+local function config(opts)
+  opts = opts or {}
+  if next(opts) == nil then
+    return
+  end
+  _LSP_SIG_CFG = vim.tbl_extend("keep", opts, _LSP_SIG_CFG)
+end
+
 M.on_attach = function(cfg)
   api.nvim_command("augroup Signature")
   api.nvim_command("autocmd! * <buffer>")
@@ -170,10 +187,10 @@ M.on_attach = function(cfg)
   api.nvim_command("autocmd InsertCharPre <buffer> lua require'lsp_signature'.on_InsertCharPre()")
   -- api.nvim_command("autocmd CompleteDone * lua require'lsp_signature'.on_CompleteDone()")
   api.nvim_command("augroup end")
-  cfg = cfg or {bind = true}
-  local handler_opts = cfg.handler_opts or {}
+  config(cfg)
+  cfg = cfg or _LSP_SIG_CFG
   if cfg.bind then
-    vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(signature_handler, handler_opts)
+    vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(signature_handler, _LSP_SIG_CFG.handler_opts)
   end
 end
 

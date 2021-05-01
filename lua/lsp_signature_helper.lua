@@ -29,9 +29,7 @@ helper.match_parameter = function(result)
   local label = signature.label
   if type(nextParameter.label) == "table" then -- label = {2, 4} c style
     local range = nextParameter.label
-    label =
-      label:sub(1, range[1]) ..
-      [[`]] .. label:sub(range[1] + 1, range[2]) .. [[`]] .. label:sub(range[2] + 1, #label + 1)
+    label = label:sub(1, range[1]) ..  [[`]] .. label:sub(range[1] + 1, range[2]) .. [[`]] .. label:sub(range[2] + 1, #label + 1)
     signature.label = label
   else
     if type(nextParameter.label) == "string" then -- label = 'par1 int'
