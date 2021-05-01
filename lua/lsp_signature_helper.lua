@@ -25,17 +25,18 @@ helper.match_parameter = function(result)
   if nextParameter == nil then
     return result
   end
-
+  local dec_pre = _LSP_SIG_CFG.decorator[1] or "`"
+  local dec_after = _LSP_SIG_CFG.decorator[2] or "`"
   local label = signature.label
   if type(nextParameter.label) == "table" then -- label = {2, 4} c style
     local range = nextParameter.label
-    label = label:sub(1, range[1]) ..  [[`]] .. label:sub(range[1] + 1, range[2]) .. [[`]] .. label:sub(range[2] + 1, #label + 1)
+    label = label:sub(1, range[1]) ..  dec_pre .. label:sub(range[1] + 1, range[2]) .. dec_after .. label:sub(range[2] + 1, #label + 1)
     signature.label = label
   else
     if type(nextParameter.label) == "string" then -- label = 'par1 int'
       local i, j = label:find(nextParameter.label, 1, true)
       if i ~= nil then
-        label = label:sub(1, i - 1) .. [[`]] .. label:sub(i, j) .. [[`]] .. label:sub(j + 1, #label + 1)
+        label = label:sub(1, i - 1) .. dec_pre .. label:sub(i, j) .. dec_after .. label:sub(j + 1, #label + 1)
         signature.label = label
       end
     end
