@@ -154,7 +154,9 @@ local signature = function()
       goto continue
     end
 
-    if value.resolved_capabilities.hover == true then
+    local h = value.resolved_capabilities.hover
+
+    if h == true or (h ~= nil and h ~= {}) then
       hover_cap = true
     end
 

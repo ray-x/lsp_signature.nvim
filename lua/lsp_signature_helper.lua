@@ -15,7 +15,7 @@ helper.match_parameter = function(result)
   if signature.parameters == nil then
     return result, ""
   end
-
+  -- no arguments or only 1 arguments, the active arguments will not shown
   if #signature.parameters < 2 or activeParameter + 1 > #signature.parameters then
     return result, ""
   end
