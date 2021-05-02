@@ -35,6 +35,9 @@ function manager.init()
 end
 
 local function virtual_hint(hint)
+  if hint == nil or hint == "" then
+    return
+  end
   local r = vim.api.nvim_win_get_cursor(0)
   local line = api.nvim_get_current_line()
   local line_to_cursor = line:sub(1, r[2])
