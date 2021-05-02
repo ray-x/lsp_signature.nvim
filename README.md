@@ -2,7 +2,7 @@
 
 Show function signature when you types
 
-- This nvim plugin are made for completion plugins which does not support signature help.
+- This nvim plugin is made for completion plugins that do not support signature help.
   Need neovim-0.5+ and enable nvim-lsp.
 
 - Part of the code was ported from [completion-nvim](https://github.com/nvim-lua/completion-nvim), which does have lots of cool features.
@@ -19,8 +19,11 @@ myfunc(`parameter1 int`, parameter2 int)
 ```
 
 This does not mean parameter1 is a string type.
-You can argue that using _parameter1_ or **parameter1**. But those are hard to tell as the font rendering in terminal are
+You can argue that using _parameter1_ or **parameter1**. But those are hard to tell as the font rendering in the terminal are
 not as good as web browser
+
+If lsp server send document/signature in markdown format, then you need to change the decorator setting to "\*\*\*" so it can
+display correctly
 
 ![lsp_signature_help.gif](https://github.com/ray-x/files/blob/master/img/signature/sigature.gif?raw=true "signature")
 
@@ -29,7 +32,7 @@ not as good as web browser
 The plugin also re-write the builtin lsp sigature allow the parameter highlight
 ![show_signature](https://github.com/ray-x/files/blob/master/img/navigator/show_signnature.gif?raw=true "show_signature")
 
-Using virtual text to show next parameter
+Using virtual text to show the next parameter
 ![virtual_hint](https://github.com/ray-x/files/blob/master/img/signature/virtual_text.jpg?raw=true "show_virtual_text")
 
 # Install:
@@ -92,7 +95,7 @@ local example_setup = {
 Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
 ![lsp_signature_border](https://github.com/ray-x/files/blob/master/img/signature/signature_boarder.jpg?raw=true "signature")
 
-### Full configuren
+### Full configuration
 
 ```lua
 
@@ -115,4 +118,4 @@ Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
 require'lsp_signature'.on_attach(cfg)
 ```
 
-If you are using [navigator.lua](https://github.com/ray-x/navigator.lua). navigator will setup lsp_signature for you.
+If you are using [navigator.lua](https://github.com/ray-x/navigator.lua). navigator will hook lsp_signature for you.
