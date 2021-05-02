@@ -3,27 +3,27 @@ local helper = {}
 helper.match_parameter = function(result)
   local signatures = result.signatures
   if #signatures < 1 then
-    return result
+    return result, ""
   end
 
   local signature = signatures[1]
   local activeParameter = result.activeParameter or signature.activeParameter
   if activeParameter == nil or activeParameter < 0 then
-    return result
+    return result, ""
   end
 
   if signature.parameters == nil then
-    return result
+    return result, ""
   end
 
   if #signature.parameters < 2 or activeParameter + 1 > #signature.parameters then
-    return result
+    return result, ""
   end
 
   local nextParameter = signature.parameters[activeParameter + 1]
 
   if nextParameter == nil then
-    return result
+    return result, ""
   end
   local dec_pre = _LSP_SIG_CFG.decorator[1] or "***"
   local dec_after = _LSP_SIG_CFG.decorator[2] or "***"
