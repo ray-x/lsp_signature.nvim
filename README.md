@@ -1,11 +1,15 @@
 # lsp_signature.nvim
 
-This nvim plugin are made for completion plugin which does not support signature help.
-Need neovim-0.5+ and enable nvim-lsp.
+Show function signature when you types
 
-Part of the code was ported from [completion-nvim](https://github.com/nvim-lua/completion-nvim), which does have lots of cool features.
+- This nvim plugin are made for completion plugins which does not support signature help.
+  Need neovim-0.5+ and enable nvim-lsp.
 
-Fully asynchronous lsp buf request.
+- Part of the code was ported from [completion-nvim](https://github.com/nvim-lua/completion-nvim), which does have lots of cool features.
+
+- Fully asynchronous lsp buf request.
+
+- Virtual text avalible
 
 In order to highlight the parameters that are typing, I am using "\`" to force highlight in markdown. So the hint will look
 like :
