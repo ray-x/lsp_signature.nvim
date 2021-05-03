@@ -243,6 +243,9 @@ end
 function M.on_CompleteDone()
   -- need auto brackets to make things work
   -- signature()
+  -- cleanup virtual hint
+
+  vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
 end
 
 local function config(opts)
@@ -259,7 +262,7 @@ M.on_attach = function(cfg)
   api.nvim_command("autocmd InsertEnter <buffer> lua require'lsp_signature'.on_InsertEnter()")
   api.nvim_command("autocmd InsertLeave <buffer> lua require'lsp_signature'.on_InsertLeave()")
   api.nvim_command("autocmd InsertCharPre <buffer> lua require'lsp_signature'.on_InsertCharPre()")
-  -- api.nvim_command("autocmd CompleteDone * lua require'lsp_signature'.on_CompleteDone()")
+  api.nvim_command("autocmd CompleteDone <buffer> lua require'lsp_signature'.on_CompleteDone()")
   api.nvim_command("augroup end")
   config(cfg)
   cfg = cfg or _LSP_SIG_CFG
