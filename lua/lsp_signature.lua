@@ -118,8 +118,10 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     lines = vim.lsp.util.trim_empty_lines(lines)
     vim.lsp.util.try_trim_markdown_code_blocks(lines)
   else
+    local rand = math.random(1, 1000)
+    local id = string.format("%d", rand)
     vim.lsp.util.focusable_preview(
-      method .. "lsp_signature",
+      method .. "lsp_signature" .. id,
       function()
         lines = vim.lsp.util.trim_empty_lines(lines)
         return lines, vim.lsp.util.try_trim_markdown_code_blocks(lines), config
@@ -135,7 +137,8 @@ local signature = function()
   local pos = api.nvim_win_get_cursor(0)
   local line = api.nvim_get_current_line()
   local line_to_cursor = line:sub(1, pos[2])
-  if vim.lsp.buf_get_clients() == nil then
+  local clients = vim.lsp.buf_get_clients(0)
+  if clients == nil or clients == {} then
     return
   end
 
@@ -144,12 +147,14 @@ local signature = function()
   local hover_cap = false
 
   local triggered_chars = {}
-  for _, value in pairs(vim.lsp.buf_get_clients(0)) do
+  local total_lsp = 0
+  for _, value in pairs(clients) do
     if value == nil then
       goto continue
     end
     if value.resolved_capabilities.signature_help == true or value.server_capabilities.signatureHelpProvider ~= nil then
       signature_cap = true
+      total_lsp = total_lsp + 1
     else
       goto continue
     end
@@ -177,6 +182,9 @@ local signature = function()
   if hover_cap == false then
     -- the popup may not display correctly
     print("hover not supported")
+  end
+  if total_lsp > 1 then
+    print("you have multiple lsp with signatureHelp enabled")
   end
   if signature_cap == false then
     return
@@ -219,7 +227,7 @@ function M.on_InsertEnter()
 
   timer:start(
     100,
-    200,
+    100,
     vim.schedule_wrap(
       function()
         local l_changedTick = api.nvim_buf_get_changedtick(0)
@@ -244,7 +252,6 @@ function M.on_CompleteDone()
   -- need auto brackets to make things work
   -- signature()
   -- cleanup virtual hint
-
   vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
 end
 
