@@ -25,8 +25,33 @@ _LSP_SIG_CFG = {
   handler_opts = {
     border = "shadow"
   },
+  debug = false,
   decorator = {"`", "`"} -- set to nil if using guihua.lua
 }
+
+local function log(...)
+  local arg = {...}
+  if _LSP_SIG_CFG.debug == true then
+    local str = "שׁ "
+    for i, v in ipairs(arg) do
+      if type(v) == "table" then
+        str = str .. " |" .. tostring(i) .. ": " .. vim.inspect(v) .. "\n"
+      else
+        str = str .. " |" .. tostring(i) .. ": " .. tostring(v)
+      end
+    end
+    if #str > 2 then
+      if M.log_path ~= nil and #M.log_path > 3 then
+        local f = io.open(M.log_path, "a+")
+        io.output(f)
+        io.write(str)
+        io.close(f)
+      else
+        print(str .. "\n")
+      end
+    end
+  end
+end
 
 function manager.init()
   manager.insertLeave = false
@@ -180,11 +205,11 @@ local signature = function()
   end
 
   if hover_cap == false then
-    -- the popup may not display correctly
-    print("hover not supported")
+    log("hover not supported")
   end
+
   if total_lsp > 1 then
-    print("you have multiple lsp with signatureHelp enabled")
+    log("you have multiple lsp with signatureHelp enabled")
   end
   if signature_cap == false then
     return
