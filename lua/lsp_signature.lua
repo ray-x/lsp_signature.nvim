@@ -22,9 +22,8 @@ _LSP_SIG_CFG = {
   hint_enable = true, -- virtual hint
   hint_prefix = "🐼 ",
   hint_scheme = "String",
-  handler_opts = {
-    border = "shadow"
-  },
+  handler_opts = {border = "shadow"},
+  use_lspsaga = false,
   debug = false,
   decorator = {"`", "`"} -- set to nil if using guihua.lua
 }
@@ -60,9 +59,7 @@ function manager.init()
 end
 
 local function virtual_hint(hint)
-  if hint == nil or hint == "" then
-    return
-  end
+  if hint == nil or hint == "" then return end
   local r = vim.api.nvim_win_get_cursor(0)
   local line = api.nvim_get_current_line()
   local line_to_cursor = line:sub(1, r[2])
@@ -74,9 +71,7 @@ local function virtual_hint(hint)
   if lines_above > lines_below then
     show_at = cur_line + 1 -- same line
   end
-  if cur_line == 0 then
-    show_at = 0
-  end
+  if cur_line == 0 then show_at = 0 end
 
   -- get previous line
   local pl = vim.api.nvim_buf_get_lines(0, show_at, show_at + 1, false)[1]
@@ -90,18 +85,9 @@ local function virtual_hint(hint)
   end
   vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
   if r ~= nil then
-    vim.api.nvim_buf_set_virtual_text(
-      0,
-      _VT_NS,
-      show_at,
-      {
-        {
-          pad .. _LSP_SIG_CFG.hint_prefix .. hint,
-          _LSP_SIG_CFG.hint_scheme
-        }
-      },
-      {}
-    )
+    vim.api.nvim_buf_set_virtual_text(0, _VT_NS, show_at, {
+      {pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme}
+    }, {})
   end
 end
 
@@ -118,9 +104,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       return
     end
   end
-  if not (result and result.signatures and result.signatures[1]) then
-    return
-  end
+  if not (result and result.signatures and result.signatures[1]) then return end
   local _, hint = match_parameter(result)
   local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result)
   local doc_num = _LSP_SIG_CFG.doc_lines or 12
@@ -132,12 +116,8 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     end
   end
 
-  if vim.tbl_isempty(lines) then
-    return
-  end
-  if config.check_pumvisible and vim.fn.pumvisible() ~= 0 then
-    return
-  end
+  if vim.tbl_isempty(lines) then return end
+  if config.check_pumvisible and vim.fn.pumvisible() ~= 0 then return end
   lines = vim.lsp.util.trim_empty_lines(lines)
   if config.trigger_from_lsp_sig == true and _LSP_SIG_CFG.preview == "guihua" then
     lines = vim.lsp.util.trim_empty_lines(lines)
@@ -145,17 +125,12 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
   else
     local rand = math.random(1, 1000)
     local id = string.format("%d", rand)
-    vim.lsp.util.focusable_preview(
-      method .. "lsp_signature" .. id,
-      function()
-        lines = vim.lsp.util.trim_empty_lines(lines)
-        return lines, vim.lsp.util.try_trim_markdown_code_blocks(lines), config
-      end
-    )
+    vim.lsp.util.focusable_preview(method .. "lsp_signature" .. id, function()
+      lines = vim.lsp.util.trim_empty_lines(lines)
+      return lines, vim.lsp.util.try_trim_markdown_code_blocks(lines), config
+    end)
   end
-  if _LSP_SIG_CFG.hint_enable == true then
-    virtual_hint(hint)
-  end
+  if _LSP_SIG_CFG.hint_enable == true then virtual_hint(hint) end
 end
 
 local signature = function()
@@ -163,9 +138,7 @@ local signature = function()
   local line = api.nvim_get_current_line()
   local line_to_cursor = line:sub(1, pos[2])
   local clients = vim.lsp.buf_get_clients(0)
-  if clients == nil or clients == {} then
-    return
-  end
+  if clients == nil or clients == {} then return end
 
   local triggered = false
   local signature_cap = false
@@ -174,10 +147,9 @@ local signature = function()
   local triggered_chars = {}
   local total_lsp = 0
   for _, value in pairs(clients) do
-    if value == nil then
-      goto continue
-    end
-    if value.resolved_capabilities.signature_help == true or value.server_capabilities.signatureHelpProvider ~= nil then
+    if value == nil then goto continue end
+    if value.resolved_capabilities.signature_help == true or
+        value.server_capabilities.signatureHelpProvider ~= nil then
       signature_cap = true
       total_lsp = total_lsp + 1
     else
@@ -186,89 +158,71 @@ local signature = function()
 
     local h = value.resolved_capabilities.hover
 
-    if h == true or (h ~= nil and h ~= {}) then
-      hover_cap = true
-    end
+    if h == true or (h ~= nil and h ~= {}) then hover_cap = true end
 
-    if
-      value.server_capabilities.signatureHelpProvider ~= nil and
-        value.server_capabilities.signatureHelpProvider.triggerCharacters ~= nil
-     then
+    if value.server_capabilities.signatureHelpProvider ~= nil and
+        value.server_capabilities.signatureHelpProvider.triggerCharacters ~= nil then
       triggered_chars = value.server_capabilities.signatureHelpProvider.triggerCharacters
-    elseif value.resolved_capabilities ~= nil and value.resolved_capabilities.signature_help_trigger_characters ~= nil then
+    elseif value.resolved_capabilities ~= nil and
+        value.resolved_capabilities.signature_help_trigger_characters ~= nil then
       triggered_chars = value.server_capabilities.signature_help_trigger_characters
     end
-    if triggered == false then
-      triggered = check_trigger_char(line_to_cursor, triggered_chars)
-    end
+    if triggered == false then triggered = check_trigger_char(line_to_cursor, triggered_chars) end
     ::continue::
   end
 
-  if hover_cap == false then
-    log("hover not supported")
-  end
+  if hover_cap == false then log("hover not supported") end
 
-  if total_lsp > 1 then
-    log("you have multiple lsp with signatureHelp enabled")
-  end
-  if signature_cap == false then
-    return
-  end
+  if total_lsp > 1 then log("you have multiple lsp with signatureHelp enabled") end
+  if signature_cap == false then return end
 
   if triggered then
+    if _LSP_SIG_CFG.use_lspsaga then
+      local ok, saga = pcall(require, "lspsaga.signaturehelp")
+      if ok then
+        saga.signature_help()
+        return
+      else
+        print("Check your config, lspsaga not configured correctly")
+      end
+    end
     -- overwrite signature help here to disable "no signature help" message
     local params = vim.lsp.util.make_position_params()
-    vim.lsp.buf_request(
-      0,
-      "textDocument/signatureHelp",
-      params,
-      vim.lsp.with(
-        -- Try using the already binded one, otherwise use it without custom config.
-        vim.lsp.handlers["textDocument/signatureHelp"] or signature_handler,
-        {
-          check_pumvisible = true,
-          check_client_handlers = true,
-          trigger_from_lsp_sig = true
-        }
-      )
-    )
+    -- Try using the already binded one, otherwise use it without custom config.
+    vim.lsp.buf_request(0, "textDocument/signatureHelp", params,
+                        vim.lsp.with(vim.lsp.handlers["textDocument/signatureHelp"] or
+                                         signature_handler, {
+      check_pumvisible = true,
+      check_client_handlers = true,
+      trigger_from_lsp_sig = true
+    }))
   end
 end
 
 M.signature = signature
 
-function M.on_InsertCharPre()
-  manager.insertChar = true
-end
+function M.on_InsertCharPre() manager.insertChar = true end
 
-function M.on_InsertLeave()
-  manager.insertLeave = true
-end
+function M.on_InsertLeave() manager.insertLeave = true end
 
 function M.on_InsertEnter()
   local timer = vim.loop.new_timer()
   -- setup variable
   manager.init()
 
-  timer:start(
-    100,
-    100,
-    vim.schedule_wrap(
-      function()
-        local l_changedTick = api.nvim_buf_get_changedtick(0)
-        -- closing timer if leaving insert mode
-        if l_changedTick ~= manager.changedTick then
-          manager.changedTick = l_changedTick
-          signature()
-        end
-        if manager.insertLeave == true and timer:is_closing() == false then
-          timer:stop()
-          timer:close()
-          vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
-        end
-      end
-    )
-  )
+  timer:start(100, 100, vim.schedule_wrap(function()
+    local l_changedTick = api.nvim_buf_get_changedtick(0)
+    -- closing timer if leaving insert mode
+    if l_changedTick ~= manager.changedTick then
+      manager.changedTick = l_changedTick
+      signature()
+    end
+    if manager.insertLeave == true and timer:is_closing() == false then
+      timer:stop()
+      timer:close()
+      vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
+    end
+  end))
 end
 
 -- handle completion confirmation and dismiss hover popup
@@ -282,9 +236,7 @@ end
 
 local function config(opts)
   opts = opts or {}
-  if next(opts) == nil then
-    return
-  end
+  if next(opts) == nil then return end
   _LSP_SIG_CFG = vim.tbl_extend("keep", opts, _LSP_SIG_CFG)
 end
 
@@ -299,7 +251,8 @@ M.on_attach = function(cfg)
   config(cfg)
   cfg = cfg or _LSP_SIG_CFG
   if cfg.bind then
-    vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(signature_handler, _LSP_SIG_CFG.handler_opts)
+    vim.lsp.handlers["textDocument/signatureHelp"] =
+        vim.lsp.with(signature_handler, _LSP_SIG_CFG.handler_opts)
   end
 end
 
