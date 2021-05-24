@@ -102,7 +102,10 @@ Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
  cfg = {
   bind = true, -- This is mandatory, otherwise border config won't get registered.
                -- If you want to hook lspsaga or other signature handler, pls set to false
-  doc_lines = 10, -- only show one line of comment set to 0 if you do not want API comments be shown
+  doc_lines = 2, -- will show two lines of comment/doc(if there are more than two lines in doc, will be truncated);
+                 -- set to 0 if you do not want any API comments be shown
+                 -- This setting only take effect in insert mode, it does not affect signature help in normal
+                 -- mode
 
   hint_enable = true, -- virtual hint enable
   hint_prefix = "🐼 ",  -- Panda for parameter
@@ -111,7 +114,9 @@ Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
   handler_opts = {
     border = "shadow"   -- double, single, shadow, none
   },
-  decorator = {"`", "`"}  -- or decorator = {"***", "***"}  decorator = {"**", "**"} see markdown help
+  decorator = {"`", "`"}  -- decoractor can be `decorator = {"***", "***"}`  `decorator = {"**", "**"}` `decorator = {"**_", "_**"}`
+                          -- `decorator = {"*", "*"} see markdown help for more details
+                          -- <u></u> ~ ~ does not supported by nvim
 
 }
 
