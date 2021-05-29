@@ -1,6 +1,6 @@
 # lsp_signature.nvim
 
-Show function signature when you types
+Show function signature when you type
 
 - This nvim plugin is made for completion plugins that do not support signature help.
   Need neovim-0.5+ and enable nvim-lsp.
@@ -9,7 +9,7 @@ Show function signature when you types
 
 - Fully asynchronous lsp buf request.
 
-- Virtual text avalible
+- Virtual text available
 
 In order to highlight the parameters that are typing, I am using "\`" to force highlight in markdown. So the hint will look
 like :
@@ -29,7 +29,7 @@ display correctly
 
 ![lua](https://user-images.githubusercontent.com/1681295/109505092-5b73fd80-7af0-11eb-9ec7-15b297c6e3be.png?raw=true "lua")
 
-The plugin also re-write the builtin lsp sigature allow the parameter highlight
+The plugin also re-write the builtin lsp signature allow the parameter highlight
 ![show_signature](https://github.com/ray-x/files/blob/master/img/navigator/show_signnature.gif?raw=true "show_signature")
 
 Using virtual text to show the next parameter
@@ -107,6 +107,7 @@ Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
                  -- This setting only take effect in insert mode, it does not affect signature help in normal
                  -- mode
 
+  floating_window = true, -- show hint in a floating window
   hint_enable = true, -- virtual hint enable
   hint_prefix = "🐼 ",  -- Panda for parameter
   hint_scheme = "String",
@@ -123,4 +124,4 @@ Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
 require'lsp_signature'.on_attach(cfg)
 ```
 
-If you are using [navigator.lua](https://github.com/ray-x/navigator.lua). navigator will hook lsp_signature for you.
+If you are using [navigator.lua](https://github.com/ray-x/navigator.lua), it will hook lsp_signature for you.

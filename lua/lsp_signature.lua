@@ -18,6 +18,7 @@ _LSP_SIG_CFG = {
   bind = true, -- This is mandatory, otherwise border config won't get registered.
   -- if you want to use lspsaga, please set it to false
   doc_lines = 2, -- how many lines to show in doc, set to 0 if you only want the signature
+  floating_window = true, -- show hint in a floating window
   hint_enable = true, -- virtual hint
   hint_prefix = "🐼 ",
   hint_scheme = "String",
@@ -111,39 +112,39 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     return
   end
   local _, hint = match_parameter(result)
-  local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result)
-  local doc_num = _LSP_SIG_CFG.doc_lines or 12
-  if vim.fn.mode() == 'i' or vim.fn.mode() == 'ic' then
-    -- truncate the doc?
-    if #lines > doc_num + 1 then
-      if doc_num == 0 then
-        lines = vim.list_slice(lines, 1, 1)
-      else
-        lines = vim.list_slice(lines, 1, doc_num + 1)
-      end
-    end
-  end
-
-  if vim.tbl_isempty(lines) then
-    return
-  end
-  if config.check_pumvisible and vim.fn.pumvisible() ~= 0 then
-    return
-  end
-  lines = vim.lsp.util.trim_empty_lines(lines)
-  if config.trigger_from_lsp_sig == true and _LSP_SIG_CFG.preview == "guihua" then
-    lines = vim.lsp.util.trim_empty_lines(lines)
-    vim.lsp.util.try_trim_markdown_code_blocks(lines)
-  else
-    local rand = math.random(1, 1000)
-    local id = string.format("%d", rand)
-    vim.lsp.util.focusable_preview(method .. "lsp_signature" .. id, function()
-      lines = vim.lsp.util.trim_empty_lines(lines)
-      return lines, vim.lsp.util.try_trim_markdown_code_blocks(lines), config
-    end)
-  end
   if _LSP_SIG_CFG.hint_enable == true then
     virtual_hint(hint)
+  end
+  if _LSP_SIG_CFG.floating_window == true then
+    local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result)
+    local doc_num = _LSP_SIG_CFG.doc_lines or 12
+    if vim.fn.mode() == 'i' or vim.fn.mode() == 'ic' then
+      -- truncate the doc?
+      if #lines > doc_num + 1 then
+        if doc_num == 0 then
+          lines = vim.list_slice(lines, 1, 1)
+        else
+          lines = vim.list_slice(lines, 1, doc_num + 1)
+        end
+      end
+    end
+
+    if vim.tbl_isempty(lines) then return end
+
+    if config.check_pumvisible and vim.fn.pumvisible() ~= 0 then return end
+
+    lines = vim.lsp.util.trim_empty_lines(lines)
+    if config.trigger_from_lsp_sig == true and _LSP_SIG_CFG.preview == "guihua" then
+      lines = vim.lsp.util.trim_empty_lines(lines)
+      vim.lsp.util.try_trim_markdown_code_blocks(lines)
+    else
+      local rand = math.random(1, 1000)
+      local id = string.format("%d", rand)
+      vim.lsp.util.focusable_preview(method .. "lsp_signature" .. id, function()
+        lines = vim.lsp.util.trim_empty_lines(lines)
+        return lines, vim.lsp.util.try_trim_markdown_code_blocks(lines), config
+      end)
+    end
   end
 end
 
@@ -267,14 +268,6 @@ function M.on_CompleteDone()
   vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
 end
 
-local function config(opts)
-  opts = opts or {}
-  if next(opts) == nil then
-    return
-  end
-  _LSP_SIG_CFG = vim.tbl_extend("keep", opts, _LSP_SIG_CFG)
-end
-
 M.on_attach = function(cfg)
   api.nvim_command("augroup Signature")
   api.nvim_command("autocmd! * <buffer>")
@@ -283,9 +276,12 @@ M.on_attach = function(cfg)
   api.nvim_command("autocmd InsertCharPre <buffer> lua require'lsp_signature'.on_InsertCharPre()")
   api.nvim_command("autocmd CompleteDone <buffer> lua require'lsp_signature'.on_CompleteDone()")
   api.nvim_command("augroup end")
-  config(cfg)
-  cfg = cfg or _LSP_SIG_CFG
-  if cfg.bind then
+
+  if type(cfg) == "table" then
+    _LSP_SIG_CFG = vim.tbl_extend("keep", cfg, _LSP_SIG_CFG)
+  end
+
+  if _LSP_SIG_CFG.bind then
     vim.lsp.handlers["textDocument/signatureHelp"] =
         vim.lsp.with(signature_handler, _LSP_SIG_CFG.handler_opts)
   end
