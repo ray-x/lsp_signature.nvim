@@ -28,29 +28,7 @@ _LSP_SIG_CFG = {
   decorator = {"`", "`"} -- set to nil if using guihua.lua
 }
 
-local function log(...)
-  local arg = {...}
-  if _LSP_SIG_CFG.debug == true then
-    local str = "שׁ "
-    for i, v in ipairs(arg) do
-      if type(v) == "table" then
-        str = str .. " |" .. tostring(i) .. ": " .. vim.inspect(v) .. "\n"
-      else
-        str = str .. " |" .. tostring(i) .. ": " .. tostring(v)
-      end
-    end
-    if #str > 2 then
-      if M.log_path ~= nil and #M.log_path > 3 then
-        local f = io.open(M.log_path, "a+")
-        io.output(f)
-        io.write(str)
-        io.close(f)
-      else
-        print(str .. "\n")
-      end
-    end
-  end
-end
+local log = helper.log
 
 function manager.init()
   manager.insertLeave = false
@@ -66,26 +44,49 @@ local function virtual_hint(hint)
   local line = api.nvim_get_current_line()
   local line_to_cursor = line:sub(1, r[2])
   local cur_line = r[1] - 1
-  local show_at = cur_line - 1 -- show above
+  local show_at = cur_line - 1 -- show at above line
   local lines_above = vim.fn.winline() - 1
   local lines_below = vim.fn.winheight(0) - lines_above
   if lines_above > lines_below then
     show_at = cur_line + 1 -- same line
   end
+  local pl
+  if _LSP_SIG_CFG.floating_window == false then
+    local prev_line, next_line
+    if cur_line > 0 then
+      prev_line = vim.api.nvim_buf_get_lines(0, cur_line - 1, cur_line, false)[1]
+    end
+    next_line = vim.api.nvim_buf_get_lines(0, cur_line + 1, cur_line + 2, false)[1]
+    -- log(prev_line, next_line, r)
+    if prev_line and #prev_line < r[2] + 2 then
+      show_at = cur_line - 1
+      pl = prev_line
+    elseif next_line and #next_line < r[2] + 2 then
+      show_at = cur_line + 1
+      pl = next_line
+    else
+      show_at = cur_line
+    end
+  end
+
   if cur_line == 0 then
     show_at = 0
   end
-
-  -- get previous line
-  local pl = vim.api.nvim_buf_get_lines(0, show_at, show_at + 1, false)[1]
+  -- get show at line
+  if not pl then
+    pl = vim.api.nvim_buf_get_lines(0, show_at, show_at + 1, false)[1]
+  end
   if pl == nil then
     show_at = cur_line -- no lines below
   end
+
+  -- log("virtual text: ", cur_line, show_at)
   pl = pl or ""
   local pad = ""
   if show_at ~= cur_line and #line_to_cursor > #pl + 1 then
     pad = string.rep(" ", #line_to_cursor - #pl)
   end
+
   vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
   if r ~= nil then
     vim.api.nvim_buf_set_virtual_text(0, _VT_NS, show_at, {
@@ -98,16 +99,18 @@ end
 -- --  signature help  --
 -- ----------------------
 local function signature_handler(err, method, result, client_id, bufnr, config)
-  -- log(result)
+  --log("sig result", result)
   if config.check_client_handlers then
     local client = vim.lsp.get_client_by_id(client_id)
     local handler = client and client.handlers["textDocument/signatureHelp"]
     if handler then
+      log(" using 3rd handler")
       handler(err, method, result, client_id, bufnr, config)
       return
     end
   end
   if not (result and result.signatures and result.signatures[1]) then
+    log("no result?", result)
     return
   end
   local _, hint = match_parameter(result)
@@ -125,23 +128,27 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       end
     end
 
-    if vim.tbl_isempty(lines) then return end
+    if vim.tbl_isempty(lines) then
+      return
+    end
 
-    if config.check_pumvisible and vim.fn.pumvisible() ~= 0 then return end
+    if config.check_pumvisible and vim.fn.pumvisible() ~= 0 then
+      return
+    end
 
     lines = vim.lsp.util.trim_empty_lines(lines)
     if config.trigger_from_lsp_sig == true and _LSP_SIG_CFG.preview == "guihua" then
       vim.lsp.util.try_trim_markdown_code_blocks(lines)
       -- This is a TODO
       error("guihua text view not supported yet")
-  end
+    end
 
-  local rand = math.random(1, 1000)
-  local id = string.format("%d", rand)
+    local rand = math.random(1, 1000)
+    local id = string.format("%d", rand)
 
-  local syntax = vim.lsp.util.try_trim_markdown_code_blocks(lines)
-  config.focus_id = method .. "lsp_signature" .. id
-  vim.lsp.util.open_floating_preview(lines, syntax, config)
+    local syntax = vim.lsp.util.try_trim_markdown_code_blocks(lines)
+    config.focus_id = method .. "lsp_signature" .. id
+    vim.lsp.util.open_floating_preview(lines, syntax, config)
   end
 
   if _LSP_SIG_CFG.hint_enable == true then
