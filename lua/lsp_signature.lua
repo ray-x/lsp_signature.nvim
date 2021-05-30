@@ -65,7 +65,6 @@ local function virtual_hint(hint)
   local r = vim.api.nvim_win_get_cursor(0)
   local line = api.nvim_get_current_line()
   local line_to_cursor = line:sub(1, r[2])
-  local r = vim.api.nvim_win_get_cursor(0)
   local cur_line = r[1] - 1
   local show_at = cur_line - 1 -- show above
   local lines_above = vim.fn.winline() - 1
@@ -112,9 +111,6 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     return
   end
   local _, hint = match_parameter(result)
-  if _LSP_SIG_CFG.hint_enable == true then
-    virtual_hint(hint)
-  end
   if _LSP_SIG_CFG.floating_window == true then
     local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result)
     local doc_num = _LSP_SIG_CFG.doc_lines or 12
@@ -135,16 +131,21 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
 
     lines = vim.lsp.util.trim_empty_lines(lines)
     if config.trigger_from_lsp_sig == true and _LSP_SIG_CFG.preview == "guihua" then
-      lines = vim.lsp.util.trim_empty_lines(lines)
       vim.lsp.util.try_trim_markdown_code_blocks(lines)
-    else
-      local rand = math.random(1, 1000)
-      local id = string.format("%d", rand)
-      vim.lsp.util.focusable_preview(method .. "lsp_signature" .. id, function()
-        lines = vim.lsp.util.trim_empty_lines(lines)
-        return lines, vim.lsp.util.try_trim_markdown_code_blocks(lines), config
-      end)
-    end
+      -- This is a TODO
+      error("guihua text view not supported yet")
+  end
+
+  local rand = math.random(1, 1000)
+  local id = string.format("%d", rand)
+
+  local syntax = vim.lsp.util.try_trim_markdown_code_blocks(lines)
+  config.focus_id = method .. "lsp_signature" .. id
+  vim.lsp.util.open_floating_preview(lines, syntax, config)
+  end
+
+  if _LSP_SIG_CFG.hint_enable == true then
+    virtual_hint(hint)
   end
 end
 
