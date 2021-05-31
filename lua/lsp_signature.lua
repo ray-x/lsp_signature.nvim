@@ -118,7 +118,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     log("no result?", result)
     return
   end
-  local _, hint = match_parameter(result)
+  local _, hint, s, l = match_parameter(result)
   if _LSP_SIG_CFG.floating_window == true then
 
     local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
@@ -166,7 +166,13 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     if config.border == "single" then
       config.border = single
     end
-    vim.lsp.util.open_floating_preview(lines, syntax, config)
+    -- log(config)
+    local bufnr, winnr = vim.lsp.util.open_floating_preview(lines, syntax, config)
+    -- vim.fn.matchaddpos("Error", {{2, 2, 10}})
+    local ns = vim.api.nvim_create_namespace('lspsignature')
+    local hi = _LSP_SIG_CFG.hi_group or "Search"
+    vim.api.nvim_buf_set_extmark(bufnr, ns, 0, s - 1, {end_line = 0, end_col = l, hl_group = hi})
+
   end
 
   if _LSP_SIG_CFG.hint_enable == true then
