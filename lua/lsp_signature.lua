@@ -23,12 +23,13 @@ _LSP_SIG_CFG = {
   hint_enable = true, -- virtual hint
   hint_prefix = "🐼 ",
   hint_scheme = "String",
-  handler_opts = {border = "shadow"},
+  handler_opts = {border = "single"},
   use_lspsaga = false,
   debug = false,
   decorator = {"`", "`"} -- set to nil if using guihua.lua
 }
-
+local double = {"╔", "═", "╗", "║", "╝", "═", "╚", "║"}
+local single = {"╭", "─", "╮", "│", "╯", "─", "╰", "│"}
 local log = helper.log
 
 function manager.init()
@@ -159,7 +160,12 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     local syntax = vim.lsp.util.try_trim_markdown_code_blocks(lines)
     config.focus_id = method .. "lsp_signature" .. id
     config.stylize_markdown = true
-    -- config.border = "single"
+    if config.border == "double" then
+      config.border = double
+    end
+    if config.border == "single" then
+      config.border = single
+    end
     vim.lsp.util.open_floating_preview(lines, syntax, config)
   end
 
@@ -301,6 +307,7 @@ M.on_attach = function(cfg)
     _LSP_SIG_CFG = vim.tbl_extend("keep", cfg, _LSP_SIG_CFG)
   end
 
+  vim.cmd([[hi default FloatBorder guifg = #777777]])
   if _LSP_SIG_CFG.bind then
     vim.lsp.handlers["textDocument/signatureHelp"] =
         vim.lsp.with(signature_handler, _LSP_SIG_CFG.handler_opts)
