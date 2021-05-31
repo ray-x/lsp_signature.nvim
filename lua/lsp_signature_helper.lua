@@ -2,7 +2,7 @@ local helper = {}
 
 local log = function(...)
   local arg = {...}
-  print(_LSP_SIG_CFG.log_path)
+  -- print(_LSP_SIG_CFG.log_path)
   local log_path = _LSP_SIG_CFG.log_path or nil
   if _LSP_SIG_CFG.debug == true then
     print("debug")

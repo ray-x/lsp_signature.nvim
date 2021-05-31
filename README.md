@@ -29,11 +29,19 @@ display correctly
 
 ![lua](https://user-images.githubusercontent.com/1681295/109505092-5b73fd80-7af0-11eb-9ec7-15b297c6e3be.png?raw=true "lua")
 
-The plugin also re-write the builtin lsp signature allow the parameter highlight
+#### The plugin also re-write the builtin lsp signature allow the parameter highlight
+
 ![show_signature](https://github.com/ray-x/files/blob/master/img/navigator/show_signnature.gif?raw=true "show_signature")
 
-Using virtual text to show the next parameter
+#### Using virtual text to show the next parameter
+
 ![virtual_hint](https://github.com/ray-x/files/blob/master/img/signature/virtual_text.jpg?raw=true "show_virtual_text")
+
+#### Virtual text only mode
+
+
+<img width="292" alt="virtual_text_only" src="https://user-images.githubusercontent.com/1681295/120172944-e3c88280-c246-11eb-95a6-40a0bbc1df9c.png">
+
 
 # Install:
 
@@ -103,11 +111,11 @@ Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
   bind = true, -- This is mandatory, otherwise border config won't get registered.
                -- If you want to hook lspsaga or other signature handler, pls set to false
   doc_lines = 2, -- will show two lines of comment/doc(if there are more than two lines in doc, will be truncated);
-                 -- set to 0 if you do not want any API comments be shown
+                 -- set to 0 if you DO NOT want any API comments be shown
                  -- This setting only take effect in insert mode, it does not affect signature help in normal
                  -- mode
 
-  floating_window = true, -- show hint in a floating window
+  floating_window = true, -- show hint in a floating window, set to false for virtual text only mode
   hint_enable = true, -- virtual hint enable
   hint_prefix = "🐼 ",  -- Panda for parameter
   hint_scheme = "String",
@@ -125,3 +133,19 @@ require'lsp_signature'.on_attach(cfg)
 ```
 
 If you are using [navigator.lua](https://github.com/ray-x/navigator.lua), it will hook lsp_signature for you.
+
+### Q&A:
+
+The default colorscheme in screenshot:
+[aurora](https://github.com/ray-x/aurora)
+
+I can not see border after enable border = "single"
+Try another colorscheme (e.g. colorscheme aurora, or colorscheme luna). If issue persists, please submit an issue
+
+It is not working
+
+Here is some trouble shooting: https://github.com/ray-x/lsp_signature.nvim/issues/1
+
+I do not like the pop window background highlight, how to change it?
+
+Reredefine your `NormalFloat` esp if your colorscheme dose not define it.
