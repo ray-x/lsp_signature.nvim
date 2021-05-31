@@ -11,22 +11,13 @@ Show function signature when you type
 
 - Virtual text available
 
-In order to highlight the parameters that are typing, I am using "\`" to force highlight in markdown. So the hint will look
-like :
 
-```go
-myfunc(`parameter1 int`, parameter2 int)
-```
+Note: decorator = {"\`", "\`"} setup is deprecate
 
-This does not mean parameter1 is a string type.
-You can argue that using _parameter1_ or **parameter1**. But those are hard to tell as the font rendering in the terminal are
-not as good as web browser
-
-If lsp server send document/signature in markdown format, then you need to change the decorator setting to "\*\*\*" so it can
-display correctly
-
-![lsp_signature_help.gif](https://github.com/ray-x/files/blob/master/img/signature/sigature.gif?raw=true "signature")
-
+##### Golang with markdown
+Highlight with "Search"
+![signature2](https://user-images.githubusercontent.com/1681295/120245954-2d9a8280-c2b2-11eb-9fe9-f32f64a13512.gif)
+##### Lua
 ![lua](https://user-images.githubusercontent.com/1681295/109505092-5b73fd80-7af0-11eb-9ec7-15b297c6e3be.png?raw=true "lua")
 
 #### The plugin also re-write the builtin lsp signature allow the parameter highlight
@@ -121,10 +112,12 @@ Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
   hint_prefix = "🐼 ",  -- Panda for parameter
   hint_scheme = "String",
   use_lspsaga = false,  -- set to true if you want to use lspsaga popup
+  hi_parameter = "Search", -- how your parameter will be highlight
   handler_opts = {
     border = "shadow"   -- double, single, shadow, none
   },
-  decorator = {"`", "`"}  -- decoractor can be `decorator = {"***", "***"}`  `decorator = {"**", "**"}` `decorator = {"**_", "_**"}`
+  -- deprecate
+  -- decorator = {"`", "`"}  -- decoractor can be `decorator = {"***", "***"}`  `decorator = {"**", "**"}` `decorator = {"**_", "_**"}`
                           -- `decorator = {"*", "*"} see markdown help for more details
                           -- <u></u> ~ ~ does not supported by nvim
 
@@ -140,13 +133,18 @@ If you are using [navigator.lua](https://github.com/ray-x/navigator.lua), it wil
 The default colorscheme in screenshot:
 [aurora](https://github.com/ray-x/aurora)
 
-I can not see border after enable border = "single"
-Try another colorscheme (e.g. colorscheme aurora, or colorscheme luna). If issue persists, please submit an issue
+Q: I can not see border after enable border = "single"
 
-It is not working
+A: Try another colorscheme (e.g. colorscheme aurora, or colorscheme luna). If issue persists, please submit an issue
 
-Here is some trouble shooting: https://github.com/ray-x/lsp_signature.nvim/issues/1
+Q: It is not working
 
-I do not like the pop window background highlight, how to change it?
+A: Here is some trouble shooting: https://github.com/ray-x/lsp_signature.nvim/issues/1
 
-Reredefine your `NormalFloat` esp if your colorscheme dose not define it.
+Q:I do not like the pop window background highlight, how to change it?
+
+A: Reredefine your `NormalFloat` esp if your colorscheme dose not define it.
+
+Q: Change parameter highlight
+A: By default, the highlight is using "Search" defined in your colorscheme, you can either override "Search" or
+define, e.g. use `IncSearch`  on_attach({ hi_parameter = "IncSearch"})

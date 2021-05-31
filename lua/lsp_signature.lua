@@ -23,6 +23,7 @@ _LSP_SIG_CFG = {
   hint_enable = true, -- virtual hint
   hint_prefix = "🐼 ",
   hint_scheme = "String",
+  hi_parameter = "Search",
   handler_opts = {border = "single"},
   use_lspsaga = false,
   debug = false,
@@ -170,7 +171,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     local bufnr, winnr = vim.lsp.util.open_floating_preview(lines, syntax, config)
     -- vim.fn.matchaddpos("Error", {{2, 2, 10}})
     local ns = vim.api.nvim_create_namespace('lspsignature')
-    local hi = _LSP_SIG_CFG.hi_group or "Search"
+    local hi = _LSP_SIG_CFG.hi_parameter
     vim.api.nvim_buf_set_extmark(bufnr, ns, 0, s - 1, {end_line = 0, end_col = l, hl_group = hi})
 
   end
