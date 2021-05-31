@@ -17,7 +17,8 @@ local manager = {
 _LSP_SIG_CFG = {
   bind = true, -- This is mandatory, otherwise border config won't get registered.
   -- if you want to use lspsaga, please set it to false
-  doc_lines = 2, -- how many lines to show in doc, set to 0 if you only want the signature
+  doc_lines = 6, -- how many lines to show in doc, set to 0 if you only want the signature
+
   floating_window = true, -- show hint in a floating window
   hint_enable = true, -- virtual hint
   hint_prefix = "🐼 ",
@@ -99,7 +100,10 @@ end
 -- --  signature help  --
 -- ----------------------
 local function signature_handler(err, method, result, client_id, bufnr, config)
-  --log("sig result", result)
+  -- log("sig result", result, config)
+  if err ~= nil then
+    print(err)
+  end
   if config.check_client_handlers then
     local client = vim.lsp.get_client_by_id(client_id)
     local handler = client and client.handlers["textDocument/signatureHelp"]
@@ -115,13 +119,19 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
   end
   local _, hint = match_parameter(result)
   if _LSP_SIG_CFG.floating_window == true then
-    local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result)
-    local doc_num = _LSP_SIG_CFG.doc_lines or 12
+
+    local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
+    local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
+    -- log(lines)
+    local doc_num = 3 + _LSP_SIG_CFG.doc_lines
+    if doc_num < 3 then
+      doc_num = 3
+    end
     if vim.fn.mode() == 'i' or vim.fn.mode() == 'ic' then
       -- truncate the doc?
       if #lines > doc_num + 1 then
         if doc_num == 0 then
-          lines = vim.list_slice(lines, 1, 1)
+          lines = vim.list_slice(lines, 1, 3)
         else
           lines = vim.list_slice(lines, 1, doc_num + 1)
         end
@@ -148,6 +158,8 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
 
     local syntax = vim.lsp.util.try_trim_markdown_code_blocks(lines)
     config.focus_id = method .. "lsp_signature" .. id
+    config.stylize_markdown = true
+    -- config.border = "single"
     vim.lsp.util.open_floating_preview(lines, syntax, config)
   end
 
