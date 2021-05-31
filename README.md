@@ -39,8 +39,9 @@ display correctly
 
 #### Virtual text only mode
 
+(from @fdioguardi)
 
-<img width="292" alt="virtual_text_only" src="https://user-images.githubusercontent.com/1681295/120172944-e3c88280-c246-11eb-95a6-40a0bbc1df9c.png">
+<img width="600" alt="virtual_text_only" src="https://user-images.githubusercontent.com/1681295/120172944-e3c88280-c246-11eb-95a6-40a0bbc1df9c.png">
 
 
 # Install:
