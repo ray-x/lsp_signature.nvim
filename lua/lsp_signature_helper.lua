@@ -26,8 +26,38 @@ local log = function(...)
   end
 end
 helper.log = log
-helper.match_parameter = function(result)
+
+local function findwholeword(input, word)
+  return string.find(input, "%f[%a]" .. word .. "%f[%A]")
+end
+
+helper.fallback = function(trigger_chars)
+
+  local r = vim.api.nvim_win_get_cursor(0)
+
+  local line = vim.api.nvim_get_current_line()
+  line = line:sub(1, r[2])
+  local activeParameter = 0
+  if not vim.tbl_contains(trigger_chars, "(") then
+    return
+  end
+
+  for i = #line, 1, -1 do
+    local c = line:sub(i, i)
+    if vim.tbl_contains(trigger_chars, c) then
+      if c == "(" then
+        return activeParameter
+      end
+
+      activeParameter = activeParameter + 1
+    end
+  end
+  return 0
+end
+
+helper.match_parameter = function(result, config)
   local signatures = result.signatures
+
   if #signatures == 0 then -- no parameter
     return result, ""
   end
@@ -38,14 +68,15 @@ helper.match_parameter = function(result)
   if result.activeParameter == nil then
     activeParameter = signature.activeParameter
   end
+
   if activeParameter == nil or activeParameter < 0 then
-    log("incorrect signature response?", signatures)
-    return result, ""
+    log("incorrect signature response?", result, config)
+    activeParameter = helper.fallback(config.triggered_chars)
+  end
+  if signature.parameters == nil then
+    return result, "", 0, 0
   end
 
-  if signature.parameters == nil then
-    return result, ""
-  end
   -- no arguments or only 1 arguments, the active arguments will not shown
   -- disable return as it is useful for virtual hint
   -- maybe use a flag?
@@ -56,7 +87,7 @@ helper.match_parameter = function(result)
   local nextParameter = signature.parameters[activeParameter + 1]
 
   if nextParameter == nil then
-    return result, ""
+    return result, "", 0, 0
   end
   -- local dec_pre = _LSP_SIG_CFG.decorator[1]
   -- local dec_after = _LSP_SIG_CFG.decorator[2]
@@ -68,12 +99,13 @@ helper.match_parameter = function(result)
     nexp = label:sub(range[1] + 1, range[2])
     -- label = label:sub(1, range[1]) .. dec_pre .. label:sub(range[1] + 1, range[2]) .. dec_after
     --             .. label:sub(range[2] + 1, #label + 1)
-    s = range[1]
-    l = range[2]
+    s = range[1] + 1
+    e = range[2]
     signature.label = label
   else
     if type(nextParameter.label) == "string" then -- label = 'par1 int'
-      local i, j = label:find(nextParameter.label, 1, true)
+      local i, j = findwholeword(label, nextParameter.label)
+      -- local i, j = label:find(nextParameter.label, 1, true)
       if i ~= nil then
         -- label = label:sub(1, i - 1) .. dec_pre .. label:sub(i, j) .. dec_after
         --             .. label:sub(j + 1, #label + 1)

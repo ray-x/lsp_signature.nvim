@@ -102,7 +102,7 @@ end
 -- --  signature help  --
 -- ----------------------
 local function signature_handler(err, method, result, client_id, bufnr, config)
-  -- log("sig result", result, config)
+  log("sig result", result, config)
   if err ~= nil then
     print(err)
   end
@@ -119,7 +119,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     log("no result?", result)
     return
   end
-  local _, hint, s, l = match_parameter(result)
+  local _, hint, s, l = match_parameter(result, config)
   if _LSP_SIG_CFG.floating_window == true then
 
     local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
@@ -172,7 +172,9 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     -- vim.fn.matchaddpos("Error", {{2, 2, 10}})
     local ns = vim.api.nvim_create_namespace('lspsignature')
     local hi = _LSP_SIG_CFG.hi_parameter
-    vim.api.nvim_buf_set_extmark(bufnr, ns, 0, s - 1, {end_line = 0, end_col = l, hl_group = hi})
+    if s and l then
+      vim.api.nvim_buf_set_extmark(bufnr, ns, 0, s - 1, {end_line = 0, end_col = l, hl_group = hi})
+    end
 
   end
 
@@ -214,9 +216,15 @@ local signature = function()
       hover_cap = true
     end
 
-    if value.server_capabilities.signatureHelpProvider ~= nil
-        and value.server_capabilities.signatureHelpProvider.triggerCharacters ~= nil then
-      triggered_chars = value.server_capabilities.signatureHelpProvider.triggerCharacters
+    if value.server_capabilities.signatureHelpProvider ~= nil then
+      if value.server_capabilities.signatureHelpProvider.triggerCharacters ~= nil then
+        vim.list_extend(triggered_chars,
+                        value.server_capabilities.signatureHelpProvider.triggerCharacters)
+      end
+      if value.server_capabilities.signatureHelpProvider.retriggerCharacters ~= nil then
+        vim.list_extend(triggered_chars,
+                        value.server_capabilities.signatureHelpProvider.retriggerCharacters)
+      end
     elseif value.resolved_capabilities ~= nil
         and value.resolved_capabilities.signature_help_trigger_characters ~= nil then
       triggered_chars = value.server_capabilities.signature_help_trigger_characters
@@ -256,7 +264,8 @@ local signature = function()
                         vim.lsp.with(vim.lsp.handlers["textDocument/signatureHelp"] or signature_handler, {
                           check_pumvisible = true,
                           check_client_handlers = true,
-                          trigger_from_lsp_sig = true
+                          trigger_from_lsp_sig = true,
+                          triggered_chars = triggered_chars
                         }))
     -- LuaFormatter on
   end
