@@ -137,14 +137,18 @@ Q: I can not see border after enable border = "single"
 
 A: Try another colorscheme (e.g. colorscheme aurora, or colorscheme luna). If issue persists, please submit an issue
 
+
 Q: It is not working
 
 A: Here is some trouble shooting: https://github.com/ray-x/lsp_signature.nvim/issues/1
+
 
 Q:I do not like the pop window background highlight, how to change it?
 
 A: Reredefine your `NormalFloat` esp if your colorscheme dose not define it.
 
+
 Q: Change parameter highlight
+
 A: By default, the highlight is using "Search" defined in your colorscheme, you can either override "Search" or
 define, e.g. use `IncSearch`  on_attach({ hi_parameter = "IncSearch"})
