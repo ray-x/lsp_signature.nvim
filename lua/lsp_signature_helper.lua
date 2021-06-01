@@ -5,7 +5,6 @@ local log = function(...)
   -- print(_LSP_SIG_CFG.log_path)
   local log_path = _LSP_SIG_CFG.log_path or nil
   if _LSP_SIG_CFG.debug == true then
-    print("debug")
     local str = "שׁ "
     for i, v in ipairs(arg) do
       if type(v) == "table" then
