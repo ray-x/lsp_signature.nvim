@@ -59,7 +59,7 @@ helper.match_parameter = function(result, config)
   local signatures = result.signatures
 
   if #signatures == 0 then -- no parameter
-    return result, ""
+    return result, "", 1, 1
   end
 
   local signature = signatures[1]
@@ -74,7 +74,7 @@ helper.match_parameter = function(result, config)
     activeParameter = helper.fallback(config.triggered_chars)
   end
   if signature.parameters == nil then
-    return result, "", 0, 0
+    return result, "", 1, 1
   end
 
   -- no arguments or only 1 arguments, the active arguments will not shown
@@ -87,7 +87,7 @@ helper.match_parameter = function(result, config)
   local nextParameter = signature.parameters[activeParameter + 1]
 
   if nextParameter == nil then
-    return result, "", 0, 0
+    return result, "", 1, 1
   end
   -- local dec_pre = _LSP_SIG_CFG.decorator[1]
   -- local dec_after = _LSP_SIG_CFG.decorator[2]

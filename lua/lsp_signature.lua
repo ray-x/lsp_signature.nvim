@@ -17,7 +17,9 @@ local manager = {
 _LSP_SIG_CFG = {
   bind = true, -- This is mandatory, otherwise border config won't get registered.
   -- if you want to use lspsaga, please set it to false
-  doc_lines = 6, -- how many lines to show in doc, set to 0 if you only want the signature
+  doc_lines = 10, -- how many lines to show in doc, set to 0 if you only want the signature
+  max_height = 12, -- max height of signature floating_window
+  max_width = 120, -- max_width of signature floating_window
 
   floating_window = true, -- show hint in a floating window
   hint_enable = true, -- virtual hint
@@ -169,6 +171,13 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     local id = string.format("%d", rand)
 
     local syntax = vim.lsp.util.try_trim_markdown_code_blocks(lines)
+
+    config.max_height = math.max(_LSP_SIG_CFG.max_height, 1)
+    if config.max_height <= 3 then
+      config.separator = false
+    end
+    config.max_width = math.max(_LSP_SIG_CFG.max_width, 60)
+
     config.focus_id = method .. "lsp_signature" .. id
     config.stylize_markdown = true
     if config.border == "double" then
@@ -182,8 +191,10 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     -- vim.fn.matchaddpos("Error", {{2, 2, 10}})
     local ns = vim.api.nvim_create_namespace('lspsignature')
     local hi = _LSP_SIG_CFG.hi_parameter
-    if s and l then
+    if s and l and s > 0 then
       vim.api.nvim_buf_set_extmark(fbufnr, ns, 0, s - 1, {end_line = 0, end_col = l, hl_group = hi})
+    else
+      print("failed get highlight parameter", s, l)
     end
 
   end
