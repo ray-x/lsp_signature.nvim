@@ -26,9 +26,10 @@ _LSP_SIG_CFG = {
   hi_parameter = "Search",
   handler_opts = {border = "single"},
   use_lspsaga = false,
-  debug = false,
-  decorator = {"`", "`"} -- set to nil if using guihua.lua
+  debug = false
+  -- decorator = {"`", "`"} -- set to nil if using guihua.lua
 }
+
 local double = {"╔", "═", "╗", "║", "╝", "═", "╚", "║"}
 local single = {"╭", "─", "╮", "│", "╯", "─", "╰", "│"}
 local log = helper.log
@@ -121,10 +122,19 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
   end
   local _, hint, s, l = match_parameter(result, config)
   if _LSP_SIG_CFG.floating_window == true then
-
     local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
     local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
-    -- log(lines)
+
+    local offset = 3
+    if #result.signatures > 1 and result.activeSignature ~= nil then
+      for index, sig in ipairs(result.signatures) do
+        if index ~= result.activeSignature + 1 then
+          table.insert(lines, offset, sig.label)
+          offset = offset + 1
+        end
+      end
+    end
+    log(lines)
     local doc_num = 3 + _LSP_SIG_CFG.doc_lines
     if doc_num < 3 then
       doc_num = 3
@@ -133,9 +143,9 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       -- truncate the doc?
       if #lines > doc_num + 1 then
         if doc_num == 0 then
-          lines = vim.list_slice(lines, 1, 3)
+          lines = vim.list_slice(lines, 1, offset + 1)
         else
-          lines = vim.list_slice(lines, 1, doc_num + 1)
+          lines = vim.list_slice(lines, 1, doc_num + offset + 1)
         end
       end
     end
