@@ -116,10 +116,8 @@ Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
   handler_opts = {
     border = "shadow"   -- double, single, shadow, none
   },
-  -- deprecate
-  -- decorator = {"`", "`"}  -- decoractor can be `decorator = {"***", "***"}`  `decorator = {"**", "**"}` `decorator = {"**_", "_**"}`
-                          -- `decorator = {"*", "*"} see markdown help for more details
-                          -- <u></u> ~ ~ does not supported by nvim
+  -- deprecate !!
+  -- decorator = {"`", "`"}  -- this is no longer needed as nvim give me a handler and it allow me to highlight active parameter in floating_window
 
 }
 
@@ -130,25 +128,31 @@ If you are using [navigator.lua](https://github.com/ray-x/navigator.lua), it wil
 
 ### Q&A:
 
-The default colorscheme in screenshot:
-[aurora](https://github.com/ray-x/aurora)
+Q: What is the default colorscheme in screenshot:
+
+A: [aurora](https://github.com/ray-x/aurora)
+
 
 Q: I can not see border after enable border = "single"
 
 A: Try another colorscheme (e.g. colorscheme aurora, or colorscheme luna). If issue persists, please submit an issue
 
 
-Q: It is not working
+Q: It is not working 😡
 
 A: Here is some trouble shooting: https://github.com/ray-x/lsp_signature.nvim/issues/1
 
 
 Q:I do not like the pop window background highlight, how to change it?
 
-A: Reredefine your `NormalFloat` esp if your colorscheme dose not define it.
+A: Redefine your `NormalFloat` esp if your colorscheme dose not define it.
 
 
-Q: Change parameter highlight
+Q: How to change parameter highlight
 
 A: By default, the highlight is using "Search" defined in your colorscheme, you can either override "Search" or
 define, e.g. use `IncSearch`  on_attach({ hi_parameter = "IncSearch"})
+
+Q: I can not see 🐼 in virtual text
+
+A: It is emoji, not nerdfont. Please check how to enable emoji for your terminal.
