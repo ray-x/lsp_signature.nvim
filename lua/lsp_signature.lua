@@ -28,7 +28,8 @@ _LSP_SIG_CFG = {
   hi_parameter = "Search",
   handler_opts = {border = "single"},
   use_lspsaga = false,
-  debug = false
+  debug = false,
+  extra_trigger_chars = {}
   -- decorator = {"`", "`"} -- set to nil if using guihua.lua
 }
 
@@ -245,6 +246,9 @@ local signature = function()
       if value.server_capabilities.signatureHelpProvider.retriggerCharacters ~= nil then
         vim.list_extend(triggered_chars,
                         value.server_capabilities.signatureHelpProvider.retriggerCharacters)
+      end
+      if _LSP_SIG_CFG.extra_trigger_chars ~= nil then
+        vim.list_extend(triggered_chars, _LSP_SIG_CFG.extra_trigger_chars)
       end
     elseif value.resolved_capabilities ~= nil
         and value.resolved_capabilities.signature_help_trigger_characters ~= nil then
