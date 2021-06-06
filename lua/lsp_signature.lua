@@ -29,7 +29,7 @@ _LSP_SIG_CFG = {
   handler_opts = {border = "single"},
   use_lspsaga = false,
   debug = false,
-  extra_trigger_chars = {}
+  extra_trigger_chars = {} -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- decorator = {"`", "`"} -- set to nil if using guihua.lua
 }
 
