@@ -27,7 +27,12 @@ local log = function(...)
 end
 helper.log = log
 
+
 local function findwholeword(input, word)
+  local as_loc = word:find("%*")
+  if as_loc then
+    word = word:sub(1, as_loc - 1) .. "%*" .. word:sub(as_loc + 1, -1)
+  end
   return string.find(input, "%f[%a]" .. word .. "%f[%A]")
 end
 
