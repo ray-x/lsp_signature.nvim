@@ -132,6 +132,7 @@ Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
   handler_opts = {
     border = "shadow"   -- double, single, shadow, none
   },
+  extra_trigger_chars = {} -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- deprecate !!
   -- decorator = {"`", "`"}  -- this is no longer needed as nvim give me a handler and it allow me to highlight active parameter in floating_window
 
