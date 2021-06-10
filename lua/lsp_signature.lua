@@ -124,7 +124,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     return
   end
   local _, hint, s, l = match_parameter(result, config)
-  if _LSP_SIG_CFG.floating_window == true then
+  if _LSP_SIG_CFG.floating_window == true or not config.trigger_from_lsp_sig then
     local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
     local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
 
