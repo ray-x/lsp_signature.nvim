@@ -53,7 +53,6 @@ helper.fallback = function(trigger_chars)
       if c == "(" then
         return activeParameter
       end
-
       activeParameter = activeParameter + 1
     end
   end
@@ -143,6 +142,18 @@ helper.check_trigger_char = function(line_to_cursor, trigger_character)
         return true
       end
     end
+  end
+  return false
+end
+
+helper.check_closer_char = function(line_to_cursor, trigger_chars)
+  if trigger_chars == nil then
+    return false
+  end
+
+  local current_char = string.sub(line_to_cursor, #line_to_cursor, #line_to_cursor)
+  if current_char == ")" and vim.tbl_contains(trigger_chars, "(") then
+    return true
   end
   return false
 end

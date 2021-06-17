@@ -140,8 +140,7 @@ Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
 
 require'lsp_signature'.on_attach(cfg)
 ```
-
-If you are using [navigator.lua](https://github.com/ray-x/navigator.lua), it will hook lsp_signature for you.
+Note: navigator.lua no longer support auto setup for lsp_signature as the setup options is getting more complicated now
 
 ### Q&A:
 
