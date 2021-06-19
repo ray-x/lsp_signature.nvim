@@ -16,7 +16,8 @@ Note: decorator = {"\`", "\`"} setup is deprecate
 
 ##### Golang with markdown
 Highlight with "Search"
-![signature2](https://user-images.githubusercontent.com/1681295/120245954-2d9a8280-c2b2-11eb-9fe9-f32f64a13512.gif)
+https://user-images.githubusercontent.com/1681295/122633027-a7879400-d119-11eb-95ff-d06e6aeeb0b2.mov
+
 ##### Lua
 ![lua](https://user-images.githubusercontent.com/1681295/109505092-5b73fd80-7af0-11eb-9ec7-15b297c6e3be.png?raw=true "lua")
 

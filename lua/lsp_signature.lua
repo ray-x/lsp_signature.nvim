@@ -205,21 +205,18 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     end
     config.offset_x = woff
 
-    -- local r = vim.api.nvim_win_get_cursor(0)
-    -- local line = api.nvim_get_current_line()
-    -- local line_to_cursor = line:sub(1, r[2])
-    -- local llen = #line_to_cursor
-
     config.close_events = {'BufHidden', 'InsertLeavePre'}
-    -- if not config.trigger_from_lsp_sig then
-    --   config.close_events = close_events
-    -- end
+    if not _LSP_SIG_CFG.fix_pos then
+      config.close_events = close_events
+    end
+    if not config.trigger_from_lsp_sig then
+      config.close_events = close_events
+    end
 
     -- fix pos case
     if _LSP_SIG_CFG.fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
       if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
         -- check last parameter and update hilight
-        log("clear buf hi markid", _LSP_SIG_CFG.markid)
         if _LSP_SIG_CFG.ns then
           log("bufnr, ns", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns)
           api.nvim_buf_clear_namespace(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, -1)
@@ -227,6 +224,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
         _LSP_SIG_CFG.markid = nil
         _LSP_SIG_CFG.ns = nil
       else
+        log("sig_cfg bufnr, winnr not valid", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr)
         -- vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
         _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax,
                                                                                     config)
@@ -237,9 +235,15 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
                                                                                   config)
     end
     local sig = result.signatures
-    if sig and sig[1].parameters == nil or sig[1].activeParameter == nil or sig[1].activeParameter
+    -- log("sig", result)
+    -- if it is last parameter, close windows after cursor moved
+    if sig and sig[1].parameters == nil or result.activeParameter == nil or result.activeParameter
         + 1 == #sig[1].parameters then
+      log("last para", close_events)
       vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
+      -- elseif _LSP_SIG_CFG.fix_pos then
+      --   log("should not close")
+      --   -- vim.lsp.util.close_preview_autocmd(ce, _LSP_SIG_CFG.winnr)
     end
     -- Not sure why this not working
     -- api.nvim_command("autocmd User SigComplete".." <buffer> ++once lua pcall(vim.api.nvim_win_close, "..winnr..", true)")
@@ -255,7 +259,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
 
   end
 
-  if _LSP_SIG_CFG.hint_enable == true then
+  if _LSP_SIG_CFG.hint_enable == true and config.trigger_from_lsp_sig then
     virtual_hint(hint)
   end
 end
