@@ -23,8 +23,8 @@ https://user-images.githubusercontent.com/1681295/122633027-a7879400-d119-11eb-9
 ![lua](https://user-images.githubusercontent.com/1681295/109505092-5b73fd80-7af0-11eb-9ec7-15b297c6e3be.png?raw=true "lua")
 
 #### The plugin also re-write the builtin lsp signature allow the parameter highlight
+<img width="1230" alt="signature_with_virtual_hint" src="https://user-images.githubusercontent.com/1681295/122689853-11628380-d269-11eb-994f-65974fb1312d.png">
 
-![show_signature](https://github.com/ray-x/files/blob/master/img/navigator/show_signnature.gif?raw=true "show_signature")
 
 #### Using virtual text to show the next parameter
 
@@ -89,7 +89,7 @@ local golang_setup = {
 ### Floating window borders
 
 If you have a recent enough build of Neovim, you can configure borders in the signature help
-floating window:
+floating window(Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR):
 
 ```lua
 local example_setup = {
@@ -107,8 +107,6 @@ local example_setup = {
 }
 ```
 
-Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
-![lsp_signature_border](https://github.com/ray-x/files/blob/master/img/signature/signature_boarder.jpg?raw=true "signature")
 
 ### Full configuration
 
