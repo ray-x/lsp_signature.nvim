@@ -121,6 +121,7 @@ local example_setup = {
                  -- mode, 10 by default
 
   floating_window = true, -- show hint in a floating window, set to false for virtual text only mode
+  fix_pos = false,  -- set to true, the floating window will not auto-close until finish all parameters
   hint_enable = true, -- virtual hint enable
   hint_prefix = "🐼 ",  -- Panda for parameter
   hint_scheme = "String",
