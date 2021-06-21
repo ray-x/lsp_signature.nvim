@@ -212,7 +212,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     if not config.trigger_from_lsp_sig then
       config.close_events = close_events
     end
-
+    config.zindex = 1000 -- TODO: does it work?
     -- fix pos case
     if _LSP_SIG_CFG.fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
       if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
