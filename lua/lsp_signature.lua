@@ -22,7 +22,7 @@ _LSP_SIG_CFG = {
   max_width = 120, -- max_width of signature floating_window
 
   floating_window = true, -- show hint in a floating window
-  fix_pos = false, -- fix floating_window position
+  fix_pos = true, -- fix floating_window position
   hint_enable = true, -- virtual hint
   hint_prefix = "🐼 ",
   hint_scheme = "String",
