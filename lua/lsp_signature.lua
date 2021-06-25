@@ -312,6 +312,9 @@ local signature = function()
     elseif value.resolved_capabilities ~= nil
         and value.resolved_capabilities.signature_help_trigger_characters ~= nil then
       triggered_chars = value.server_capabilities.signature_help_trigger_characters
+    elseif value.resolved_capabilities and value.resolved_capabilities.signatureHelpProvider
+        and value.resolved_capabilities.signatureHelpProvider.triggerCharacters then
+      triggered_chars = value.server_capabilities.signatureHelpProvider.triggerCharacters
     end
     if triggered == false then
       triggered = check_trigger_char(line_to_cursor, triggered_chars)
