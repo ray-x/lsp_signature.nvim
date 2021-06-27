@@ -136,6 +136,10 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
     local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
 
+    if lines == nil then
+        return
+    end
+
     local offset = 3
     if #result.signatures > 1 and result.activeSignature ~= nil then
       for index, sig in ipairs(result.signatures) do
@@ -164,11 +168,13 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     end
     if vim.fn.mode() == 'i' or vim.fn.mode() == 'ic' then
       -- truncate the doc?
-      if #lines > doc_num + 1 then
-        if doc_num == 0 then
-          lines = vim.list_slice(lines, 1, offset + 1)
-        else
-          lines = vim.list_slice(lines, 1, doc_num + offset + 1)
+      if lines ~= nil then
+        if #lines > doc_num + 1 then
+          if doc_num == 0 then
+            lines = vim.list_slice(lines, 1, offset + 1)
+          else
+            lines = vim.list_slice(lines, 1, doc_num + offset + 1)
+          end
         end
       end
     end
