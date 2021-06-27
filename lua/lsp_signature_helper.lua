@@ -28,7 +28,17 @@ end
 helper.log = log
 
 local function findwholeword(input, word)
-  return string.find(input, "%f[%a]" .. word .. "%f[%A]")
+  local as_loc = word:find("%*")
+  if as_loc then
+    word = word:sub(1, as_loc - 1) .. "%*" .. word:sub(as_loc + 1, -1)
+  end
+  l, e = string.find(input, "%f[%a]" .. word .. "%f[%A]")
+
+  if l == nil then
+    -- fall back it %f[%a] fail for int32 etc
+    return string.find(input, word)
+  end
+  return l, e
 end
 
 helper.fallback = function(trigger_chars)
@@ -48,7 +58,6 @@ helper.fallback = function(trigger_chars)
       if c == "(" then
         return activeParameter
       end
-
       activeParameter = activeParameter + 1
     end
   end
@@ -59,22 +68,22 @@ helper.match_parameter = function(result, config)
   local signatures = result.signatures
 
   if #signatures == 0 then -- no parameter
-    return result, "", 1, 1
+    log("no sig")
+    return result, "", 0, 0
   end
 
   local signature = signatures[1]
 
-  local activeParameter = result.activeParameter
-  if result.activeParameter == nil then
-    activeParameter = signature.activeParameter
-  end
+  local activeParameter = result.activeParameter or signature.active_parameter
+                              or signature.activeParameter
 
   if activeParameter == nil or activeParameter < 0 then
     log("incorrect signature response?", result, config)
     activeParameter = helper.fallback(config.triggered_chars)
   end
   if signature.parameters == nil then
-    return result, "", 1, 1
+    log("incorrect signature response?", result)
+    return result, "", 0, 0
   end
 
   -- no arguments or only 1 arguments, the active arguments will not shown
@@ -87,7 +96,8 @@ helper.match_parameter = function(result, config)
   local nextParameter = signature.parameters[activeParameter + 1]
 
   if nextParameter == nil then
-    return result, "", 1, 1
+    log("no next param")
+    return result, "", 0, 0
   end
   -- local dec_pre = _LSP_SIG_CFG.decorator[1]
   -- local dec_after = _LSP_SIG_CFG.decorator[2]
@@ -102,8 +112,11 @@ helper.match_parameter = function(result, config)
     s = range[1] + 1
     e = range[2]
     signature.label = label
+    -- log("range s, e", s, e)
   else
     if type(nextParameter.label) == "string" then -- label = 'par1 int'
+      -- log("range str ", label, nextParameter.label)
+
       local i, j = findwholeword(label, nextParameter.label)
       -- local i, j = label:find(nextParameter.label, 1, true)
       if i ~= nil then
@@ -114,12 +127,14 @@ helper.match_parameter = function(result, config)
       nexp = nextParameter.label
       s = i
       e = j
+    else
+      log("incorrect label type", type(nextParameter.label))
     end
   end
 
   -- test markdown hl
   -- signature.label = "```lua\n"..signature.label.."\n```"
-  -- log("match:", result, nexp)
+  -- log("match:", result, nexp, s, e)
   return result, nexp, s, e
 end
 
@@ -138,6 +153,18 @@ helper.check_trigger_char = function(line_to_cursor, trigger_character)
         return true
       end
     end
+  end
+  return false
+end
+
+helper.check_closer_char = function(line_to_cursor, trigger_chars)
+  if trigger_chars == nil then
+    return false
+  end
+
+  local current_char = string.sub(line_to_cursor, #line_to_cursor, #line_to_cursor)
+  if current_char == ")" and vim.tbl_contains(trigger_chars, "(") then
+    return true
   end
   return false
 end

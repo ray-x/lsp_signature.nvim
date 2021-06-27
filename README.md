@@ -16,13 +16,15 @@ Note: decorator = {"\`", "\`"} setup is deprecate
 
 ##### Golang with markdown
 Highlight with "Search"
-![signature2](https://user-images.githubusercontent.com/1681295/120245954-2d9a8280-c2b2-11eb-9fe9-f32f64a13512.gif)
+
+https://user-images.githubusercontent.com/1681295/122633027-a7879400-d119-11eb-95ff-d06e6aeeb0b2.mov
+
 ##### Lua
 ![lua](https://user-images.githubusercontent.com/1681295/109505092-5b73fd80-7af0-11eb-9ec7-15b297c6e3be.png?raw=true "lua")
 
 #### The plugin also re-write the builtin lsp signature allow the parameter highlight
+<img width="1230" alt="signature_with_virtual_hint" src="https://user-images.githubusercontent.com/1681295/122689853-11628380-d269-11eb-994f-65974fb1312d.png">
 
-![show_signature](https://github.com/ray-x/files/blob/master/img/navigator/show_signnature.gif?raw=true "show_signature")
 
 #### Using virtual text to show the next parameter
 
@@ -87,7 +89,7 @@ local golang_setup = {
 ### Floating window borders
 
 If you have a recent enough build of Neovim, you can configure borders in the signature help
-floating window:
+floating window(Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR):
 
 ```lua
 local example_setup = {
@@ -105,8 +107,6 @@ local example_setup = {
 }
 ```
 
-Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
-![lsp_signature_border](https://github.com/ray-x/files/blob/master/img/signature/signature_boarder.jpg?raw=true "signature")
 
 ### Full configuration
 
@@ -121,6 +121,7 @@ Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
                  -- mode, 10 by default
 
   floating_window = true, -- show hint in a floating window, set to false for virtual text only mode
+  fix_pos = false,  -- set to true, the floating window will not auto-close until finish all parameters
   hint_enable = true, -- virtual hint enable
   hint_prefix = "🐼 ",  -- Panda for parameter
   hint_scheme = "String",
@@ -140,8 +141,7 @@ Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the PR
 
 require'lsp_signature'.on_attach(cfg)
 ```
-
-If you are using [navigator.lua](https://github.com/ray-x/navigator.lua), it will hook lsp_signature for you.
+Note: navigator.lua no longer support auto setup for lsp_signature as the setup options is getting more complicated now
 
 ### Q&A:
 

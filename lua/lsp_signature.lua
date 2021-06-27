@@ -3,9 +3,9 @@ local api = vim.api
 local M = {}
 _VT_NS = api.nvim_create_namespace("lsp_signature")
 local helper = require "lsp_signature_helper"
-
 local match_parameter = helper.match_parameter
 local check_trigger_char = helper.check_trigger_char
+local check_closer_char = helper.check_closer_char
 
 local manager = {
   insertChar = false, -- flag for InsertCharPre event, turn off imediately when performing completion
@@ -22,6 +22,7 @@ _LSP_SIG_CFG = {
   max_width = 120, -- max_width of signature floating_window
 
   floating_window = true, -- show hint in a floating window
+  fix_pos = true, -- fix floating_window position
   hint_enable = true, -- virtual hint
   hint_prefix = "🐼 ",
   hint_scheme = "String",
@@ -35,6 +36,7 @@ _LSP_SIG_CFG = {
 
 local double = {"╔", "═", "╗", "║", "╝", "═", "╚", "║"}
 local single = {"╭", "─", "╮", "│", "╯", "─", "╰", "│"}
+
 local log = helper.log
 
 function manager.init()
@@ -102,6 +104,8 @@ local function virtual_hint(hint)
   end
 end
 
+local close_events = {"CursorMoved", "CursorMovedI", "BufHidden", "InsertCharPre"}
+
 -- ----------------------
 -- --  signature help  --
 -- ----------------------
@@ -124,7 +128,11 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     return
   end
   local _, hint, s, l = match_parameter(result, config)
-  if _LSP_SIG_CFG.floating_window == true then
+  local force_redraw = false
+  if #result.signatures > 1 then
+    force_redraw = true
+  end
+  if _LSP_SIG_CFG.floating_window == true or not config.trigger_from_lsp_sig then
     local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
     local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
 
@@ -141,7 +149,19 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
         end
       end
     end
-    log(lines)
+    local label = result.signatures[1].label
+    -- log("label:", label, result.activeSignature, result.activeParameter,
+    --    #result.signatures[1].parameters)
+    local woff
+    if config.triggered_chars and vim.tbl_contains(config.triggered_chars, '(') then
+      woff = label:find('(', 1, true)
+      if woff then
+        woff = -woff
+      else
+        woff = -3
+      end
+    end
+
     local doc_num = 3 + _LSP_SIG_CFG.doc_lines
     if doc_num < 3 then
       doc_num = 3
@@ -193,20 +213,66 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     if config.border == "single" then
       config.border = single
     end
-    -- log(config)
-    local fbufnr, winnr = vim.lsp.util.open_floating_preview(lines, syntax, config)
-    -- vim.fn.matchaddpos("Error", {{2, 2, 10}})
-    local ns = vim.api.nvim_create_namespace('lspsignature')
+    config.offset_x = woff
+
+    config.close_events = {'BufHidden', 'InsertLeavePre'}
+    if not _LSP_SIG_CFG.fix_pos then
+      config.close_events = close_events
+    end
+    if not config.trigger_from_lsp_sig then
+      config.close_events = close_events
+    end
+    if force_redraw then
+      config.close_events = close_events
+    end
+    config.zindex = 1000 -- TODO: does it work?
+    -- fix pos case
+    if _LSP_SIG_CFG.fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
+      if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
+        -- check last parameter and update hilight
+        if _LSP_SIG_CFG.ns then
+          log("bufnr, ns", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns)
+          api.nvim_buf_clear_namespace(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, -1)
+        end
+        _LSP_SIG_CFG.markid = nil
+        _LSP_SIG_CFG.ns = nil
+      else
+        log("sig_cfg bufnr, winnr not valid", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr)
+        -- vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
+        _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax,
+                                                                                    config)
+
+      end
+    else
+      _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax,
+                                                                                  config)
+    end
+    local sig = result.signatures
+    -- log("sig", result)
+    -- if it is last parameter, close windows after cursor moved
+    if sig and sig[1].parameters == nil or result.activeParameter == nil or result.activeParameter
+        + 1 == #sig[1].parameters then
+      log("last para", close_events)
+      vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
+      -- elseif _LSP_SIG_CFG.fix_pos then
+      --   log("should not close")
+      --   -- vim.lsp.util.close_preview_autocmd(ce, _LSP_SIG_CFG.winnr)
+    end
+    -- Not sure why this not working
+    -- api.nvim_command("autocmd User SigComplete".." <buffer> ++once lua pcall(vim.api.nvim_win_close, "..winnr..", true)")
+    _LSP_SIG_CFG.ns = vim.api.nvim_create_namespace('lsp_signature_hi_parameter')
     local hi = _LSP_SIG_CFG.hi_parameter
     if s and l and s > 0 then
-      vim.api.nvim_buf_set_extmark(fbufnr, ns, 0, s - 1, {end_line = 0, end_col = l, hl_group = hi})
+      _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0,
+                                                         s - 1,
+                                                         {end_line = 0, end_col = l, hl_group = hi})
     else
       print("failed get highlight parameter", s, l)
     end
 
   end
 
-  if _LSP_SIG_CFG.hint_enable == true then
+  if _LSP_SIG_CFG.hint_enable == true and config.trigger_from_lsp_sig then
     virtual_hint(hint)
   end
 end
@@ -224,8 +290,9 @@ local signature = function()
   local signature_cap = false
   local hover_cap = false
 
-  local triggered_chars = {}
   local total_lsp = 0
+
+  local triggered_chars = {}
   for _, value in pairs(clients) do
     if value == nil then
       goto continue
@@ -246,8 +313,7 @@ local signature = function()
 
     if value.server_capabilities.signatureHelpProvider ~= nil then
       if value.server_capabilities.signatureHelpProvider.triggerCharacters ~= nil then
-        vim.list_extend(triggered_chars,
-                        value.server_capabilities.signatureHelpProvider.triggerCharacters)
+        triggered_chars = value.server_capabilities.signatureHelpProvider.triggerCharacters
       end
       if value.server_capabilities.signatureHelpProvider.retriggerCharacters ~= nil then
         vim.list_extend(triggered_chars,
@@ -259,6 +325,9 @@ local signature = function()
     elseif value.resolved_capabilities ~= nil
         and value.resolved_capabilities.signature_help_trigger_characters ~= nil then
       triggered_chars = value.server_capabilities.signature_help_trigger_characters
+    elseif value.resolved_capabilities and value.resolved_capabilities.signatureHelpProvider
+        and value.resolved_capabilities.signatureHelpProvider.triggerCharacters then
+      triggered_chars = value.server_capabilities.signatureHelpProvider.triggerCharacters
     end
     if triggered == false then
       triggered = check_trigger_char(line_to_cursor, triggered_chars)
@@ -296,9 +365,18 @@ local signature = function()
                           check_pumvisible = true,
                           check_client_handlers = true,
                           trigger_from_lsp_sig = true,
+                          line_to_cursor = line_to_cursor,
                           triggered_chars = triggered_chars
                         }))
     -- LuaFormatter on
+  else
+    -- check if we should close the signature
+    if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0
+        and check_closer_char(line_to_cursor, trigger_chars) then
+      vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
+      _LSP_SIG_CFG.winnr = nil
+      _LSP_SIG_CFG.startx = nil
+    end
   end
 end
 
