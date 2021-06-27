@@ -69,7 +69,7 @@ helper.match_parameter = function(result, config)
 
   if #signatures == 0 then -- no parameter
     log("no sig")
-    return result, "", 1, 1
+    return result, "", 0, 0
   end
 
   local signature = signatures[1]
@@ -83,7 +83,7 @@ helper.match_parameter = function(result, config)
   end
   if signature.parameters == nil then
     log("incorrect signature response?", result)
-    return result, "", 1, 1
+    return result, "", 0, 0
   end
 
   -- no arguments or only 1 arguments, the active arguments will not shown
@@ -97,7 +97,7 @@ helper.match_parameter = function(result, config)
 
   if nextParameter == nil then
     log("no next param")
-    return result, "", 1, 1
+    return result, "", 0, 0
   end
   -- local dec_pre = _LSP_SIG_CFG.decorator[1]
   -- local dec_after = _LSP_SIG_CFG.decorator[2]

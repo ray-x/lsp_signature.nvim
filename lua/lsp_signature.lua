@@ -110,7 +110,7 @@ local close_events = {"CursorMoved", "CursorMovedI", "BufHidden", "InsertCharPre
 -- --  signature help  --
 -- ----------------------
 local function signature_handler(err, method, result, client_id, bufnr, config)
-  -- log("sig result", result, config)
+  log("sig result", result, config)
   if err ~= nil then
     print(err)
   end
@@ -128,6 +128,10 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     return
   end
   local _, hint, s, l = match_parameter(result, config)
+  local force_redraw = false
+  if #result.signatures > 1 then
+    force_redraw = true
+  end
   if _LSP_SIG_CFG.floating_window == true or not config.trigger_from_lsp_sig then
     local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
     local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
@@ -210,6 +214,9 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       config.close_events = close_events
     end
     if not config.trigger_from_lsp_sig then
+      config.close_events = close_events
+    end
+    if force_redraw then
       config.close_events = close_events
     end
     config.zindex = 1000 -- TODO: does it work?
