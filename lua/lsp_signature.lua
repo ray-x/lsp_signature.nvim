@@ -110,9 +110,10 @@ local close_events = {"CursorMoved", "CursorMovedI", "BufHidden", "InsertCharPre
 -- --  signature help  --
 -- ----------------------
 local function signature_handler(err, method, result, client_id, bufnr, config)
-  log("sig result", result, config)
+  -- log("sig result", result, config)
   if err ~= nil then
     print(err)
+    return
   end
   if config.check_client_handlers then
     local client = vim.lsp.get_client_by_id(client_id)
@@ -136,8 +137,9 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
     local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
 
-    if lines == nil then
-        return
+    if lines == nil or type(lines) ~= "table" then
+      log("incorrect result", result)
+      return
     end
 
     local offset = 3
@@ -168,14 +170,8 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     end
     if vim.fn.mode() == 'i' or vim.fn.mode() == 'ic' then
       -- truncate the doc?
-      if lines ~= nil then
-        if #lines > doc_num + 1 then
-          if doc_num == 0 then
-            lines = vim.list_slice(lines, 1, offset + 1)
-          else
-            lines = vim.list_slice(lines, 1, doc_num + offset + 1)
-          end
-        end
+      if #lines > doc_num + 1 then
+        lines = vim.list_slice(lines, 1, doc_num + offset + 1)
       end
     end
 
