@@ -69,6 +69,15 @@ helper.fallback = function(trigger_chars)
   return 0
 end
 
+helper.tbl_combine = function(tbl1, tbl2)
+  for _, value in pairs(tbl2) do
+    if not vim.tbl_contains(tbl1, value) then
+      vim.list_extend(tbl1, {value})
+    end
+  end
+  return tbl1
+end
+
 helper.match_parameter = function(result, config)
   local signatures = result.signatures
 

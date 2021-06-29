@@ -3,6 +3,7 @@ local api = vim.api
 local M = {}
 _VT_NS = api.nvim_create_namespace("lsp_signature")
 local helper = require "lsp_signature_helper"
+local tbl_combine = require"lsp_signature_helper".tbl_combine
 local match_parameter = helper.match_parameter
 local check_trigger_char = helper.check_trigger_char
 local check_closer_char = helper.check_closer_char
@@ -316,14 +317,16 @@ local signature = function()
                         value.server_capabilities.signatureHelpProvider.retriggerCharacters)
       end
       if _LSP_SIG_CFG.extra_trigger_chars ~= nil then
-        vim.list_extend(triggered_chars, _LSP_SIG_CFG.extra_trigger_chars)
+        triggered_chars = tbl_combine(triggered_chars, _LSP_SIG_CFG.extra_trigger_chars)
       end
     elseif value.resolved_capabilities ~= nil
         and value.resolved_capabilities.signature_help_trigger_characters ~= nil then
-      triggered_chars = value.server_capabilities.signature_help_trigger_characters
+      triggered_chars = tbl_combine(triggered_chars,
+                                    value.server_capabilities.signature_help_trigger_characters)
     elseif value.resolved_capabilities and value.resolved_capabilities.signatureHelpProvider
         and value.resolved_capabilities.signatureHelpProvider.triggerCharacters then
-      triggered_chars = value.server_capabilities.signatureHelpProvider.triggerCharacters
+      triggered_chars = tbl_combine(triggered_chars, value.server_capabilities.signatureHelpProvider
+                                        .triggerCharacters)
     end
     if triggered == false then
       triggered = check_trigger_char(line_to_cursor, triggered_chars)
