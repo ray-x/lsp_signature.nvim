@@ -111,7 +111,7 @@ local close_events = {"CursorMoved", "CursorMovedI", "BufHidden", "InsertCharPre
 -- --  signature help  --
 -- ----------------------
 local function signature_handler(err, method, result, client_id, bufnr, config)
-  -- log("sig result", result, config)
+  log("sig result", result, config)
   if err ~= nil then
     print(err)
     return
@@ -129,11 +129,14 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     log("no result?", result)
     return
   end
+
+  local label = result.signatures[1].label
   local _, hint, s, l = match_parameter(result, config)
   local force_redraw = false
   if #result.signatures > 1 then
     force_redraw = true
   end
+
   if _LSP_SIG_CFG.floating_window == true or not config.trigger_from_lsp_sig then
     local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
     local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
@@ -143,6 +146,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       return
     end
 
+    -- offset used for multiple signatures
     local offset = 3
     if #result.signatures > 1 and result.activeSignature ~= nil then
       for index, sig in ipairs(result.signatures) do
@@ -169,6 +173,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     if doc_num < 3 then
       doc_num = 3
     end
+
     if vim.fn.mode() == 'i' or vim.fn.mode() == 'ic' then
       -- truncate the doc?
       if #lines > doc_num + 1 then
@@ -225,7 +230,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     config.zindex = 1000 -- TODO: does it work?
     -- fix pos case
     if _LSP_SIG_CFG.fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
-      if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
+      if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and _LSP_SIG_CFG.label == label then
         -- check last parameter and update hilight
         if _LSP_SIG_CFG.ns then
           log("bufnr, ns", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns)
@@ -238,14 +243,15 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
         -- vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
         _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax,
                                                                                     config)
-
+        _LSP_SIG_CFG.label = label
       end
     else
       _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax,
                                                                                   config)
+      _LSP_SIG_CFG.label = label
     end
+
     local sig = result.signatures
-    -- log("sig", result)
     -- if it is last parameter, close windows after cursor moved
     if sig and sig[1].parameters == nil or result.activeParameter == nil or result.activeParameter
         + 1 == #sig[1].parameters then
