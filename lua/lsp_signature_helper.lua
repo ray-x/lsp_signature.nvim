@@ -28,12 +28,12 @@ end
 helper.log = log
 
 local function findwholeword(input, word)
-  local special_chars = {"*", "[", "]"}
+  local special_chars = {"%", "*", "[", "]", "^", "$", "(", ")", ".",  "+", "-", "?"}
   for _, value in pairs(special_chars) do
     local fd = "%" .. value
     local as_loc = word:find(fd)
     if as_loc then
-      word = word:sub(1, as_loc - 1) .. "%*" .. word:sub(as_loc + 1, -1)
+      word = word:sub(1, as_loc - 1) .. "%" .. value .. word:sub(as_loc + 1, -1)
     end
   end
 
