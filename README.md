@@ -65,13 +65,13 @@ use {
 }
 ```
 
-And in your init.lua
+# Attach the plugin
 
-```lua
-require'lsp_signature'.on_attach()
-```
+In your init.lua
 
-Some users reported the plugin not working for packer(which has a nice lazy-loading feature). If the plugin does not work, you can attach the function in the lsp client on_attach. e.g.
+Call on_attach() when the LSP client attaches to a buffer
+
+e.g. gopls:
 
 ```lua
 local golang_setup = {
@@ -82,7 +82,18 @@ local golang_setup = {
   end,
   ...
 }
+
+require'lspconfig'.gopls.setup(golang_setup)
+
 ```
+
+
+Alternatively, each time when open a new file
+
+```vim
+autocmd BufReadPost,FileReadPost lua require "lsp_signature".on_attach()
+```
+
 
 ## Configure
 
