@@ -130,7 +130,6 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     return
   end
 
-  local label = result.signatures[1].label
   local _, hint, s, l = match_parameter(result, config)
   local force_redraw = false
   if #result.signatures > 1 then
@@ -225,6 +224,9 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       config.close_events = close_events
     end
     if force_redraw then
+      config.close_events = close_events
+    end
+    if result.signatures[1].parameters == nil or #result.signatures[1].parameters == 0 then
       config.close_events = close_events
     end
     config.zindex = 1000 -- TODO: does it work?
@@ -352,6 +354,7 @@ local signature = function()
   end
 
   if triggered then
+    log("signature triggered")
     if _LSP_SIG_CFG.use_lspsaga then
       local ok, saga = pcall(require, "lspsaga.signaturehelp")
       if ok then
@@ -396,11 +399,14 @@ function M.on_InsertLeave()
 end
 
 function M.on_InsertEnter()
+
+  log("insert enter")
   local timer = vim.loop.new_timer()
   -- setup variable
   manager.init()
-
+  log("insert enter")
   timer:start(100, 100, vim.schedule_wrap(function()
+    log("timer start")
     local l_changedTick = api.nvim_buf_get_changedtick(0)
     -- closing timer if leaving insert mode
     if l_changedTick ~= manager.changedTick then
