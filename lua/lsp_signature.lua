@@ -145,19 +145,27 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       return
     end
 
+    activeSignature = result.activeSignature or 0
+    activeSignature = activeSignature + 1
     -- offset used for multiple signatures
     local offset = 3
-    if #result.signatures > 1 and result.activeSignature ~= nil then
+    if #result.signatures > 1 then
       for index, sig in ipairs(result.signatures) do
-        if index ~= result.activeSignature + 1 then
+        if index ~= activeSignature then
           table.insert(lines, offset, sig.label)
           offset = offset + 1
         end
       end
     end
+
+    log("md lines", lines)
     local label = result.signatures[1].label
-    -- log("label:", label, result.activeSignature, result.activeParameter,
-    --    #result.signatures[1].parameters)
+    if #result.signatures > 1 then
+      label = result.signatures[activeSignature].label
+    end
+
+    log("label:", label, result.activeSignature, activeSignature, result.activeParameter,
+        #result.signatures[activeSignature].parameters)
     local woff
     if config.triggered_chars and vim.tbl_contains(config.triggered_chars, '(') then
       woff = label:find('(', 1, true)
@@ -226,9 +234,11 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     if force_redraw then
       config.close_events = close_events
     end
-    if result.signatures[1].parameters == nil or #result.signatures[1].parameters == 0 then
+    if result.signatures[activeSignature].parameters == nil
+        or #result.signatures[activeSignature].parameters == 0 then
       config.close_events = close_events
     end
+    log('win config', config)
     config.zindex = 1000 -- TODO: does it work?
     -- fix pos case
     if _LSP_SIG_CFG.fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
@@ -255,8 +265,8 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
 
     local sig = result.signatures
     -- if it is last parameter, close windows after cursor moved
-    if sig and sig[1].parameters == nil or result.activeParameter == nil or result.activeParameter
-        + 1 == #sig[1].parameters then
+    if sig and sig[activeSignature].parameters == nil or result.activeParameter == nil
+        or result.activeParameter + 1 == #sig[activeSignature].parameters then
       log("last para", close_events)
       vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
       -- elseif _LSP_SIG_CFG.fix_pos then
@@ -267,6 +277,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     -- api.nvim_command("autocmd User SigComplete".." <buffer> ++once lua pcall(vim.api.nvim_win_close, "..winnr..", true)")
     _LSP_SIG_CFG.ns = vim.api.nvim_create_namespace('lsp_signature_hi_parameter')
     local hi = _LSP_SIG_CFG.hi_parameter
+    log("extmark", s, l)
     if s and l and s > 0 then
       _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0,
                                                          s - 1,

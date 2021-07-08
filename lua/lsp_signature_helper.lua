@@ -28,7 +28,7 @@ end
 helper.log = log
 
 local function findwholeword(input, word)
-  local special_chars = {"%", "*", "[", "]", "^", "$", "(", ")", ".",  "+", "-", "?"}
+  local special_chars = {"%", "*", "[", "]", "^", "$", "(", ")", ".", "+", "-", "?"}
   for _, value in pairs(special_chars) do
     local fd = "%" .. value
     local as_loc = word:find(fd)
@@ -86,7 +86,9 @@ helper.match_parameter = function(result, config)
     return result, "", 0, 0
   end
 
-  local signature = signatures[1]
+  activeSignature = result.activeSignature or 0
+  activeSignature = activeSignature + 1
+  local signature = signatures[activeSignature]
 
   local activeParameter = result.activeParameter or signature.active_parameter
                               or signature.activeParameter
