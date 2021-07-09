@@ -1,27 +1,28 @@
 local helper = {}
 
 local log = function(...)
+  if _LSP_SIG_CFG.debug ~= true then
+    return
+  end
   local arg = {...}
   -- print(_LSP_SIG_CFG.log_path)
   local log_path = _LSP_SIG_CFG.log_path or nil
-  if _LSP_SIG_CFG.debug == true then
-    local str = "שׁ "
-    for i, v in ipairs(arg) do
-      if type(v) == "table" then
-        str = str .. " |" .. tostring(i) .. ": " .. vim.inspect(v) .. "\n"
-      else
-        str = str .. " |" .. tostring(i) .. ": " .. tostring(v)
-      end
+  local str = "שׁ "
+  for i, v in ipairs(arg) do
+    if type(v) == "table" then
+      str = str .. " |" .. tostring(i) .. ": " .. vim.inspect(v) .. "\n"
+    else
+      str = str .. " |" .. tostring(i) .. ": " .. tostring(v)
     end
-    if #str > 2 then
-      if log_path ~= nil and #log_path > 3 then
-        local f = io.open(log_path, "a+")
-        io.output(f)
-        io.write(str .. "\n")
-        io.close(f)
-      else
-        print(str .. "\n")
-      end
+  end
+  if #str > 2 then
+    if log_path ~= nil and #log_path > 3 then
+      local f = io.open(log_path, "a+")
+      io.output(f)
+      io.write(str .. "\n")
+      io.close(f)
+    else
+      print(str .. "\n")
     end
   end
 end
@@ -54,6 +55,7 @@ helper.fallback = function(trigger_chars)
   line = line:sub(1, r[2])
   local activeParameter = 0
   if not vim.tbl_contains(trigger_chars, "(") then
+    log("incorrect trigger", trigger_chars)
     return
   end
 

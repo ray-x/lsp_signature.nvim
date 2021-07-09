@@ -165,7 +165,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     end
 
     log("label:", label, result.activeSignature, activeSignature, result.activeParameter,
-        #result.signatures[activeSignature].parameters)
+        result.signatures[activeSignature])
     local woff
     if config.triggered_chars and vim.tbl_contains(config.triggered_chars, '(') then
       woff = label:find('(', 1, true)
