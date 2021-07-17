@@ -88,10 +88,10 @@ require'lspconfig'.gopls.setup(golang_setup)
 ```
 
 
-Alternatively, each time when open a new file
+Alternatively, use setup function
 
 ```vim
-autocmd BufReadPost,FileReadPost lua require "lsp_signature".on_attach()
+require "lsp_signature".setup()
 ```
 
 
@@ -118,6 +118,18 @@ local example_setup = {
 }
 ```
 
+Or:
+
+```lua
+  require'lspconfig'.gopls.setup()
+  require "lsp_signature".setup({
+    bind = true, -- This is mandatory, otherwise border config won't get registered.
+    handler_opts = {
+      border = "single"
+    }
+  })
+
+```
 
 ### Full configuration
 

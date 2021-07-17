@@ -88,7 +88,7 @@ helper.match_parameter = function(result, config)
     return result, "", 0, 0
   end
 
-  activeSignature = result.activeSignature or 0
+  local activeSignature = result.activeSignature or 0
   activeSignature = activeSignature + 1
   local signature = signatures[activeSignature]
 
