@@ -54,6 +54,9 @@ helper.fallback = function(trigger_chars)
   local line = vim.api.nvim_get_current_line()
   line = line:sub(1, r[2])
   local activeParameter = 0
+  if type(trigger_chars)~="table" then
+    return
+  end
   if not vim.tbl_contains(trigger_chars, "(") then
     log("incorrect trigger", trigger_chars)
     return
@@ -110,6 +113,9 @@ helper.match_parameter = function(result, config)
   -- if #signature.parameters < 2 or activeParameter + 1 > #signature.parameters then
   --   return result, ""
   -- end
+  if activeParameter == nil then
+    return result, ""
+  end
 
   local nextParameter = signature.parameters[activeParameter + 1]
 
