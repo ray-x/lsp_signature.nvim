@@ -53,7 +53,7 @@ local function virtual_hint(hint)
   local r = vim.api.nvim_win_get_cursor(0)
   local line = api.nvim_get_current_line()
   local line_to_cursor = line:sub(1, r[2])
-  local cur_line = r[1] - 1
+  local cur_line = r[1] - 1 -- line number of current line
   local show_at = cur_line - 1 -- show at above line
   local lines_above = vim.fn.winline() - 1
   local lines_below = vim.fn.winheight(0) - lines_above
@@ -116,6 +116,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     print(err)
     return
   end
+  _LSP_SIG_CFG.signature_result = result
   if config.check_client_handlers then
     local client = vim.lsp.get_client_by_id(client_id)
     local handler = client and client.handlers["textDocument/signatureHelp"]
@@ -238,9 +239,9 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
         or #result.signatures[activeSignature].parameters == 0 then
       config.close_events = close_events
     end
-    log('win config', config)
-    config.zindex = 1000 -- TODO: does it work?
+    config.zindex = 200 -- TODO: does it work?
     -- fix pos case
+    log('win config', config)
     if _LSP_SIG_CFG.fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
       if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and _LSP_SIG_CFG.label == label then
         -- check last parameter and update hilight
@@ -309,6 +310,7 @@ local signature = function()
   local total_lsp = 0
 
   local triggered_chars = {}
+
   for _, value in pairs(clients) do
     if value == nil then
       goto continue
@@ -347,9 +349,11 @@ local signature = function()
       triggered_chars = tbl_combine(triggered_chars, value.server_capabilities.signatureHelpProvider
                                         .triggerCharacters)
     end
+
     if triggered == false then
       triggered = check_trigger_char(line_to_cursor, triggered_chars)
     end
+
     ::continue::
   end
 
@@ -391,12 +395,27 @@ local signature = function()
   else
     -- check if we should close the signature
     if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0
-        and check_closer_char(line_to_cursor, trigger_chars) then
-      vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
+        and check_closer_char(line_to_cursor, triggered_chars) then
+      if vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
+        vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
+      end
       _LSP_SIG_CFG.winnr = nil
       _LSP_SIG_CFG.startx = nil
     end
+
+    -- check should we close virtual hint
+    if _LSP_SIG_CFG.signature_result and _LSP_SIG_CFG.signature_result.signatures ~= nil then
+      local sig = _LSP_SIG_CFG.signature_result.signatures
+      local actSig = _LSP_SIG_CFG.signature_result.activeSignature or 0
+      local actPar = _LSP_SIG_CFG.signature_result.activeParameter or 0
+      actSig, actPar = actSig + 1, actPar + 1
+      if sig[actSig] ~= nil and sig[actSig].parameters ~= nil and #sig[actSig].parameters == actPar then
+        M.on_CompleteDone()
+      end
+      _LSP_SIG_CFG.signature_result = nil
+    end
   end
+
 end
 
 M.signature = signature
