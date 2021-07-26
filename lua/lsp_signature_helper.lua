@@ -111,6 +111,12 @@ helper.match_parameter = function(result, config)
   --   return result, ""
   -- end
 
+  -- work around when LSP sending incorrect active signature and parameters pair
+  if activeSignature + 1 > #signature.parameters and #signature.parameters > 0 then
+    log("incorrect active signature!", result, config)
+    print("activeParameter %d < total parameter %d", activeSignature + 1, #signature.parameters)
+    activeSignature = #signature.parameters - 1
+  end
   local nextParameter = signature.parameters[activeParameter + 1]
 
   if nextParameter == nil then
