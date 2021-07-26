@@ -96,6 +96,8 @@ helper.match_parameter = function(result, config)
 
   if result.activeParameter ~= nil and result.activeParameter < #signature.parameters then
     activeParameter = result.activeParameter
+  else
+    activeParameter = 0
   end
 
   if signature.activeParameter ~= nil then
