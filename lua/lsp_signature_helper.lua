@@ -92,8 +92,15 @@ helper.match_parameter = function(result, config)
   activeSignature = activeSignature + 1
   local signature = signatures[activeSignature]
 
-  local activeParameter = result.activeParameter or signature.active_parameter
-                              or signature.activeParameter
+  local activeParameter = signature.active_parameter
+
+  if result.activeParameter ~= nil and result.activeParameter < #signature.parameters then
+    activeParameter = result.activeParameter
+  end
+
+  if signature.activeParameter ~= nil then
+    activeParameter = signature.activeParameter
+  end
 
   if activeParameter == nil or activeParameter < 0 then
     log("incorrect signature response?", result, config)
@@ -104,19 +111,6 @@ helper.match_parameter = function(result, config)
     return result, "", 0, 0
   end
 
-  -- no arguments or only 1 arguments, the active arguments will not shown
-  -- disable return as it is useful for virtual hint
-  -- maybe use a flag?
-  -- if #signature.parameters < 2 or activeParameter + 1 > #signature.parameters then
-  --   return result, ""
-  -- end
-
-  -- work around when LSP sending incorrect active signature and parameters pair
-  if activeSignature + 1 > #signature.parameters and #signature.parameters > 0 then
-    log("incorrect active signature!", result, config)
-    print("activeParameter %d < total parameter %d", activeSignature + 1, #signature.parameters)
-    activeSignature = #signature.parameters - 1
-  end
   local nextParameter = signature.parameters[activeParameter + 1]
 
   if nextParameter == nil then
