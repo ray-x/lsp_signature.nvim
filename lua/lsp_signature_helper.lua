@@ -92,6 +92,11 @@ helper.match_parameter = function(result, config)
   activeSignature = activeSignature + 1
   local signature = signatures[activeSignature]
 
+  if signature.parameters == nil then -- no parameter
+    log("no sig")
+    return result, "", 0, 0
+  end
+
   local activeParameter = signature.active_parameter
 
   if result.activeParameter ~= nil and result.activeParameter < #signature.parameters then

@@ -436,7 +436,6 @@ function M.on_InsertEnter()
   manager.init()
   log("insert enter")
   timer:start(100, 100, vim.schedule_wrap(function()
-    log("timer start")
     local l_changedTick = api.nvim_buf_get_changedtick(0)
     -- closing timer if leaving insert mode
     if l_changedTick ~= manager.changedTick then
