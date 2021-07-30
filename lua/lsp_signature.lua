@@ -31,8 +31,9 @@ _LSP_SIG_CFG = {
   handler_opts = {border = "single"},
   use_lspsaga = false,
   debug = false,
-  extra_trigger_chars = {} -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
+  extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- decorator = {"`", "`"} -- set to nil if using guihua.lua
+  zindex = 200
 }
 
 local double = {"╔", "═", "╗", "║", "╝", "═", "╚", "║"}
@@ -239,7 +240,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
         or #result.signatures[activeSignature].parameters == 0 then
       config.close_events = close_events
     end
-    config.zindex = 200 -- TODO: does it work?
+    config.zindex = _LSP_SIG_CFG.zindex
     -- fix pos case
     log('win config', config)
     if _LSP_SIG_CFG.fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
