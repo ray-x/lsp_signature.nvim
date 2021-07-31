@@ -166,6 +166,12 @@ helper.check_trigger_char = function(line_to_cursor, trigger_character)
   if trigger_character == nil then
     return false
   end
+  line_to_cursor = string.gsub(line_to_cursor, "%s+", "")
+  log("newline: ", #line_to_cursor, line_to_cursor)
+  if #line_to_cursor < 1 then
+    log("newline, lets try signature")
+    return true
+  end
   for _, ch in ipairs(trigger_character) do
     local current_char = string.sub(line_to_cursor, #line_to_cursor - #ch + 1, #line_to_cursor)
     if current_char == ch then
