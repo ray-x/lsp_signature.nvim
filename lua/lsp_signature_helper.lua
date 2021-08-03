@@ -167,7 +167,7 @@ helper.check_trigger_char = function(line_to_cursor, trigger_character)
     return false
   end
   line_to_cursor = string.gsub(line_to_cursor, "%s+", "")
-  log("newline: ", #line_to_cursor, line_to_cursor)
+  -- log("newline: ", #line_to_cursor, line_to_cursor)
   if #line_to_cursor < 1 then
     log("newline, lets try signature")
     return true

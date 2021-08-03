@@ -248,7 +248,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     local r = vim.api.nvim_win_get_cursor(0)
     local line_to_cursor = line:sub(1, r[2])
     line_to_cursor = string.gsub(line_to_cursor, "%s+", "")
-    log("newline: ", #line_to_cursor, line_to_cursor)
+    -- log("line_to_cursor  ", #line_to_cursor, line_to_cursor)
     if #line_to_cursor < 1 then
       log("newline")
       new_line = true
