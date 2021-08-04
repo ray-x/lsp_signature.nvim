@@ -265,6 +265,13 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     -- fix pos case
     log('win config', config)
     local new_line = helper.is_new_line()
+    
+    if config.border == "none" then
+      for lineIndex = 1, #lines do
+        lines[lineIndex] = ' ' .. lines[lineIndex] .. ' '
+      end
+      config.offset_x = config.offset_x - 0.5
+    end
 
     if _LSP_SIG_CFG.fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
       if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and _LSP_SIG_CFG.label == label and not new_line then
@@ -298,9 +305,15 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     local hi = _LSP_SIG_CFG.hi_parameter
     log("extmark", s, l)
     if s and l and s > 0 then
+      if config.border ~= "none" then
+        s = s - 1
+      else
+        l = l + 1
+      end
       _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0,
-                                                         s - 1,
+                                                         s,
                                                          {end_line = 0, end_col = l, hl_group = hi})
+
     else
       print("failed get highlight parameter", s, l)
     end
