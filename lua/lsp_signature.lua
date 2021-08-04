@@ -180,13 +180,11 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
         if index ~= activeSignature then
           table.insert(lines, offset, sig.label)
           offset = offset + 1
-
-          log("after insert", offset, lines)
         end
       end
-      -- log("after insert", lines)
     end
 
+    log("md lines", lines)
     local label = result.signatures[1].label
     if #result.signatures > 1 then
       label = result.signatures[activeSignature].label
