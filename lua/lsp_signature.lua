@@ -155,7 +155,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     activeSignature = result.activeSignature or 0
     activeSignature = activeSignature + 1
     -- offset used for multiple signatures
-    local offset = 3
+    local offset = 0
     if #result.signatures > 1 then
       for index, sig in ipairs(result.signatures) do
         if index ~= activeSignature then
@@ -174,6 +174,17 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     log("label:", label, result.activeSignature, activeSignature, result.activeParameter,
         result.signatures[activeSignature])
     local woff
+
+    -- truncate empty document it
+    if result.signatures[activeSignature].documentation
+        and result.signatures[activeSignature].documentation.kind == "markdown"
+        and result.signatures[activeSignature].documentation.value == "```text\n\n```" then
+      result.signatures[activeSignature].documentation = nil
+      lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
+
+      log("md lines remove empty", lines)
+    end
+
     if config.triggered_chars and vim.tbl_contains(config.triggered_chars, '(') then
       woff = label:find('(', 1, true)
       if woff then
@@ -190,8 +201,13 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
 
     if vim.fn.mode() == 'i' or vim.fn.mode() == 'ic' then
       -- truncate the doc?
-      if #lines > doc_num + 1 then
+      if #lines > doc_num + offset + 2 then -- for markdown doc start with ```text and end with ```
+        local last = lines[#lines]
         lines = vim.list_slice(lines, 1, doc_num + offset + 1)
+        if last == "```" then
+          table.insert(lines, "```")
+        end
+        log("lines truncate", lines)
       end
     end
 
