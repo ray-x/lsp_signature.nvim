@@ -199,4 +199,37 @@ helper.check_closer_char = function(line_to_cursor, trigger_chars)
   return false
 end
 
+helper.is_new_line = function()
+  local new_line = false
+  local line = vim.api.nvim_get_current_line()
+  local r = vim.api.nvim_win_get_cursor(0)
+  local line_to_cursor = line:sub(1, r[2])
+  line_to_cursor = string.gsub(line_to_cursor, "%s+", "")
+  if #line_to_cursor < 1 then
+    log("newline")
+    return true
+  end
+  return false
+end
+
+helper.cleanup = function(close_float_win)
+  close_float_win = close_float_win or false
+  if _LSP_SIG_CFG.ns and _LSP_SIG_CFG.bufnr and vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
+    log("bufnr, ns", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns)
+    vim.api.nvim_buf_clear_namespace(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, -1)
+  end
+  _LSP_SIG_CFG.markid = nil
+  _LSP_SIG_CFG.ns = nil
+
+  if _LSP_SIG_CFG.winnr and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and close_float_win then
+    log("closing winnr", _LSP_SIG_CFG.winnr)
+    vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
+    _LSP_SIG_CFG.winnr = nil
+  end
+  if _LSP_SIG_CFG.bufnr and not vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
+    _LSP_SIG_CFG.bufnr = nil
+  end
+
+end
+
 return helper

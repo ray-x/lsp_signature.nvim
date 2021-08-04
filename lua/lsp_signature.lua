@@ -129,6 +129,11 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
   end
   if not (result and result.signatures and result.signatures[1]) then
     log("no result?", result)
+    if helper.is_new_line() then
+      helper.cleanup(true)
+      -- need to close floating window and virtual text (if they are active)
+    end
+
     return
   end
 
@@ -243,25 +248,11 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     config.zindex = _LSP_SIG_CFG.zindex
     -- fix pos case
     log('win config', config)
-    local new_line = false
-    local line = vim.api.nvim_get_current_line()
-    local r = vim.api.nvim_win_get_cursor(0)
-    local line_to_cursor = line:sub(1, r[2])
-    line_to_cursor = string.gsub(line_to_cursor, "%s+", "")
-    -- log("line_to_cursor  ", #line_to_cursor, line_to_cursor)
-    if #line_to_cursor < 1 then
-      log("newline")
-      new_line = true
-    end
+    local new_line = helper.is_new_line()
+
     if _LSP_SIG_CFG.fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
       if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and _LSP_SIG_CFG.label == label and not new_line then
-        -- check last parameter and update hilight
-        if _LSP_SIG_CFG.ns then
-          log("bufnr, ns", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns)
-          api.nvim_buf_clear_namespace(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, -1)
-        end
-        _LSP_SIG_CFG.markid = nil
-        _LSP_SIG_CFG.ns = nil
+        helper.cleanup(false)
       else
         log("sig_cfg bufnr, winnr not valid", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr)
         -- vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
