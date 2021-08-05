@@ -202,8 +202,8 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     if doc_num < 3 then
       doc_num = 3
     end
-
-    if vim.fn.mode() == 'i' or vim.fn.mode() == 'ic' then
+    local vmode = vim.fn.mode()
+    if vmode == 'i' or vmode == 'ic' or vmode == 'v' or vmode == 's' or vmode == 'S' then
       -- truncate the doc?
       if #lines > doc_num + offset + 2 then -- for markdown doc start with ```text and end with ```
         local last = lines[#lines]
@@ -465,7 +465,6 @@ end
 
 function M.on_InsertEnter()
 
-  log("insert enter")
   local timer = vim.loop.new_timer()
   -- setup variable
   manager.init()
@@ -491,7 +490,11 @@ function M.on_CompleteDone()
   -- need auto brackets to make things work
   -- signature()
   -- cleanup virtual hint
+  local m = vim.fn.mode()
   vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
+  if m == 'i' or m == 's' or m == 'v' then
+    log("completedone ", m, "enable signature ?")
+  end
 end
 
 M.on_attach = function(cfg)

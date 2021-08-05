@@ -48,9 +48,7 @@ local function findwholeword(input, word)
 end
 
 helper.fallback = function(trigger_chars)
-
   local r = vim.api.nvim_win_get_cursor(0)
-
   local line = vim.api.nvim_get_current_line()
   line = line:sub(1, r[2])
   local activeParameter = 0
@@ -177,11 +175,28 @@ helper.check_trigger_char = function(line_to_cursor, trigger_character)
     if current_char == ch then
       return true
     end
-    if current_char == " " and #line_to_cursor > #ch + 1 then
-      local pre_char = string.sub(line_to_cursor, #line_to_cursor - #ch, #line_to_cursor - 1)
-      if pre_char == ch then
+    local prev_char = current_char
+    local prev_prev_char = current_char
+    if #line_to_cursor > #ch + 1 then
+      prev_char = string.sub(line_to_cursor, #line_to_cursor - #ch, #line_to_cursor - #ch)
+    end
+    if current_char == " " then
+      if prev_char == ch then
         return true
       end
+    end
+    -- this works for select mode after completion confirmed
+    if prev_char == ch then -- this case fun_name(a_
+      return true
+    end
+
+    if #line_to_cursor > #ch + 2 then -- this case fun_name(a, b_
+      prev_prev_char = string.sub(line_to_cursor, #line_to_cursor - #ch - 1,
+                                  #line_to_cursor - #ch - 1)
+    end
+    log(prev_prev_char, prev_char, current_char)
+    if prev_char == " " and prev_prev_char == ch then
+      return true
     end
   end
   return false
