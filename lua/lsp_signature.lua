@@ -32,9 +32,12 @@ _LSP_SIG_CFG = {
   padding = '', -- character to pad on left and right of signature
   use_lspsaga = false,
   debug = false,
+  log_path = '', -- log dir when debug is no
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- decorator = {"`", "`"} -- set to nil if using guihua.lua
-  zindex = 200
+  zindex = 200,
+  shadow_blend = 36, -- if you using shadow as border use this set the opacity
+  shadow_guibg = 'Black' -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
 }
 
 local double = {"╔", "═", "╗", "║", "╝", "═", "╚", "║"}
@@ -266,7 +269,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     -- fix pos case
     log('win config', config)
     local new_line = helper.is_new_line()
-    
+
     if _LSP_SIG_CFG.padding ~= "" then
       for lineIndex = 1, #lines do
         lines[lineIndex] = _LSP_SIG_CFG.padding .. lines[lineIndex] .. _LSP_SIG_CFG.padding
@@ -312,8 +315,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
         s = s - 1 + #_LSP_SIG_CFG.padding
         l = l + #_LSP_SIG_CFG.padding
       end
-      _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0,
-                                                         s,
+      _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, s,
                                                          {end_line = 0, end_col = l, hl_group = hi})
 
     else
@@ -510,6 +512,15 @@ M.on_attach = function(cfg)
     vim.lsp.handlers["textDocument/signatureHelp"] =
         vim.lsp.with(signature_handler, _LSP_SIG_CFG.handler_opts)
   end
+
+  local shadow_cmd = string.format("hi default FloatShadow blend=%i guibg=%s",
+                                   _LSP_SIG_CFG.shadow_blend, _LSP_SIG_CFG.shadow_guibg)
+  vim.cmd(shadow_cmd)
+
+  local shadow_cmd = string.format("hi default FloatShadowThrough blend=%i guibg=%s",
+                                   _LSP_SIG_CFG.shadow_blend + 20, _LSP_SIG_CFG.shadow_guibg)
+  vim.cmd(shadow_cmd)
+
 end
 
 -- setup function enable the signature and attach it to client
@@ -530,6 +541,7 @@ M.setup = function(cfg)
     end
     return _start_client(lsp_config)
   end
+
 end
 
 return M

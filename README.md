@@ -163,6 +163,10 @@ Or:
   debug = false, -- set to true to enable debug logging
   log_path = "debug_log_file_path", -- debug log path
 
+  padding = '', -- character to pad on left and right of signature can be ' ', or '|'  etc
+
+  shadow_blend = 36, -- if you using shadow as border use this set the opacity
+  shadow_guibg = 'Black' -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
 }
 
 require'lsp_signature'.on_attach(cfg)
