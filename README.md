@@ -156,7 +156,7 @@ Or:
   handler_opts = {
     border = "shadow"   -- double, single, shadow, none
   },
-  extra_trigger_chars = {} -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
+  extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- deprecate !!
   -- decorator = {"`", "`"}  -- this is no longer needed as nvim give me a handler and it allow me to highlight active parameter in floating_window
   zindex = 200, -- by default it will be on top of all floating windows, set to 50 send it to bottom
