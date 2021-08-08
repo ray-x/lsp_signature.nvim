@@ -38,7 +38,9 @@ local function findwholeword(input, word)
     end
   end
 
-  l, e = string.find(input, "%f[%a]" .. word .. "%f[%A]")
+  local l, e = string.find(input, '%(') -- All languages I know, func parameter start with (
+  l = l or 1
+  l, e = string.find(input, "%f[%a]" .. word .. "%f[%A]", l)
 
   if l == nil then
     -- fall back it %f[%a] fail for int32 etc
