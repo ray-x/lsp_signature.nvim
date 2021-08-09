@@ -146,6 +146,12 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
   if #result.signatures > 1 then
     force_redraw = true
   end
+  for i = #result.signatures, 1, -1 do
+    sig = result.signatures[i]
+    if sig.activeParameter + 1 > #sig.parameters then
+      table.remove(result.signatures, i)
+    end
+  end
 
   if _LSP_SIG_CFG.floating_window == true or not config.trigger_from_lsp_sig then
     local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
@@ -307,7 +313,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     -- api.nvim_command("autocmd User SigComplete".." <buffer> ++once lua pcall(vim.api.nvim_win_close, "..winnr..", true)")
     _LSP_SIG_CFG.ns = vim.api.nvim_create_namespace('lsp_signature_hi_parameter')
     local hi = _LSP_SIG_CFG.hi_parameter
-    log("extmark", s, l)
+    log("extmark", s, l, #_LSP_SIG_CFG.padding)
     if s and l and s > 0 then
       if _LSP_SIG_CFG.padding == "" then
         s = s - 1
