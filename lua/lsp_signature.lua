@@ -148,7 +148,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
   end
   for i = #result.signatures, 1, -1 do
     sig = result.signatures[i]
-    if sig.activeParameter + 1 > #sig.parameters then
+    if (sig.activeParameter or 0) + 1 > #sig.parameters then
       table.remove(result.signatures, i)
     end
   end
