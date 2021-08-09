@@ -156,10 +156,11 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       return
     end
 
-    activeSignature = result.activeSignature or 0
+    lines = vim.lsp.util.trim_empty_lines(lines)
+    local activeSignature = result.activeSignature or 0
     activeSignature = activeSignature + 1
     -- offset used for multiple signatures
-    local offset = 0
+    local offset = 2
     if #result.signatures > 1 then
       for index, sig in ipairs(result.signatures) do
         if index ~= activeSignature then
@@ -169,7 +170,6 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       end
     end
 
-    log("md lines", lines)
     local label = result.signatures[1].label
     if #result.signatures > 1 then
       label = result.signatures[activeSignature].label
