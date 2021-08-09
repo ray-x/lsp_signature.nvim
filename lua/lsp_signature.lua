@@ -148,7 +148,9 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
   end
   for i = #result.signatures, 1, -1 do
     sig = result.signatures[i]
-    if (sig.activeParameter or 0) + 1 > #sig.parameters then
+    -- hack for lua
+    local actPar = sig.activeParameter or result.activeParameter or 0
+    if actPar + 1 > #sig.parameters then
       table.remove(result.signatures, i)
     end
   end
@@ -166,7 +168,10 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     local activeSignature = result.activeSignature or 0
     activeSignature = activeSignature + 1
     -- offset used for multiple signatures
-    local offset = 2
+    local offset = 1
+    if string.find(lines[1], [[```]]) then -- markdown format start with ```, insert pos need after that
+      offset = offset + 1
+    end
     if #result.signatures > 1 then
       for index, sig in ipairs(result.signatures) do
         if index ~= activeSignature then
