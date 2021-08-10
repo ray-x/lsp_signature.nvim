@@ -10,9 +10,10 @@ local check_closer_char = helper.check_closer_char
 
 local manager = {
   insertChar = false, -- flag for InsertCharPre event, turn off imediately when performing completion
-  insertLeave = false, -- flag for InsertLeave, prevent every completion if true
+  insertLeave = true, -- flag for InsertLeave, prevent every completion if true
   changedTick = 0, -- handle changeTick
-  confirmedCompletion = false -- flag for manual confirmation of completion
+  confirmedCompletion = false, -- flag for manual confirmation of completion
+  timer = nil
 }
 
 _LSP_SIG_CFG = {
@@ -500,35 +501,32 @@ end
 
 function M.on_InsertLeave()
   manager.insertLeave = true
+  manager.timer:stop()
+  manager.timer:close()
+  manager.timer = nil
+  vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
+  helper.cleanup(true)
 end
 
-local show_after_delay = function(require_change, delay)
-  local timer = vim.loop.new_timer()
-  timer:start(delay, 100, vim.schedule_wrap(function()
-    local l_changedTick = api.nvim_buf_get_changedtick(0)
-    -- closing timer if leaving insert mode
-    if manager.insertLeave == true and timer:is_closing() == false then
-      timer:stop()
-      timer:close()
-      vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
-    elseif l_changedTick ~= manager.changedTick then
-      manager.changedTick = l_changedTick
-      signature()
-    elseif require_change == false then
-      signature()
-      timer:stop()
-      timer:close()
-    end
-  end))
+local start_watch_changes_timer = function()
+  if not manager.timer then
+    manager.changedTick = 0
+    manager.timer = vim.loop.new_timer()
+    manager.timer:start(0, 100, vim.schedule_wrap(function()
+      local l_changedTick = api.nvim_buf_get_changedtick(0)
+      if l_changedTick ~= manager.changedTick then
+        manager.changedTick = l_changedTick
+        signature()
+      end
+    end))
+  end
 end
 
 function M.on_InsertEnter()
   log("insert enter")
   -- show signature immediately upon entering insert mode
   if manager.insertLeave == true then
-    show_after_delay(false, 0)
-  else
-    show_after_delay(true, 100)
+    start_watch_changes_timer()
   end
   manager.init()
 end
