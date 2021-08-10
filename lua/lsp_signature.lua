@@ -278,6 +278,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     end
     if result.signatures[activeSignature].parameters == nil
         or #result.signatures[activeSignature].parameters == 0 then
+    if force_redraw and _LSP_SIG_CFG.fix_pos == false then
       config.close_events = close_events
     end
     config.zindex = _LSP_SIG_CFG.zindex
