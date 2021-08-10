@@ -502,25 +502,33 @@ function M.on_InsertLeave()
   manager.insertLeave = true
 end
 
-function M.on_InsertEnter()
-
+local show_after_delay = function(require_change)
   local timer = vim.loop.new_timer()
-  -- setup variable
-  manager.init()
-  log("insert enter")
   timer:start(100, 100, vim.schedule_wrap(function()
     local l_changedTick = api.nvim_buf_get_changedtick(0)
     -- closing timer if leaving insert mode
     if l_changedTick ~= manager.changedTick then
       manager.changedTick = l_changedTick
       signature()
-    end
-    if manager.insertLeave == true and timer:is_closing() == false then
+    elseif manager.insertLeave == true and timer:is_closing() == false then
       timer:stop()
       timer:close()
       vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
+      return
+    elseif require_change == false then
+      signature()
     end
   end))
+end
+
+function M.on_InsertEnter()
+  log("insert enter")
+  -- show signature immediately upon entering insert mode
+  if manager.insertLeave == true then
+    show_after_delay(false)
+  end
+  manager.init()
+  show_after_delay(true)
 end
 
 -- handle completion confirmation and dismiss hover popup
