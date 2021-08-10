@@ -164,18 +164,48 @@ end
 
 helper.check_trigger_char = function(line_to_cursor, trigger_character)
   if trigger_character == nil then
-    return false
+    return false, #line_to_cursor
   end
-  line_to_cursor = string.gsub(line_to_cursor, "%s+", "")
+  local no_ws_line_to_cursor = string.gsub(line_to_cursor, "%s+", "")
   -- log("newline: ", #line_to_cursor, line_to_cursor)
-  if #line_to_cursor < 1 then
+  if #no_ws_line_to_cursor < 1 then
     log("newline, lets try signature")
-    return true
+    return true, #line_to_cursor
   end
+
+  -- with a this bit of logic we're gonna search for the nearest trigger
+  -- character this improves requesting of signature help since some lsps only
+  -- provide the signature help on the trigger character.
+  if vim.tbl_contains(trigger_character, "(") then
+    -- we're gonna assume in this language that function arg are warpped with ()
+    -- 1. find last triggered_chars
+    -- TODO: populate this regex with trigger_character
+    local last_trigger_char_index = line_to_cursor:find('[%(,%)][^%(,%)]*$')
+    if last_trigger_char_index ~= nil then
+      -- check if last character is a closing character
+      local last_trigger_char = line_to_cursor:sub(last_trigger_char_index, last_trigger_char_index)
+      if last_trigger_char ~= ')' then
+        -- when the last character is a closing character, use the full line
+        -- for example when the line is: "list(); new_var = " we don't want to trigger on the )
+        local line_to_last_trigger = line_to_cursor:sub(1, last_trigger_char_index)
+        return true, #line_to_last_trigger
+      else
+        -- when the last character is not a closing character, use the line
+        -- until this trigger character to request the signature help.
+        return true, #line_to_cursor
+      end
+    else
+      -- when there is no trigger character, still trigger and let the lsp
+      -- decide if there should be a signature useful in multi-line function
+      -- calls.
+      return true, #line_to_cursor
+    end
+  end
+
   for _, ch in ipairs(trigger_character) do
     local current_char = string.sub(line_to_cursor, #line_to_cursor - #ch + 1, #line_to_cursor)
     if current_char == ch then
-      return true
+      return true, #line_to_cursor
     end
     local prev_char = current_char
     local prev_prev_char = current_char
@@ -184,12 +214,12 @@ helper.check_trigger_char = function(line_to_cursor, trigger_character)
     end
     if current_char == " " then
       if prev_char == ch then
-        return true
+        return true, #line_to_cursor
       end
     end
     -- this works for select mode after completion confirmed
     if prev_char == ch then -- this case fun_name(a_
-      return true
+      return true, #line_to_cursor
     end
 
     if #line_to_cursor > #ch + 2 then -- this case fun_name(a, b_
@@ -198,10 +228,10 @@ helper.check_trigger_char = function(line_to_cursor, trigger_character)
     end
     log(prev_prev_char, prev_char, current_char)
     if prev_char == " " and prev_prev_char == ch then
-      return true
+      return true, #line_to_cursor
     end
   end
-  return false
+  return false, #line_to_cursor
 end
 
 helper.check_closer_char = function(line_to_cursor, trigger_chars)

@@ -315,8 +315,6 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     -- if it is last parameter, close windows after cursor moved
     if sig and sig[activeSignature].parameters == nil or result.activeParameter == nil
         or result.activeParameter + 1 == #sig[activeSignature].parameters then
-      log("last para", close_events)
-      vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
       if _LSP_SIG_CFG.fix_pos == false then
         -- log("last para", close_events)
         vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
@@ -367,6 +365,8 @@ local signature = function()
   local total_lsp = 0
 
   local triggered_chars = {}
+  local trigger_position = nil
+
 
   for _, value in pairs(clients) do
     if value == nil then
@@ -408,7 +408,7 @@ local signature = function()
     end
 
     if triggered == false then
-      triggered = check_trigger_char(line_to_cursor, triggered_chars)
+      triggered, trigger_position = check_trigger_char(line_to_cursor, triggered_chars)
     end
 
     ::continue::
@@ -438,6 +438,7 @@ local signature = function()
     end
     -- overwrite signature help here to disable "no signature help" message
     local params = vim.lsp.util.make_position_params()
+    params.position.character = trigger_position
     -- Try using the already binded one, otherwise use it without custom config.
     -- LuaFormatter off
     vim.lsp.buf_request(0, "textDocument/signatureHelp", params,
@@ -445,19 +446,21 @@ local signature = function()
                           check_pumvisible = true,
                           check_client_handlers = true,
                           trigger_from_lsp_sig = true,
-                          line_to_cursor = line_to_cursor,
+                          line_to_cursor = line_to_cursor:sub(1, trigger_position),
                           triggered_chars = triggered_chars
                         }))
     -- LuaFormatter on
   else
     -- check if we should close the signature
-    if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0
-        and check_closer_char(line_to_cursor, triggered_chars) then
-      if vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
-        vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
-      end
-      _LSP_SIG_CFG.winnr = nil
-      _LSP_SIG_CFG.startx = nil
+    -- print('should close')
+    if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0 then
+      -- if check_closer_char(line_to_cursor, triggered_chars) then
+        if vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
+          vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
+        end
+        _LSP_SIG_CFG.winnr = nil
+        _LSP_SIG_CFG.startx = nil
+      -- end
     end
 
     -- check should we close virtual hint
