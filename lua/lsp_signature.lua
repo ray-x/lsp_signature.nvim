@@ -132,8 +132,8 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     end
   end
   if not (result and result.signatures and result.signatures[1]) then
-    log("no result?", result)
-    if helper.is_new_line() then
+    -- only close if this client opened the signature
+    if _LSP_SIG_CFG.client_id == client_id then
       helper.cleanup(true)
       -- need to close floating window and virtual text (if they are active)
     end
@@ -301,11 +301,13 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
         _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax,
                                                                                     config)
         _LSP_SIG_CFG.label = label
+        _LSP_SIG_CFG.client_id = client_id
       end
     else
       _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax,
                                                                                   config)
       _LSP_SIG_CFG.label = label
+      _LSP_SIG_CFG.client_id = client_id
     end
 
     local sig = result.signatures
