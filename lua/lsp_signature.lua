@@ -204,12 +204,24 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       log("md lines remove empty", lines)
     end
 
+  local pos = api.nvim_win_get_cursor(0)
+  local line = api.nvim_get_current_line()
+  local line_to_cursor = line:sub(1, pos[2])
+
     if config.triggered_chars and vim.tbl_contains(config.triggered_chars, '(') then
-      woff = label:find('(', 1, true)
-      if woff then
+      woff = line_to_cursor:find("%([^%(]*$")
+      local sig_woff = label:find("%([^%(]*$")
+      if woff and sig_woff then
+        local function_name = label:sub(1, sig_woff - 1)
+        local function_on_line = line_to_cursor:match('.*' .. function_name)
+        if function_on_line then
+          woff = #line_to_cursor - #function_on_line + #function_name
+        else
+          woff = sig_woff + (#line_to_cursor - woff)
+        end
         woff = -woff
       else
-        woff = -3
+        woff = 3
       end
     end
 
