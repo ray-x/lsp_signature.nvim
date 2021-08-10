@@ -285,9 +285,6 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     if not config.trigger_from_lsp_sig then
       config.close_events = close_events
     end
-    if force_redraw then
-      config.close_events = close_events
-    end
     if result.signatures[activeSignature].parameters == nil
         or #result.signatures[activeSignature].parameters == 0 then
     if force_redraw and _LSP_SIG_CFG.fix_pos == false then
