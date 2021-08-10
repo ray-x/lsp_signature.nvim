@@ -168,17 +168,23 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     local activeSignature = result.activeSignature or 0
     activeSignature = activeSignature + 1
     -- offset used for multiple signatures
-    local offset = 1
-    if string.find(lines[1], [[```]]) then -- markdown format start with ```, insert pos need after that
-      offset = offset + 1
-    end
+
+    local offset = 2
     if #result.signatures > 1 then
+      if string.find(lines[1], [[```]]) then -- markdown format start with ```, insert pos need after that
+        log("line1 markdown")
+        offset = 3
+      end
+      log("before insert", lines)
       for index, sig in ipairs(result.signatures) do
         if index ~= activeSignature then
           table.insert(lines, offset, sig.label)
           offset = offset + 1
+
+          log("after insert", offset, lines)
         end
       end
+      -- log("after insert", lines)
     end
 
     local label = result.signatures[1].label
@@ -216,7 +222,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     local vmode = vim.fn.mode()
     if vmode == 'i' or vmode == 'ic' or vmode == 'v' or vmode == 's' or vmode == 'S' then
       -- truncate the doc?
-      if #lines > doc_num + offset + 2 then -- for markdown doc start with ```text and end with ```
+      if #lines > doc_num + offset + 1 then -- for markdown doc start with ```text and end with ```
         local last = lines[#lines]
         lines = vim.list_slice(lines, 1, doc_num + offset + 1)
         if last == "```" then
