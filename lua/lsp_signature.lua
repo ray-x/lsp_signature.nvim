@@ -317,6 +317,10 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
         or result.activeParameter + 1 == #sig[activeSignature].parameters then
       log("last para", close_events)
       vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
+      if _LSP_SIG_CFG.fix_pos == false then
+        -- log("last para", close_events)
+        vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
+      end
       -- elseif _LSP_SIG_CFG.fix_pos then
       --   log("should not close")
       --   -- vim.lsp.util.close_preview_autocmd(ce, _LSP_SIG_CFG.winnr)
