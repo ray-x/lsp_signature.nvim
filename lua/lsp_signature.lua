@@ -517,6 +517,8 @@ local show_after_delay = function(require_change)
       return
     elseif require_change == false then
       signature()
+      timer:stop()
+      timer:close()
     end
   end))
 end
