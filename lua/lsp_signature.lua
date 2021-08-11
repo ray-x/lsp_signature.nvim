@@ -145,13 +145,13 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
   local force_redraw = false
   if #result.signatures > 1 then
     force_redraw = true
-  end
-  for i = #result.signatures, 1, -1 do
-    sig = result.signatures[i]
-    -- hack for lua
-    local actPar = sig.activeParameter or result.activeParameter or 0
-    if actPar + 1 > #sig.parameters then
-      table.remove(result.signatures, i)
+    for i = #result.signatures, 1, -1 do
+      local sig = result.signatures[i]
+      -- hack for lua
+      local actPar = sig.activeParameter or result.activeParameter or 0
+      if actPar + 1 > #(sig.parameters or {}) then
+        table.remove(result.signatures, i)
+      end
     end
   end
 
