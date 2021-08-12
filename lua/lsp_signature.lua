@@ -140,6 +140,8 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
 
     return
   end
+  local activeSignature = result.activeSignature or 0
+  activeSignature = activeSignature + 1
 
   local _, hint, s, l = match_parameter(result, config)
   local force_redraw = false
@@ -151,6 +153,9 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       local actPar = sig.activeParameter or result.activeParameter or 0
       if actPar + 1 > #(sig.parameters or {}) then
         table.remove(result.signatures, i)
+        if i <= activeSignature and activeSignature > 1 then
+          activeSignature = activeSignature - 1
+        end
       end
     end
   end
@@ -165,8 +170,6 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     end
 
     lines = vim.lsp.util.trim_empty_lines(lines)
-    local activeSignature = result.activeSignature or 0
-    activeSignature = activeSignature + 1
     -- offset used for multiple signatures
 
     local offset = 2
