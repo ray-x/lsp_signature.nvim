@@ -31,6 +31,7 @@ _LSP_SIG_CFG = {
   handler_opts = {border = "single"},
   padding = '', -- character to pad on left and right of signature
   use_lspsaga = false,
+  trigger_on_newline = true, -- sometime show signature on new line can be confusing, set it to false for #58
   debug = false,
   log_path = '', -- log dir when debug is no
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}

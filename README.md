@@ -156,6 +156,8 @@ Or:
   handler_opts = {
     border = "shadow"   -- double, single, shadow, none
   },
+
+  trigger_on_newline = true, -- sometime show signature on new line can be confusing, set it to false for #58
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- deprecate !!
   -- decorator = {"`", "`"}  -- this is no longer needed as nvim give me a handler and it allow me to highlight active parameter in floating_window

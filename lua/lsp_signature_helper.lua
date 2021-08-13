@@ -170,7 +170,7 @@ helper.check_trigger_char = function(line_to_cursor, trigger_character)
   -- log("newline: ", #line_to_cursor, line_to_cursor)
   if #line_to_cursor < 1 then
     log("newline, lets try signature")
-    return true
+    return _NgConfigValues.trigger_on_newline
   end
   for _, ch in ipairs(trigger_character) do
     local current_char = string.sub(line_to_cursor, #line_to_cursor - #ch + 1, #line_to_cursor)
