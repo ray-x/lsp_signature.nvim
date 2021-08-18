@@ -570,6 +570,7 @@ M.toggle_float_win = function()
                         check_client_handlers = true,
                         trigger_from_lsp_sig = true,
                         line_to_cursor = line_to_cursor,
+                        border = _LSP_SIG_CFG.handler_opts.border,
                       }))
   -- LuaFormatter on
 
