@@ -38,7 +38,8 @@ _LSP_SIG_CFG = {
   -- decorator = {"`", "`"} -- set to nil if using guihua.lua
   zindex = 200,
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
-  shadow_guibg = 'Black' -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
+  shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
+  toggle_key = nil -- toggle signature on and off in insert mode,  e.g. '<M-x>'
 }
 
 local double = {"╔", "═", "╗", "║", "╝", "═", "╚", "║"}
@@ -547,6 +548,33 @@ M.on_attach = function(cfg)
 
 end
 
+M.toggle_float_win = function()
+  if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0 and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
+    vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
+    _LSP_SIG_CFG.winnr = nil
+    if _VT_NS then
+      vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
+    end
+    return
+  end
+
+  local params = vim.lsp.util.make_position_params()
+  local pos = api.nvim_win_get_cursor(0)
+  local line = api.nvim_get_current_line()
+  local line_to_cursor = line:sub(1, pos[2])
+  -- Try using the already binded one, otherwise use it without custom config.
+  -- LuaFormatter off
+  vim.lsp.buf_request(0, "textDocument/signatureHelp", params,
+                      vim.lsp.with(signature_handler, {
+                        check_pumvisible = true,
+                        check_client_handlers = true,
+                        trigger_from_lsp_sig = true,
+                        line_to_cursor = line_to_cursor,
+                      }))
+  -- LuaFormatter on
+
+end
+
 -- setup function enable the signature and attach it to client
 -- call it before startup lsp client
 M.setup = function(cfg)
@@ -566,6 +594,11 @@ M.setup = function(cfg)
     return _start_client(lsp_config)
   end
 
+  if cfg.toggle_key then
+    vim.api.nvim_set_keymap('i', cfg.toggle_key,
+                            [[<cmd>lua require('lsp_signature').toggle_float_win()<CR>]],
+                            {silent = true, noremap = true})
+  end
 end
 
 return M
