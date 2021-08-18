@@ -579,6 +579,7 @@ end
 -- setup function enable the signature and attach it to client
 -- call it before startup lsp client
 M.setup = function(cfg)
+  cfg = cfg or {}
   local _start_client = vim.lsp.start_client
   vim.lsp.start_client = function(lsp_config)
     if lsp_config.on_attach == nil then
