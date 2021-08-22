@@ -37,6 +37,7 @@ _LSP_SIG_CFG = {
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- decorator = {"`", "`"} -- set to nil if using guihua.lua
   zindex = 200,
+  transpancy = nil, -- disabled by default
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
   shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
   toggle_key = nil -- toggle signature on and off in insert mode,  e.g. '<M-x>'
@@ -315,6 +316,9 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       _LSP_SIG_CFG.label = label
     end
 
+    if _LSP_SIG_CFG.transpancy and _LSP_SIG_CFG.transpancy > 1 and _LSP_SIG_CFG.transpancy < 100 then
+      vim.api.nvim_win_set_option(_LSP_SIG_CFG.winnr, "winblend", _LSP_SIG_CFG.transpancy)
+    end
     local sig = result.signatures
     -- if it is last parameter, close windows after cursor moved
     if sig and sig[activeSignature].parameters == nil or result.activeParameter == nil
