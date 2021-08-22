@@ -111,7 +111,7 @@ local example_setup = {
       handler_opts = {
         border = "single"
       }
-    })
+    }, bufnr)
     ...
   end,
   ...
@@ -173,7 +173,7 @@ Or:
   toggle_key = nil -- toggle signature on and off in insert mode,  e.g. toggle_key = '<M-x>'
 }
 
-require'lsp_signature'.on_attach(cfg)
+require'lsp_signature'.on_attach(cfg, bufnr) -- no need to specify bufnr if you don't use toggle_key
 ```
 Note: navigator.lua no longer support auto setup for lsp_signature as the setup options is getting more complicated now
 

@@ -523,7 +523,9 @@ function M.on_CompleteDone()
   end
 end
 
-M.on_attach = function(cfg)
+M.on_attach = function(cfg, bufnr)
+  bufnr = bufnr or 0
+
   api.nvim_command("augroup Signature")
   api.nvim_command("autocmd! * <buffer>")
   api.nvim_command("autocmd InsertEnter <buffer> lua require'lsp_signature'.on_InsertEnter()")
@@ -550,6 +552,11 @@ M.on_attach = function(cfg)
                                    _LSP_SIG_CFG.shadow_blend + 20, _LSP_SIG_CFG.shadow_guibg)
   vim.cmd(shadow_cmd)
 
+  if _LSP_SIG_CFG.toggle_key then
+    vim.api.nvim_buf_set_keymap(bufnr, 'i', _LSP_SIG_CFG.toggle_key,
+                                [[<cmd>lua require('lsp_signature').toggle_float_win()<CR>]],
+                                {silent = true, noremap = true})
+  end
 end
 
 M.toggle_float_win = function()
@@ -588,22 +595,16 @@ M.setup = function(cfg)
   vim.lsp.start_client = function(lsp_config)
     if lsp_config.on_attach == nil then
       lsp_config.on_attach = function(client, bufnr)
-        M.on_attach(cfg)
+        M.on_attach(cfg, bufnr)
       end
     else
       local _on_attach = lsp_config.on_attach
       lsp_config.on_attach = function(client, bufnr)
-        M.on_attach(cfg)
+        M.on_attach(cfg, bufnr)
         _on_attach(client, bufnr)
       end
     end
     return _start_client(lsp_config)
-  end
-
-  if cfg.toggle_key then
-    vim.api.nvim_set_keymap('i', cfg.toggle_key,
-                            [[<cmd>lua require('lsp_signature').toggle_float_win()<CR>]],
-                            {silent = true, noremap = true})
   end
 end
 
