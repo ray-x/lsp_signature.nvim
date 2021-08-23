@@ -37,6 +37,7 @@ _LSP_SIG_CFG = {
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- decorator = {"`", "`"} -- set to nil if using guihua.lua
   zindex = 200,
+  transpancy = nil, -- disabled by default
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
   shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
   toggle_key = nil -- toggle signature on and off in insert mode,  e.g. '<M-x>'
@@ -161,10 +162,10 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       end
     end
   end
-
+  local lines = {}
   if _LSP_SIG_CFG.floating_window == true or not config.trigger_from_lsp_sig then
     local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
-    local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
+    lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
 
     if lines == nil or type(lines) ~= "table" then
       log("incorrect result", result)
@@ -315,6 +316,9 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       _LSP_SIG_CFG.label = label
     end
 
+    if _LSP_SIG_CFG.transpancy and _LSP_SIG_CFG.transpancy > 1 and _LSP_SIG_CFG.transpancy < 100 then
+      vim.api.nvim_win_set_option(_LSP_SIG_CFG.winnr, "winblend", _LSP_SIG_CFG.transpancy)
+    end
     local sig = result.signatures
     -- if it is last parameter, close windows after cursor moved
     if sig and sig[activeSignature].parameters == nil or result.activeParameter == nil
@@ -349,6 +353,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
   if _LSP_SIG_CFG.hint_enable == true and config.trigger_from_lsp_sig then
     virtual_hint(hint)
   end
+  return lines, s, l
 end
 
 local signature = function()
@@ -475,6 +480,7 @@ local signature = function()
 
 end
 
+M.signature_handler = signature_handler
 M.signature = signature
 
 function M.on_InsertCharPre()
