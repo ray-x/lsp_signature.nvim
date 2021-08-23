@@ -39,6 +39,7 @@ describe("should show signature ", function()
         lines[2])
     eq(5, s) -- match `year int`
     eq(13, l)
+    eq(23, l)
   end)
 
   describe("should show signature ", function()
