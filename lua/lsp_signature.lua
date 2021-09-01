@@ -162,10 +162,10 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       end
     end
   end
-
+  local lines = {}
   if _LSP_SIG_CFG.floating_window == true or not config.trigger_from_lsp_sig then
     local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
-    local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
+    lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
 
     if lines == nil or type(lines) ~= "table" then
       log("incorrect result", result)
@@ -353,6 +353,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
   if _LSP_SIG_CFG.hint_enable == true and config.trigger_from_lsp_sig then
     virtual_hint(hint)
   end
+  return lines, s, l
 end
 
 local signature = function()
@@ -479,6 +480,7 @@ local signature = function()
 
 end
 
+M.signature_handler = signature_handler
 M.signature = signature
 
 function M.on_InsertCharPre()
