@@ -1,4 +1,4 @@
-local vim = vim -- suppress warning
+local vim = _G.vim or vim -- suppress warning, allow complete without lua-dev
 local api = vim.api
 local M = {}
 _VT_NS = api.nvim_create_namespace("lsp_signature")
@@ -23,6 +23,8 @@ _LSP_SIG_CFG = {
   max_width = 120, -- max_width of signature floating_window
 
   floating_window = true, -- show hint in a floating window
+  floating_window_above_first = false, -- try to place the floating above the current line
+  floating_window_off_y = 1, -- adjust float windows y position. allow the pum to show a few lines
   fix_pos = true, -- fix floating_window position
   hint_enable = true, -- virtual hint
   hint_prefix = "🐼 ",
@@ -47,14 +49,13 @@ local double = {"╔", "═", "╗", "║", "╝", "═", "╚", "║"}
 local single = {"╭", "─", "╮", "│", "╯", "─", "╰", "│"}
 
 local log = helper.log
-
 function manager.init()
   manager.insertLeave = false
   manager.insertChar = false
   manager.confirmedCompletion = false
 end
 
-local function virtual_hint(hint)
+local function virtual_hint(hint, off_y)
   if hint == nil or hint == "" then
     return
   end
@@ -69,6 +70,10 @@ local function virtual_hint(hint)
     show_at = cur_line + 1 -- same line
   end
   local pl
+  if off_y ~= nil and off_y < -1 then -- floating win above first
+    show_at = cur_line + 1
+  end
+
   if _LSP_SIG_CFG.floating_window == false then
     local prev_line, next_line
     if cur_line > 0 then
@@ -118,12 +123,14 @@ local close_events = {"CursorMoved", "CursorMovedI", "BufHidden", "InsertCharPre
 -- ----------------------
 -- --  signature help  --
 -- ----------------------
+-- Note: nvim 0.6.2   - signature_help({_}, {result}, {ctx}, {config})
+
 local function signature_handler(err, method, result, client_id, bufnr, config)
-  log("sig result", result, config)
   if err ~= nil then
     print(err)
     return
   end
+  log("sig result", result, config)
   _LSP_SIG_CFG.signature_result = result
   if config.check_client_handlers then
     local client = vim.lsp.get_client_by_id(client_id)
@@ -163,6 +170,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     end
   end
   local lines = {}
+  local off_y = 0
   if _LSP_SIG_CFG.floating_window == true or not config.trigger_from_lsp_sig then
     local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
     lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
@@ -300,6 +308,12 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       config.offset_x = config.offset_x - #_LSP_SIG_CFG.padding
     end
 
+    local display_opts = {}
+    display_opts, off_y = helper.cal_pos(lines, config)
+
+    config.offset_y = off_y
+    log("floating opt", config, display_opts)
+
     if _LSP_SIG_CFG.fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
       if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and _LSP_SIG_CFG.label == label and not new_line then
         helper.cleanup(false)
@@ -351,9 +365,13 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
   end
 
   if _LSP_SIG_CFG.hint_enable == true and config.trigger_from_lsp_sig then
-    virtual_hint(hint)
+    virtual_hint(hint, off_y)
   end
   return lines, s, l
+end
+
+local function signature_handler_v2(err, result, ctx, config)
+  return signature_handler(err, ctx.method, result, ctx.client_id, config)
 end
 
 local signature = function()

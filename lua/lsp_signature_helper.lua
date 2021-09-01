@@ -249,4 +249,25 @@ helper.cleanup = function(close_float_win)
 
 end
 
+helper.cal_pos = function(contents, opts)
+  if not _LSP_SIG_CFG.floating_window_above_first then
+    return {}, 0
+  end
+  local util = vim.lsp.util
+  local width, height = util._make_floating_popup_size(contents, opts)
+  local float_option = util.make_floating_popup_options(width, height, opts)
+  helper.log("pos", width, height, float_option)
+  local off_y = 0
+  if float_option.anchor == 'NW' then
+    -- note: the floating widnows will be under current line
+    local lines_above = vim.fn.winline() - 1
+    local lines_below = vim.fn.winheight(0) - lines_above
+    if lines_above > float_option.height + 2 then -- border
+      off_y = -(float_option.height + 3)
+    end
+  end
+  return float_option, off_y
+
+end
+
 return helper
