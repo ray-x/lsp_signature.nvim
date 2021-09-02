@@ -246,8 +246,9 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     if doc_num < 3 then
       doc_num = 3
     end
-    local vmode = vim.fn.mode()
-    if vmode == 'i' or vmode == 'ic' or vmode == 'v' or vmode == 's' or vmode == 'S' then
+    local vmode = vim.api.nvim_get_mode().mode
+    if vmode == 'i' or vmode == 'ic' or vmode == 'v' or vmode == 's' or vmode == 'S' or vmode == 'R'
+        or vmode == 'Rc' or vmode == 'Rx' then
       -- truncate the doc?
       if #lines > doc_num + offset + 1 then -- for markdown doc start with ```text and end with ```
         local last = lines[#lines]
@@ -262,7 +263,6 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     if vim.tbl_isempty(lines) then
       return
     end
-
     if config.check_pumvisible and vim.fn.pumvisible() ~= 0 then
       return
     end
@@ -568,7 +568,7 @@ function M.on_CompleteDone()
   -- need auto brackets to make things work
   -- signature()
   -- cleanup virtual hint
-  local m = vim.fn.mode()
+  local m = vim.api.nvim_get_mode().mode
   vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
   if m == 'i' or m == 's' or m == 'v' then
     log("completedone ", m, "enable signature ?")
