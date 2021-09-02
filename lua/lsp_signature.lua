@@ -617,6 +617,7 @@ M.toggle_float_win = function()
   if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0 and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
     vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
     _LSP_SIG_CFG.winnr = nil
+    _LSP_SIG_CFG.bufnr = nil
     if _VT_NS then
       vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
     end
