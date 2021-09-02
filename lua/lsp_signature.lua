@@ -42,6 +42,7 @@ _LSP_SIG_CFG = {
   transpancy = nil, -- disabled by default
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
   shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
+  timer_interval = 200, -- default timer and check interval
   toggle_key = nil -- toggle signature on and off in insert mode,  e.g. '<M-x>'
 }
 
@@ -515,7 +516,8 @@ function M.on_InsertEnter()
   -- setup variable
   manager.init()
   log("insert enter")
-  timer:start(100, 100, vim.schedule_wrap(function()
+  local interval = _LSP_SIG_CFG.timer_interval or 200
+  timer:start(100, interval, vim.schedule_wrap(function()
     local l_changedTick = api.nvim_buf_get_changedtick(0)
     -- closing timer if leaving insert mode
     if l_changedTick ~= manager.changedTick then

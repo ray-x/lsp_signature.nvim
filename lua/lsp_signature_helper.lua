@@ -196,7 +196,7 @@ helper.check_trigger_char = function(line_to_cursor, trigger_character)
       prev_prev_char = string.sub(line_to_cursor, #line_to_cursor - #ch - 1,
                                   #line_to_cursor - #ch - 1)
     end
-    log(prev_prev_char, prev_char, current_char)
+    -- log(prev_prev_char, prev_char, current_char)
     if prev_char == " " and prev_prev_char == ch then
       return true
     end
@@ -262,7 +262,7 @@ helper.cal_pos = function(contents, opts)
     -- note: the floating widnows will be under current line
     local lines_above = vim.fn.winline() - 1
     local lines_below = vim.fn.winheight(0) - lines_above
-    if lines_above > float_option.height + 2 then -- border
+    if lines_above > float_option.height + 3 then -- border
       off_y = -(float_option.height + 3)
     end
   end
