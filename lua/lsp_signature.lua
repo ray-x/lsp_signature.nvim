@@ -32,13 +32,16 @@ _LSP_SIG_CFG = {
   handler_opts = {border = "single"},
   padding = '', -- character to pad on left and right of signature
   use_lspsaga = false,
+  trigger_on_newline = false, -- sometime show signature on new line can be confusing, set it to false for #58
   debug = false,
   log_path = '', -- log dir when debug is no
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- decorator = {"`", "`"} -- set to nil if using guihua.lua
   zindex = 200,
+  transpancy = nil, -- disabled by default
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
-  shadow_guibg = 'Black' -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
+  shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
+  toggle_key = nil -- toggle signature on and off in insert mode,  e.g. '<M-x>'
 }
 
 local double = {"╔", "═", "╗", "║", "╝", "═", "╚", "║"}
@@ -141,24 +144,29 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
 
     return
   end
+  local activeSignature = result.activeSignature or 0
+  activeSignature = activeSignature + 1
 
   local _, hint, s, l = match_parameter(result, config)
   local force_redraw = false
   if #result.signatures > 1 then
     force_redraw = true
-  end
-  for i = #result.signatures, 1, -1 do
-    sig = result.signatures[i]
-    -- hack for lua
-    local actPar = sig.activeParameter or result.activeParameter or 0
-    if actPar + 1 > #sig.parameters then
-      table.remove(result.signatures, i)
+    for i = #result.signatures, 1, -1 do
+      local sig = result.signatures[i]
+      -- hack for lua
+      local actPar = sig.activeParameter or result.activeParameter or 0
+      if actPar + 1 > #(sig.parameters or {}) then
+        table.remove(result.signatures, i)
+        if i <= activeSignature and activeSignature > 1 then
+          activeSignature = activeSignature - 1
+        end
+      end
     end
   end
-
+  local lines = {}
   if _LSP_SIG_CFG.floating_window == true or not config.trigger_from_lsp_sig then
     local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
-    local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
+    lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
 
     if lines == nil or type(lines) ~= "table" then
       log("incorrect result", result)
@@ -166,8 +174,6 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     end
 
     lines = vim.lsp.util.trim_empty_lines(lines)
-    local activeSignature = result.activeSignature or 0
-    activeSignature = activeSignature + 1
     -- offset used for multiple signatures
 
     local offset = 2
@@ -326,6 +332,9 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       _LSP_SIG_CFG.client_id = client_id
     end
 
+    if _LSP_SIG_CFG.transpancy and _LSP_SIG_CFG.transpancy > 1 and _LSP_SIG_CFG.transpancy < 100 then
+      vim.api.nvim_win_set_option(_LSP_SIG_CFG.winnr, "winblend", _LSP_SIG_CFG.transpancy)
+    end
     local sig = result.signatures
     -- if it is last parameter, close windows after cursor moved
     if sig and sig[activeSignature].parameters == nil or result.activeParameter == nil
@@ -362,6 +371,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
   if _LSP_SIG_CFG.hint_enable == true and config.trigger_from_lsp_sig then
     virtual_hint(hint)
   end
+  return lines, s, l
 end
 
 local signature = function()
@@ -493,6 +503,7 @@ local signature = function()
 
 end
 
+M.signature_handler = signature_handler
 M.signature = signature
 
 function M.on_InsertCharPre()
@@ -544,7 +555,9 @@ function M.on_CompleteDone()
   end
 end
 
-M.on_attach = function(cfg)
+M.on_attach = function(cfg, bufnr)
+  bufnr = bufnr or 0
+
   api.nvim_command("augroup Signature")
   api.nvim_command("autocmd! * <buffer>")
   api.nvim_command("autocmd InsertEnter <buffer> lua require'lsp_signature'.on_InsertEnter()")
@@ -571,27 +584,60 @@ M.on_attach = function(cfg)
                                    _LSP_SIG_CFG.shadow_blend + 20, _LSP_SIG_CFG.shadow_guibg)
   vim.cmd(shadow_cmd)
 
+  if _LSP_SIG_CFG.toggle_key then
+    vim.api.nvim_buf_set_keymap(bufnr, 'i', _LSP_SIG_CFG.toggle_key,
+                                [[<cmd>lua require('lsp_signature').toggle_float_win()<CR>]],
+                                {silent = true, noremap = true})
+  end
+end
+
+M.toggle_float_win = function()
+  if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0 and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
+    vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
+    _LSP_SIG_CFG.winnr = nil
+    if _VT_NS then
+      vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
+    end
+    return
+  end
+
+  local params = vim.lsp.util.make_position_params()
+  local pos = api.nvim_win_get_cursor(0)
+  local line = api.nvim_get_current_line()
+  local line_to_cursor = line:sub(1, pos[2])
+  -- Try using the already binded one, otherwise use it without custom config.
+  -- LuaFormatter off
+  vim.lsp.buf_request(0, "textDocument/signatureHelp", params,
+                      vim.lsp.with(signature_handler, {
+                        check_pumvisible = true,
+                        check_client_handlers = true,
+                        trigger_from_lsp_sig = true,
+                        line_to_cursor = line_to_cursor,
+                        border = _LSP_SIG_CFG.handler_opts.border,
+                      }))
+  -- LuaFormatter on
+
 end
 
 -- setup function enable the signature and attach it to client
 -- call it before startup lsp client
 M.setup = function(cfg)
+  cfg = cfg or {}
   local _start_client = vim.lsp.start_client
   vim.lsp.start_client = function(lsp_config)
     if lsp_config.on_attach == nil then
       lsp_config.on_attach = function(client, bufnr)
-        M.on_attach(cfg)
+        M.on_attach(cfg, bufnr)
       end
     else
       local _on_attach = lsp_config.on_attach
       lsp_config.on_attach = function(client, bufnr)
-        M.on_attach(cfg)
+        M.on_attach(cfg, bufnr)
         _on_attach(client, bufnr)
       end
     end
     return _start_client(lsp_config)
   end
-
 end
 
 return M
