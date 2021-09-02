@@ -10,9 +10,10 @@ local check_closer_char = helper.check_closer_char
 
 local manager = {
   insertChar = false, -- flag for InsertCharPre event, turn off imediately when performing completion
-  insertLeave = false, -- flag for InsertLeave, prevent every completion if true
+  insertLeave = true, -- flag for InsertLeave, prevent every completion if true
   changedTick = 0, -- handle changeTick
-  confirmedCompletion = false -- flag for manual confirmation of completion
+  confirmedCompletion = false, -- flag for manual confirmation of completion
+  timer = nil
 }
 
 _LSP_SIG_CFG = {
@@ -143,8 +144,8 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     end
   end
   if not (result and result.signatures and result.signatures[1]) then
-    log("no result?", result)
-    if helper.is_new_line() then
+    -- only close if this client opened the signature
+    if _LSP_SIG_CFG.client_id == client_id then
       helper.cleanup(true)
       -- need to close floating window and virtual text (if they are active)
     end
@@ -195,13 +196,11 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
         if index ~= activeSignature then
           table.insert(lines, offset, sig.label)
           offset = offset + 1
-
-          log("after insert", offset, lines)
         end
       end
-      -- log("after insert", lines)
     end
 
+    log("md lines", lines)
     local label = result.signatures[1].label
     if #result.signatures > 1 then
       label = result.signatures[activeSignature].label
@@ -221,12 +220,25 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       log("md lines remove empty", lines)
     end
 
+    local pos = api.nvim_win_get_cursor(0)
+    local line = api.nvim_get_current_line()
+    local line_to_cursor = line:sub(1, pos[2])
+
     if config.triggered_chars and vim.tbl_contains(config.triggered_chars, '(') then
-      woff = label:find('(', 1, true)
-      if woff then
+      woff = line_to_cursor:find("%([^%(]*$")
+      local sig_woff = label:find("%([^%(]*$")
+      if woff and sig_woff then
+        local function_name = label:sub(1, sig_woff - 1)
+        local function_on_line = line_to_cursor:match('.*' .. function_name)
+        if function_on_line then
+          woff = #line_to_cursor - #function_on_line + #function_name
+        else
+          woff = sig_woff + (#line_to_cursor - woff)
+        end
         woff = -woff
       else
-        woff = -3
+        log("invalid trigger pos? ", line_to_cursor)
+        woff = -1 * math.min(3, #line_to_cursor)
       end
     end
 
@@ -290,12 +302,15 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     if not config.trigger_from_lsp_sig then
       config.close_events = close_events
     end
-    if force_redraw then
+    if force_redraw and _LSP_SIG_CFG.fix_pos == false then
       config.close_events = close_events
     end
     if result.signatures[activeSignature].parameters == nil
         or #result.signatures[activeSignature].parameters == 0 then
-      config.close_events = close_events
+      -- let LSP decide to close when fix_pos is false
+      if _LSP_SIG_CFG.fix_pos == false then
+        config.close_events = close_events
+      end
     end
     config.zindex = _LSP_SIG_CFG.zindex
     -- fix pos case
@@ -324,11 +339,13 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
         _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax,
                                                                                     config)
         _LSP_SIG_CFG.label = label
+        _LSP_SIG_CFG.client_id = client_id
       end
     else
       _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax,
                                                                                   config)
       _LSP_SIG_CFG.label = label
+      _LSP_SIG_CFG.client_id = client_id
     end
 
     if _LSP_SIG_CFG.transpancy and _LSP_SIG_CFG.transpancy > 1 and _LSP_SIG_CFG.transpancy < 100 then
@@ -338,8 +355,10 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     -- if it is last parameter, close windows after cursor moved
     if sig and sig[activeSignature].parameters == nil or result.activeParameter == nil
         or result.activeParameter + 1 == #sig[activeSignature].parameters then
-      log("last para", close_events)
-      vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
+      if _LSP_SIG_CFG.fix_pos == false then
+        -- log("last para", close_events)
+        vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
+      end
       -- elseif _LSP_SIG_CFG.fix_pos then
       --   log("should not close")
       --   -- vim.lsp.util.close_preview_autocmd(ce, _LSP_SIG_CFG.winnr)
@@ -391,6 +410,7 @@ local signature = function()
   local total_lsp = 0
 
   local triggered_chars = {}
+  local trigger_position = nil
 
   for _, value in pairs(clients) do
     if value == nil then
@@ -432,7 +452,7 @@ local signature = function()
     end
 
     if triggered == false then
-      triggered = check_trigger_char(line_to_cursor, triggered_chars)
+      triggered, trigger_position = check_trigger_char(line_to_cursor, triggered_chars)
     end
 
     ::continue::
@@ -462,6 +482,7 @@ local signature = function()
     end
     -- overwrite signature help here to disable "no signature help" message
     local params = vim.lsp.util.make_position_params()
+    params.position.character = trigger_position
     -- Try using the already binded one, otherwise use it without custom config.
     -- LuaFormatter off
     vim.lsp.buf_request(0, "textDocument/signatureHelp", params,
@@ -469,19 +490,21 @@ local signature = function()
                           check_pumvisible = true,
                           check_client_handlers = true,
                           trigger_from_lsp_sig = true,
-                          line_to_cursor = line_to_cursor,
+                          line_to_cursor = line_to_cursor:sub(1, trigger_position),
                           triggered_chars = triggered_chars
                         }))
     -- LuaFormatter on
   else
     -- check if we should close the signature
-    if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0
-        and check_closer_char(line_to_cursor, triggered_chars) then
+    -- print('should close')
+    if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0 then
+      -- if check_closer_char(line_to_cursor, triggered_chars) then
       if vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
         vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
       end
       _LSP_SIG_CFG.winnr = nil
       _LSP_SIG_CFG.startx = nil
+      -- end
     end
 
     -- check should we close virtual hint
@@ -508,28 +531,34 @@ end
 
 function M.on_InsertLeave()
   manager.insertLeave = true
+  manager.timer:stop()
+  manager.timer:close()
+  manager.timer = nil
+  vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
+  helper.cleanup(true)
+end
+
+local start_watch_changes_timer = function()
+  if not manager.timer then
+    manager.changedTick = 0
+    manager.timer = vim.loop.new_timer()
+    manager.timer:start(0, 100, vim.schedule_wrap(function()
+      local l_changedTick = api.nvim_buf_get_changedtick(0)
+      if l_changedTick ~= manager.changedTick then
+        manager.changedTick = l_changedTick
+        signature()
+      end
+    end))
+  end
 end
 
 function M.on_InsertEnter()
-
-  local timer = vim.loop.new_timer()
-  -- setup variable
-  manager.init()
   log("insert enter")
-  local interval = _LSP_SIG_CFG.timer_interval or 200
-  timer:start(100, interval, vim.schedule_wrap(function()
-    local l_changedTick = api.nvim_buf_get_changedtick(0)
-    -- closing timer if leaving insert mode
-    if l_changedTick ~= manager.changedTick then
-      manager.changedTick = l_changedTick
-      signature()
-    end
-    if manager.insertLeave == true and timer:is_closing() == false then
-      timer:stop()
-      timer:close()
-      vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
-    end
-  end))
+  -- show signature immediately upon entering insert mode
+  if manager.insertLeave == true then
+    start_watch_changes_timer()
+  end
+  manager.init()
 end
 
 -- handle completion confirmation and dismiss hover popup
