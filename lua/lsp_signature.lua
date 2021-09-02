@@ -43,7 +43,7 @@ _LSP_SIG_CFG = {
   transpancy = nil, -- disabled by default
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
   shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
-  timer_interval = 200, -- default timer and check interval
+  timer_interval = 200, -- default timer check interval
   toggle_key = nil -- toggle signature on and off in insert mode,  e.g. '<M-x>'
 }
 
@@ -541,8 +541,9 @@ end
 local start_watch_changes_timer = function()
   if not manager.timer then
     manager.changedTick = 0
+    local interval = _LSP_SIG_CFG.timer_interval or 200
     manager.timer = vim.loop.new_timer()
-    manager.timer:start(0, 100, vim.schedule_wrap(function()
+    manager.timer:start(100, interval, vim.schedule_wrap(function()
       local l_changedTick = api.nvim_buf_get_changedtick(0)
       if l_changedTick ~= manager.changedTick then
         manager.changedTick = l_changedTick
