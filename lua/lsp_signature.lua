@@ -531,9 +531,11 @@ end
 
 function M.on_InsertLeave()
   manager.insertLeave = true
-  manager.timer:stop()
-  manager.timer:close()
-  manager.timer = nil
+  if manager.timer then
+    manager.timer:stop()
+    manager.timer:close()
+    manager.timer = nil
+  end
   vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
   helper.cleanup(true)
 end
