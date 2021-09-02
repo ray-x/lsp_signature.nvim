@@ -499,11 +499,12 @@ local signature = function()
     -- print('should close')
     if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0 then
       -- if check_closer_char(line_to_cursor, triggered_chars) then
-      if vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
-        vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
-      end
-      _LSP_SIG_CFG.winnr = nil
-      _LSP_SIG_CFG.startx = nil
+        if vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
+          vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
+        end
+        _LSP_SIG_CFG.winnr = nil
+        _LSP_SIG_CFG.bufnr = nil
+        _LSP_SIG_CFG.startx = nil
       -- end
     end
 
