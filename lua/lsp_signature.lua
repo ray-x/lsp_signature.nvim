@@ -171,6 +171,13 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       end
     end
   end
+
+  if _LSP_SIG_CFG.doc_lines == 0 then -- doc disabled
+    for i = 1, #result.signatures do
+      result.signatures[i].documentation.value = nil
+    end
+  end
+
   local lines = {}
   local off_y = 0
   if _LSP_SIG_CFG.floating_window == true or not config.trigger_from_lsp_sig then
@@ -186,6 +193,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     -- offset used for multiple signatures
 
     local offset = 2
+    local num_sigs = #result.signatures
     if #result.signatures > 1 then
       if string.find(lines[1], [[```]]) then -- markdown format start with ```, insert pos need after that
         log("line1 markdown")
@@ -242,17 +250,16 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       end
     end
 
-    local doc_num = 3 + _LSP_SIG_CFG.doc_lines
-    if doc_num < 3 then
-      doc_num = 3
-    end
+    -- total lines allowed
+    local doc_num = 3 + _LSP_SIG_CFG.doc_lines -- 3: markdown code signature
     local vmode = vim.api.nvim_get_mode().mode
+    -- truncate doc if in insert/replace mode
     if vmode == 'i' or vmode == 'ic' or vmode == 'v' or vmode == 's' or vmode == 'S' or vmode == 'R'
         or vmode == 'Rc' or vmode == 'Rx' then
       -- truncate the doc?
-      if #lines > doc_num + offset + 1 then -- for markdown doc start with ```text and end with ```
+      if #lines > doc_num + num_sigs - 1 then -- for markdown doc start with ```text and end with ```
         local last = lines[#lines]
-        lines = vim.list_slice(lines, 1, doc_num + offset + 1)
+        lines = vim.list_slice(lines, 1, doc_num + num_sigs)
         if last == "```" then
           table.insert(lines, "```")
         end
@@ -499,12 +506,12 @@ local signature = function()
     -- print('should close')
     if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0 then
       -- if check_closer_char(line_to_cursor, triggered_chars) then
-        if vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
-          vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
-        end
-        _LSP_SIG_CFG.winnr = nil
-        _LSP_SIG_CFG.bufnr = nil
-        _LSP_SIG_CFG.startx = nil
+      if vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
+        vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
+      end
+      _LSP_SIG_CFG.winnr = nil
+      _LSP_SIG_CFG.bufnr = nil
+      _LSP_SIG_CFG.startx = nil
       -- end
     end
 
