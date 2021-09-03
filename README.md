@@ -192,7 +192,7 @@ e.g.
 
 ```lua
 fix_pos = function(signature, lspclient)
-   if signature.activeParameter >= 0 and #signatures[0].parameters == 1 then
+   if signature.activeParameter >= 0 and #signatures[1].parameters == 1 then
      return false
    end
    if lspclient.name == 'sumneko_lua' then
