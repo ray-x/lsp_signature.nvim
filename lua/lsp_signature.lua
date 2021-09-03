@@ -303,6 +303,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     config.offset_x = woff
 
     if type(_LSP_SIG_CFG._fix_pos) == "function" then
+      local client = vim.lsp.get_client_by_id(client_id)
       _LSP_SIG_CFG._fix_pos = _LSP_SIG_CFG._fix_pos(result, client)
     else
       _LSP_SIG_CFG._fix_pos = _LSP_SIG_CFG._fix_pos or true
