@@ -30,7 +30,7 @@ describe("should show signature ", function()
     line_to_cursor = "\ttime.Date(2020, ",
     triggered_chars = {'(', ','}
   }
-  it("should show signature ", function()
+  it("should show signature Date golang", function()
     local lines, s, l = require"lsp_signature".signature_handler(nil, "textDocument/signatureHelp",
                                                                  result, 1, 0, cfg)
 
@@ -40,8 +40,8 @@ describe("should show signature ", function()
     eq(5, s) -- match `year int`
     eq(13, l)
   end)
+  it("should show fn add", function()
 
-  describe("should show signature ", function()
     _LSP_SIG_CFG.debug = false
     _LSP_SIG_CFG.floating_window = true
 
@@ -63,14 +63,45 @@ describe("should show signature ", function()
       line_to_cursor = "    add(1, ",
       triggered_chars = {'(', ','}
     }
-    it("should show signature ", function()
-      local lines, s, l = require"lsp_signature".signature_handler(nil,
-                                                                   "textDocument/signatureHelp",
-                                                                   result, 1, 0, cfg)
 
-      eq("fn add(left: i32, right: i32) -> i32", lines[1])
-      eq(7, s) -- match `year int`
-      eq(16, l)
-    end)
+    local lines, s, l = require"lsp_signature".signature_handler(nil, "textDocument/signatureHelp",
+                                                                 result, 1, 0, cfg)
+
+    eq("fn add(left: i32, right: i32) -> i32", lines[1])
+    eq(7, s) -- match `year int`
+    eq(16, l)
   end)
+
+  it("should show signature with new line", function()
+    _LSP_SIG_CFG.debug = false
+    _LSP_SIG_CFG.floating_window = true
+
+    result = {
+      activeParameter = 1,
+      activeSignature = 0,
+      signatures = {
+        {
+          documentation = "HandleFunc registers a new route with a matcher for the URL path.\nSee Route.Path() and Route.HandlerFunc().\n",
+          label = "HandleFunc(path string, f func(http.ResponseWriter,\n\t*http.Request)) *mux.Route",
+          parameters = {
+            {label = "path string"}, {label = "f func(http.ResponseWriter,\n\t*http.Request)"}
+          }
+        }
+      }
+    }
+
+    cfg = {
+      check_pumvisible = true,
+      check_client_handlers = true,
+      trigger_from_lsp_sig = true,
+      line_to_cursor = [[\t HandleFunc(" / ", ]],
+      triggered_chars = {'(', ','}
+    }
+
+    local lines, s, l = require"lsp_signature".signature_handler(nil, "textDocument/signatureHelp",
+                                                                 result, 1, 0, cfg)
+
+    eq("HandleFunc(path string, f func(http.ResponseWriter,  *http.Request)) *mux.Route", lines[2])
+  end)
+
 end)

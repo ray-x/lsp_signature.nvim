@@ -80,6 +80,7 @@ helper.tbl_combine = function(tbl1, tbl2)
   return tbl1
 end
 
+--  location of active parameter
 helper.match_parameter = function(result, config)
   local signatures = result.signatures
 
