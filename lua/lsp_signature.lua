@@ -1,4 +1,4 @@
-local vim = vim -- suppress warning
+local vim = _G.vim or vim -- suppress warning, allow complete without lua-dev
 local api = vim.api
 local M = {}
 _VT_NS = api.nvim_create_namespace("lsp_signature")
@@ -24,6 +24,8 @@ _LSP_SIG_CFG = {
   max_width = 120, -- max_width of signature floating_window
 
   floating_window = true, -- show hint in a floating window
+  floating_window_above_first = false, -- try to place the floating above the current line
+  floating_window_off_y = 1, -- adjust float windows y position. allow the pum to show a few lines
   fix_pos = true, -- fix floating_window position
   hint_enable = true, -- virtual hint
   hint_prefix = "🐼 ",
@@ -41,6 +43,7 @@ _LSP_SIG_CFG = {
   transpancy = nil, -- disabled by default
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
   shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
+  timer_interval = 200, -- default timer check interval
   toggle_key = nil -- toggle signature on and off in insert mode,  e.g. '<M-x>'
 }
 
@@ -48,14 +51,13 @@ local double = {"╔", "═", "╗", "║", "╝", "═", "╚", "║"}
 local single = {"╭", "─", "╮", "│", "╯", "─", "╰", "│"}
 
 local log = helper.log
-
 function manager.init()
   manager.insertLeave = false
   manager.insertChar = false
   manager.confirmedCompletion = false
 end
 
-local function virtual_hint(hint)
+local function virtual_hint(hint, off_y)
   if hint == nil or hint == "" then
     return
   end
@@ -70,6 +72,10 @@ local function virtual_hint(hint)
     show_at = cur_line + 1 -- same line
   end
   local pl
+  if off_y ~= nil and off_y < -1 then -- floating win above first
+    show_at = cur_line + 1
+  end
+
   if _LSP_SIG_CFG.floating_window == false then
     local prev_line, next_line
     if cur_line > 0 then
@@ -119,12 +125,14 @@ local close_events = {"CursorMoved", "CursorMovedI", "BufHidden", "InsertCharPre
 -- ----------------------
 -- --  signature help  --
 -- ----------------------
+-- Note: nvim 0.6.2   - signature_help({_}, {result}, {ctx}, {config})
+
 local function signature_handler(err, method, result, client_id, bufnr, config)
-  log("sig result", result, config)
   if err ~= nil then
     print(err)
     return
   end
+  log("sig result", result, config)
   _LSP_SIG_CFG.signature_result = result
   if config.check_client_handlers then
     local client = vim.lsp.get_client_by_id(client_id)
@@ -163,7 +171,15 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       end
     end
   end
+
+  if _LSP_SIG_CFG.doc_lines == 0 then -- doc disabled
+    for i = 1, #result.signatures do
+      result.signatures[i].documentation.value = nil
+    end
+  end
+
   local lines = {}
+  local off_y = 0
   if _LSP_SIG_CFG.floating_window == true or not config.trigger_from_lsp_sig then
     local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
     lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
@@ -177,6 +193,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     -- offset used for multiple signatures
 
     local offset = 2
+    local num_sigs = #result.signatures
     if #result.signatures > 1 then
       if string.find(lines[1], [[```]]) then -- markdown format start with ```, insert pos need after that
         log("line1 markdown")
@@ -211,9 +228,9 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       log("md lines remove empty", lines)
     end
 
-  local pos = api.nvim_win_get_cursor(0)
-  local line = api.nvim_get_current_line()
-  local line_to_cursor = line:sub(1, pos[2])
+    local pos = api.nvim_win_get_cursor(0)
+    local line = api.nvim_get_current_line()
+    local line_to_cursor = line:sub(1, pos[2])
 
     if config.triggered_chars and vim.tbl_contains(config.triggered_chars, '(') then
       woff = line_to_cursor:find("%([^%(]*$")
@@ -228,20 +245,21 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
         end
         woff = -woff
       else
-        woff = 3
+        log("invalid trigger pos? ", line_to_cursor)
+        woff = -1 * math.min(3, #line_to_cursor)
       end
     end
 
-    local doc_num = 3 + _LSP_SIG_CFG.doc_lines
-    if doc_num < 3 then
-      doc_num = 3
-    end
-    local vmode = vim.fn.mode()
-    if vmode == 'i' or vmode == 'ic' or vmode == 'v' or vmode == 's' or vmode == 'S' then
+    -- total lines allowed
+    local doc_num = 3 + _LSP_SIG_CFG.doc_lines -- 3: markdown code signature
+    local vmode = vim.api.nvim_get_mode().mode
+    -- truncate doc if in insert/replace mode
+    if vmode == 'i' or vmode == 'ic' or vmode == 'v' or vmode == 's' or vmode == 'S' or vmode == 'R'
+        or vmode == 'Rc' or vmode == 'Rx' then
       -- truncate the doc?
-      if #lines > doc_num + offset + 1 then -- for markdown doc start with ```text and end with ```
+      if #lines > doc_num + num_sigs - 1 then -- for markdown doc start with ```text and end with ```
         local last = lines[#lines]
-        lines = vim.list_slice(lines, 1, doc_num + offset + 1)
+        lines = vim.list_slice(lines, 1, doc_num + num_sigs)
         if last == "```" then
           table.insert(lines, "```")
         end
@@ -252,7 +270,6 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     if vim.tbl_isempty(lines) then
       return
     end
-
     if config.check_pumvisible and vim.fn.pumvisible() ~= 0 then
       return
     end
@@ -314,6 +331,12 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
       config.offset_x = config.offset_x - #_LSP_SIG_CFG.padding
     end
 
+    local display_opts = {}
+    display_opts, off_y = helper.cal_pos(lines, config)
+
+    config.offset_y = off_y
+    log("floating opt", config, display_opts)
+
     if _LSP_SIG_CFG.fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
       if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and _LSP_SIG_CFG.label == label and not new_line then
         helper.cleanup(false)
@@ -369,9 +392,13 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
   end
 
   if _LSP_SIG_CFG.hint_enable == true and config.trigger_from_lsp_sig then
-    virtual_hint(hint)
+    virtual_hint(hint, off_y)
   end
   return lines, s, l
+end
+
+local function signature_handler_v2(err, result, ctx, config)
+  return signature_handler(err, ctx.method, result, ctx.client_id, config)
 end
 
 local signature = function()
@@ -391,7 +418,6 @@ local signature = function()
 
   local triggered_chars = {}
   local trigger_position = nil
-
 
   for _, value in pairs(clients) do
     if value == nil then
@@ -480,12 +506,12 @@ local signature = function()
     -- print('should close')
     if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0 then
       -- if check_closer_char(line_to_cursor, triggered_chars) then
-        if vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
-          vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
-        end
-        _LSP_SIG_CFG.winnr = nil
-        _LSP_SIG_CFG.bufnr = nil
-        _LSP_SIG_CFG.startx = nil
+      if vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
+        vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
+      end
+      _LSP_SIG_CFG.winnr = nil
+      _LSP_SIG_CFG.bufnr = nil
+      _LSP_SIG_CFG.startx = nil
       -- end
     end
 
@@ -525,8 +551,9 @@ end
 local start_watch_changes_timer = function()
   if not manager.timer then
     manager.changedTick = 0
+    local interval = _LSP_SIG_CFG.timer_interval or 200
     manager.timer = vim.loop.new_timer()
-    manager.timer:start(0, 100, vim.schedule_wrap(function()
+    manager.timer:start(100, interval, vim.schedule_wrap(function()
       local l_changedTick = api.nvim_buf_get_changedtick(0)
       if l_changedTick ~= manager.changedTick then
         manager.changedTick = l_changedTick
@@ -551,7 +578,7 @@ function M.on_CompleteDone()
   -- need auto brackets to make things work
   -- signature()
   -- cleanup virtual hint
-  local m = vim.fn.mode()
+  local m = vim.api.nvim_get_mode().mode
   vim.api.nvim_buf_clear_namespace(0, _VT_NS, 0, -1)
   if m == 'i' or m == 's' or m == 'v' then
     log("completedone ", m, "enable signature ?")

@@ -226,7 +226,7 @@ helper.check_trigger_char = function(line_to_cursor, trigger_character)
       prev_prev_char = string.sub(line_to_cursor, #line_to_cursor - #ch - 1,
                                   #line_to_cursor - #ch - 1)
     end
-    log(prev_prev_char, prev_char, current_char)
+    -- log(prev_prev_char, prev_char, current_char)
     if prev_char == " " and prev_prev_char == ch then
       return true, #line_to_cursor
     end
@@ -276,6 +276,27 @@ helper.cleanup = function(close_float_win)
   if _LSP_SIG_CFG.bufnr and not vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
     _LSP_SIG_CFG.bufnr = nil
   end
+
+end
+
+helper.cal_pos = function(contents, opts)
+  if not _LSP_SIG_CFG.floating_window_above_first then
+    return {}, 0
+  end
+  local util = vim.lsp.util
+  local width, height = util._make_floating_popup_size(contents, opts)
+  local float_option = util.make_floating_popup_options(width, height, opts)
+  helper.log("pos", width, height, float_option)
+  local off_y = 0
+  if float_option.anchor == 'NW' then
+    -- note: the floating widnows will be under current line
+    local lines_above = vim.fn.winline() - 1
+    local lines_below = vim.fn.winheight(0) - lines_above
+    if lines_above > float_option.height + 3 then -- border
+      off_y = -(float_option.height + 3)
+    end
+  end
+  return float_option, off_y
 
 end
 
