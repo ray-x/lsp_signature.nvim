@@ -191,8 +191,8 @@ You can provide a function.
 e.g.
 
 ```lua
-fix_pos = function(signature, lspclient)
-   if signature.activeParameter >= 0 and #signatures[1].parameters == 1 then
+fix_pos = function(signatures, lspclient)
+   if signatures[1].activeParameter >= 0 and #signatures[1].parameters == 1 then
      return false
    end
    if lspclient.name == 'sumneko_lua' then
