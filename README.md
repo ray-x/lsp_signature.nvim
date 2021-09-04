@@ -144,6 +144,9 @@ Or:
                  -- mode, 10 by default
 
   floating_window = true, -- show hint in a floating window, set to false for virtual text only mode
+
+  floating_window_above_first = false, -- try to place the floating above the current line when possible Note:
+  -- will set to true when fully tested
   fix_pos = false,  -- set to true, the floating window will not auto-close until finish all parameters
   hint_enable = true, -- virtual hint enable
   hint_prefix = "🐼 ",  -- Panda for parameter
@@ -177,6 +180,30 @@ Or:
 require'lsp_signature'.on_attach(cfg, bufnr) -- no need to specify bufnr if you don't use toggle_key
 ```
 Note: navigator.lua no longer support auto setup for lsp_signature as the setup options is getting more complicated now
+
+### Should signature floating windows fixed
+
+fix_pos can be a function, it took two element, first is the signature result for your signature, second is lsp
+client.
+
+You can provide a function.
+
+e.g.
+
+```lua
+fix_pos = function(signatures, lspclient)
+   if signatures[1].activeParameter >= 0 and #signatures[1].parameters == 1 then
+     return false
+   end
+   if lspclient.name == 'sumneko_lua' then
+     return true
+   end
+   return false
+end
+
+```
+
+
 
 ### Q&A:
 
