@@ -442,49 +442,44 @@ local signature = function()
   local trigger_position = nil
 
   for _, value in pairs(clients) do
-    if value == nil then
-      goto continue
-    end
-    if value.resolved_capabilities.signature_help == true
-        or value.server_capabilities.signatureHelpProvider ~= nil then
-      signature_cap = true
-      total_lsp = total_lsp + 1
-    else
-      goto continue
-    end
+    if value ~= nil then
+      if value.resolved_capabilities.signature_help == true
+          or value.server_capabilities.signatureHelpProvider ~= nil then
+        signature_cap = true
+        total_lsp = total_lsp + 1
 
-    local h = value.resolved_capabilities.hover
+        local h = value.resolved_capabilities.hover
 
-    if h == true or (h ~= nil and h ~= {}) then
-      hover_cap = true
-    end
+        if h == true or (h ~= nil and h ~= {}) then
+          hover_cap = true
+        end
 
-    if value.server_capabilities.signatureHelpProvider ~= nil then
-      if value.server_capabilities.signatureHelpProvider.triggerCharacters ~= nil then
-        triggered_chars = value.server_capabilities.signatureHelpProvider.triggerCharacters
+        if value.server_capabilities.signatureHelpProvider ~= nil then
+          if value.server_capabilities.signatureHelpProvider.triggerCharacters ~= nil then
+            triggered_chars = value.server_capabilities.signatureHelpProvider.triggerCharacters
+          end
+          if value.server_capabilities.signatureHelpProvider.retriggerCharacters ~= nil then
+            vim.list_extend(triggered_chars,
+                            value.server_capabilities.signatureHelpProvider.retriggerCharacters)
+          end
+          if _LSP_SIG_CFG.extra_trigger_chars ~= nil then
+            triggered_chars = tbl_combine(triggered_chars, _LSP_SIG_CFG.extra_trigger_chars)
+          end
+        elseif value.resolved_capabilities ~= nil
+            and value.resolved_capabilities.signature_help_trigger_characters ~= nil then
+          triggered_chars = tbl_combine(triggered_chars,
+                                        value.server_capabilities.signature_help_trigger_characters)
+        elseif value.resolved_capabilities and value.resolved_capabilities.signatureHelpProvider
+            and value.resolved_capabilities.signatureHelpProvider.triggerCharacters then
+          triggered_chars = tbl_combine(triggered_chars, value.server_capabilities.signatureHelpProvider
+                                            .triggerCharacters)
+        end
+
+        if triggered == false then
+          triggered, trigger_position = check_trigger_char(line_to_cursor, triggered_chars)
+        end
       end
-      if value.server_capabilities.signatureHelpProvider.retriggerCharacters ~= nil then
-        vim.list_extend(triggered_chars,
-                        value.server_capabilities.signatureHelpProvider.retriggerCharacters)
-      end
-      if _LSP_SIG_CFG.extra_trigger_chars ~= nil then
-        triggered_chars = tbl_combine(triggered_chars, _LSP_SIG_CFG.extra_trigger_chars)
-      end
-    elseif value.resolved_capabilities ~= nil
-        and value.resolved_capabilities.signature_help_trigger_characters ~= nil then
-      triggered_chars = tbl_combine(triggered_chars,
-                                    value.server_capabilities.signature_help_trigger_characters)
-    elseif value.resolved_capabilities and value.resolved_capabilities.signatureHelpProvider
-        and value.resolved_capabilities.signatureHelpProvider.triggerCharacters then
-      triggered_chars = tbl_combine(triggered_chars, value.server_capabilities.signatureHelpProvider
-                                        .triggerCharacters)
     end
-
-    if triggered == false then
-      triggered, trigger_position = check_trigger_char(line_to_cursor, triggered_chars)
-    end
-
-    ::continue::
   end
 
   if hover_cap == false then
