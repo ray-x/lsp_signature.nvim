@@ -261,7 +261,7 @@ helper.is_new_line = function()
 end
 
 helper.cleanup = function(close_float_win)
-  close_float_win = close_float_win or true
+  close_float_win = close_float_win or false
   if _LSP_SIG_CFG.ns and _LSP_SIG_CFG.bufnr and vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
     log("bufnr, ns", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns)
     vim.api.nvim_buf_clear_namespace(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, -1)
