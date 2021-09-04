@@ -133,7 +133,7 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
     print(err)
     return
   end
-  log("sig result", result, config)
+  log("sig result", result, config, client_id)
   _LSP_SIG_CFG.signature_result = result
   if config.check_client_handlers and not nvim_0_6 then
     -- this feature will be removed
@@ -314,20 +314,27 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
     end
     config.offset_x = woff
 
+    if type(_LSP_SIG_CFG._fix_pos) == "function" then
+      local client = vim.lsp.get_client_by_id(client_id)
+      _LSP_SIG_CFG._fix_pos = _LSP_SIG_CFG._fix_pos(result, client)
+    else
+      _LSP_SIG_CFG._fix_pos = _LSP_SIG_CFG._fix_pos or true
+    end
+
     config.close_events = {'BufHidden', 'InsertLeavePre'}
-    if not _LSP_SIG_CFG.fix_pos then
+    if not _LSP_SIG_CFG._fix_pos then
       config.close_events = close_events
     end
     if not config.trigger_from_lsp_sig then
       config.close_events = close_events
     end
-    if force_redraw and _LSP_SIG_CFG.fix_pos == false then
+    if force_redraw and _LSP_SIG_CFG._fix_pos == false then
       config.close_events = close_events
     end
     if result.signatures[activeSignature].parameters == nil
         or #result.signatures[activeSignature].parameters == 0 then
       -- let LSP decide to close when fix_pos is false
-      if _LSP_SIG_CFG.fix_pos == false then
+      if _LSP_SIG_CFG._fix_pos == false then
         config.close_events = close_events
       end
     end
@@ -347,9 +354,10 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
     display_opts, off_y = helper.cal_pos(lines, config)
 
     config.offset_y = off_y
+    config.focusable = false
     log("floating opt", config, display_opts)
 
-    if _LSP_SIG_CFG.fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
+    if _LSP_SIG_CFG._fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
       if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and _LSP_SIG_CFG.label == label and not new_line then
         helper.cleanup(false)
       else
@@ -374,11 +382,11 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
     -- if it is last parameter, close windows after cursor moved
     if sig and sig[activeSignature].parameters == nil or result.activeParameter == nil
         or result.activeParameter + 1 == #sig[activeSignature].parameters then
-      if _LSP_SIG_CFG.fix_pos == false then
+      if _LSP_SIG_CFG._fix_pos == false then
         -- log("last para", close_events)
         vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
       end
-      -- elseif _LSP_SIG_CFG.fix_pos then
+      -- elseif _LSP_SIG_CFG._fix_pos then
       --   log("should not close")
       --   -- vim.lsp.util.close_preview_autocmd(ce, _LSP_SIG_CFG.winnr)
     end
