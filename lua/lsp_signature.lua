@@ -127,7 +127,6 @@ local function virtual_hint(hint, off_y)
 end
 
 local close_events = {"CursorMoved", "CursorMovedI", "BufHidden", "InsertCharPre"}
-local close_events_au = {"BufHidden", "CompleteDone", "InsertLeave"}
 
 -- ----------------------
 -- --  signature help  --
@@ -384,14 +383,14 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
       vim.api.nvim_win_set_option(_LSP_SIG_CFG.winnr, "winblend", _LSP_SIG_CFG.transpancy)
     end
     local sig = result.signatures
-    -- if it is last parameter, close windows after cursor moved
+    -- if it is last parameter, close windows after cursor moved<F2>
     if sig and sig[activeSignature].parameters == nil or result.activeParameter == nil
         or result.activeParameter + 1 == #sig[activeSignature].parameters then
       -- log("last para", close_events)
       if _LSP_SIG_CFG._fix_pos == false then
         vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
-      elseif _LSP_SIG_CFG._fix_pos then
-        vim.lsp.util.close_preview_autocmd(close_events_au, _LSP_SIG_CFG.winnr)
+        -- elseif _LSP_SIG_CFG._fix_pos then
+        --   vim.lsp.util.close_preview_autocmd(close_events_au, _LSP_SIG_CFG.winnr)
       end
       vim.defer_fn(helper.cleanup, _LSP_SIG_CFG.close_timeout or 40000)
     end
@@ -407,8 +406,14 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
         s = s - 1 + #_LSP_SIG_CFG.padding
         l = l + #_LSP_SIG_CFG.padding
       end
-      _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, s,
-                                                         {end_line = 0, end_col = l, hl_group = hi})
+      if vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
+        _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0,
+                                                           s, {
+          end_line = 0,
+          end_col = l,
+          hl_group = hi
+        })
+      end
 
     else
       print("failed get highlight parameter", s, l)
