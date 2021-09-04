@@ -342,6 +342,7 @@ local function signature_handler(err, method, result, client_id, bufnr, config)
     display_opts, off_y = helper.cal_pos(lines, config)
 
     config.offset_y = off_y
+    config.focusable = false
     log("floating opt", config, display_opts)
 
     if _LSP_SIG_CFG._fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
