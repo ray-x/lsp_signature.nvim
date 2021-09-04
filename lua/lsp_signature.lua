@@ -26,7 +26,11 @@ _LSP_SIG_CFG = {
   floating_window = true, -- show hint in a floating window
   floating_window_above_first = false, -- try to place the floating above the current line
   floating_window_off_y = 1, -- adjust float windows y position. allow the pum to show a few lines
-  fix_pos = true, -- fix floating_window position
+  close_timeout = 4000, -- close floating window after ms when laster parameter is entered
+  fix_pos = function(signatures, _) -- second argument is the client
+    return true -- can be expression like : return signatures[1].activeParameter >= 0 and signatures[1].parameters > 1
+  end,
+  -- also can be bool value fix floating_window position
   hint_enable = true, -- virtual hint
   hint_prefix = "🐼 ",
   hint_scheme = "String",
@@ -135,17 +139,16 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
   end
   log("sig result", result, config, client_id)
   _LSP_SIG_CFG.signature_result = result
-  if config.check_client_handlers and not nvim_0_6 then
-    -- this feature will be removed
-    print("binding 3rd signature will be deprecated")
-    local client = vim.lsp.get_client_by_id(client_id)
-    local handler = client and client.handlers["textDocument/signatureHelp"]
-    if handler then
-      log(" using 3rd handler")
-      handler(err, method, result, client_id, bufnr, config)
-      return
-    end
-  end
+  -- if config.check_client_handlers and not nvim_0_6 then
+  --   -- this feature will be removed
+  --   local client = vim.lsp.get_client_by_id(client_id)
+  --   local handler = client and client.handlers["textDocument/signatureHelp"]
+  --   if handler then
+  --     log(" using 3rd handler")
+  --     handler(err, method, result, client_id, bufnr, config)
+  --     return
+  --   end
+  -- end
   if not (result and result.signatures and result.signatures[1]) then
     -- only close if this client opened the signature
     if _LSP_SIG_CFG.client_id == client_id then
@@ -333,7 +336,7 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
     end
     if result.signatures[activeSignature].parameters == nil
         or #result.signatures[activeSignature].parameters == 0 then
-      -- let LSP decide to close when fix_pos is false
+      -- auto close when fix_pos is false
       if _LSP_SIG_CFG._fix_pos == false then
         config.close_events = close_events
       end
@@ -379,16 +382,18 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
       vim.api.nvim_win_set_option(_LSP_SIG_CFG.winnr, "winblend", _LSP_SIG_CFG.transpancy)
     end
     local sig = result.signatures
-    -- if it is last parameter, close windows after cursor moved
+    -- if it is last parameter, close windows after cursor moved<F2>
     if sig and sig[activeSignature].parameters == nil or result.activeParameter == nil
         or result.activeParameter + 1 == #sig[activeSignature].parameters then
+      -- log("last para", close_events)
       if _LSP_SIG_CFG._fix_pos == false then
-        -- log("last para", close_events)
         vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
+        -- elseif _LSP_SIG_CFG._fix_pos then
+        --   vim.lsp.util.close_preview_autocmd(close_events_au, _LSP_SIG_CFG.winnr)
       end
-      -- elseif _LSP_SIG_CFG._fix_pos then
-      --   log("should not close")
-      --   -- vim.lsp.util.close_preview_autocmd(ce, _LSP_SIG_CFG.winnr)
+      vim.defer_fn(function()
+        helper.cleanup(true)
+      end, _LSP_SIG_CFG.close_timeout or 40000)
     end
     -- Not sure why this not working
     -- api.nvim_command("autocmd User SigComplete".." <buffer> ++once lua pcall(vim.api.nvim_win_close, "..winnr..", true)")
@@ -402,8 +407,14 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
         s = s - 1 + #_LSP_SIG_CFG.padding
         l = l + #_LSP_SIG_CFG.padding
       end
-      _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, s,
-                                                         {end_line = 0, end_col = l, hl_group = hi})
+      if vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
+        _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0,
+                                                           s, {
+          end_line = 0,
+          end_col = l,
+          hl_group = hi
+        })
+      end
 
     else
       print("failed get highlight parameter", s, l)
@@ -471,8 +482,8 @@ local signature = function()
                                         value.server_capabilities.signature_help_trigger_characters)
         elseif value.resolved_capabilities and value.resolved_capabilities.signatureHelpProvider
             and value.resolved_capabilities.signatureHelpProvider.triggerCharacters then
-          triggered_chars = tbl_combine(triggered_chars, value.server_capabilities.signatureHelpProvider
-                                            .triggerCharacters)
+          triggered_chars = tbl_combine(triggered_chars, value.server_capabilities
+                                            .signatureHelpProvider.triggerCharacters)
         end
 
         if triggered == false then
