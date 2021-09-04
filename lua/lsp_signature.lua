@@ -57,6 +57,8 @@ function manager.init()
   manager.confirmedCompletion = false
 end
 
+local nvim_0_6 = false
+
 local function virtual_hint(hint, off_y)
   if hint == nil or hint == "" then
     return
@@ -125,16 +127,17 @@ local close_events = {"CursorMoved", "CursorMovedI", "BufHidden", "InsertCharPre
 -- ----------------------
 -- --  signature help  --
 -- ----------------------
--- Note: nvim 0.6.2   - signature_help({_}, {result}, {ctx}, {config})
-
-local function signature_handler(err, method, result, client_id, bufnr, config)
+-- Note: nvim 0.6.2   - signature_help(err, {result}, {ctx}, {config})
+local function signature_handler_v1(err, method, result, client_id, bufnr, config)
   if err ~= nil then
     print(err)
     return
   end
   log("sig result", result, config)
   _LSP_SIG_CFG.signature_result = result
-  if config.check_client_handlers then
+  if config.check_client_handlers and not nvim_0_6 then
+    -- this feature will be removed
+    print("binding 3rd signature will be deprecated")
     local client = vim.lsp.get_client_by_id(client_id)
     local handler = client and client.handlers["textDocument/signatureHelp"]
     if handler then
@@ -410,6 +413,8 @@ local function signature_handler_v2(err, result, ctx, config)
   return signature_handler(err, ctx.method, result, ctx.client_id, config)
 end
 
+local signature_handler = signature_handler_v1
+
 local signature = function()
   local pos = api.nvim_win_get_cursor(0)
   local line = api.nvim_get_current_line()
@@ -502,7 +507,7 @@ local signature = function()
     -- Try using the already binded one, otherwise use it without custom config.
     -- LuaFormatter off
     vim.lsp.buf_request(0, "textDocument/signatureHelp", params,
-                        vim.lsp.with(vim.lsp.handlers["textDocument/signatureHelp"] or signature_handler, {
+                        vim.lsp.with(signature_handler, {
                           check_pumvisible = true,
                           check_client_handlers = true,
                           trigger_from_lsp_sig = true,
@@ -663,6 +668,16 @@ end
 -- call it before startup lsp client
 M.setup = function(cfg)
   cfg = cfg or {}
+  if debug.getinfo(vim.lsp.handlers.signature_help).nparams == 4 then
+    nvim_0_6 = true
+  end
+
+  if nvim_0_6 then
+    signature_handler = signature_handler_v2
+  else
+    signature_handler = signature_handler_v1
+  end
+
   local _start_client = vim.lsp.start_client
   vim.lsp.start_client = function(lsp_config)
     if lsp_config.on_attach == nil then
