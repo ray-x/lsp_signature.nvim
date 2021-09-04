@@ -26,7 +26,11 @@ _LSP_SIG_CFG = {
   floating_window = true, -- show hint in a floating window
   floating_window_above_first = false, -- try to place the floating above the current line
   floating_window_off_y = 1, -- adjust float windows y position. allow the pum to show a few lines
-  fix_pos = true, -- fix floating_window position
+  close_timeout = 4000, -- close floating window after ms when laster parameter is entered
+  fix_pos = function(signatures, _) -- second argument is the client
+    return true -- can be expression like : return signatures[1].activeParameter >= 0 and signatures[1].parameters > 1
+  end,
+  -- also can be bool value fix floating_window position
   hint_enable = true, -- virtual hint
   hint_prefix = "🐼 ",
   hint_scheme = "String",
@@ -123,6 +127,7 @@ local function virtual_hint(hint, off_y)
 end
 
 local close_events = {"CursorMoved", "CursorMovedI", "BufHidden", "InsertCharPre"}
+local close_events_au = {"BufHidden", "CompleteDone", "InsertLeave"}
 
 -- ----------------------
 -- --  signature help  --
@@ -333,7 +338,7 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
     end
     if result.signatures[activeSignature].parameters == nil
         or #result.signatures[activeSignature].parameters == 0 then
-      -- let LSP decide to close when fix_pos is false
+      -- auto close when fix_pos is false
       if _LSP_SIG_CFG._fix_pos == false then
         config.close_events = close_events
       end
@@ -382,13 +387,13 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
     -- if it is last parameter, close windows after cursor moved
     if sig and sig[activeSignature].parameters == nil or result.activeParameter == nil
         or result.activeParameter + 1 == #sig[activeSignature].parameters then
+      -- log("last para", close_events)
       if _LSP_SIG_CFG._fix_pos == false then
-        -- log("last para", close_events)
         vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
+      elseif _LSP_SIG_CFG._fix_pos then
+        vim.lsp.util.close_preview_autocmd(close_events_au, _LSP_SIG_CFG.winnr)
       end
-      -- elseif _LSP_SIG_CFG._fix_pos then
-      --   log("should not close")
-      --   -- vim.lsp.util.close_preview_autocmd(ce, _LSP_SIG_CFG.winnr)
+      vim.defer_fn(helper.cleanup, _LSP_SIG_CFG.close_timeout or 40000)
     end
     -- Not sure why this not working
     -- api.nvim_command("autocmd User SigComplete".." <buffer> ++once lua pcall(vim.api.nvim_win_close, "..winnr..", true)")
@@ -471,8 +476,8 @@ local signature = function()
                                         value.server_capabilities.signature_help_trigger_characters)
         elseif value.resolved_capabilities and value.resolved_capabilities.signatureHelpProvider
             and value.resolved_capabilities.signatureHelpProvider.triggerCharacters then
-          triggered_chars = tbl_combine(triggered_chars, value.server_capabilities.signatureHelpProvider
-                                            .triggerCharacters)
+          triggered_chars = tbl_combine(triggered_chars, value.server_capabilities
+                                            .signatureHelpProvider.triggerCharacters)
         end
 
         if triggered == false then
