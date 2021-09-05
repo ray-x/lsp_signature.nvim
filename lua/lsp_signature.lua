@@ -169,9 +169,11 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
   local actSig = result.signatures[activeSignature]
   actSig.label = string.gsub(actSig.label, '[\n\r\t]', " ")
 
-  for i = 1, #actSig.parameters do
-    if type(actSig.parameters[i].label) == "string" then
-      actSig.parameters[i].label = string.gsub(actSig.parameters[i].label, '[\n\r\t]', " ")
+  if actSig.parameters then
+    for i = 1, #actSig.parameters do
+      if type(actSig.parameters[i].label) == "string" then
+        actSig.parameters[i].label = string.gsub(actSig.parameters[i].label, '[\n\r\t]', " ")
+      end
     end
   end
 
@@ -422,7 +424,7 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
       end
 
     else
-      print("failed get highlight parameter", s, l)
+      log("failed get highlight parameter", s, l)
     end
 
   end
