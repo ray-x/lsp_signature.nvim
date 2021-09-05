@@ -139,16 +139,21 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
   end
   log("sig result", result, config, client_id)
   _LSP_SIG_CFG.signature_result = result
-  -- if config.check_client_handlers and not nvim_0_6 then
-  --   -- this feature will be removed
-  --   local client = vim.lsp.get_client_by_id(client_id)
-  --   local handler = client and client.handlers["textDocument/signatureHelp"]
-  --   if handler then
-  --     log(" using 3rd handler")
-  --     handler(err, method, result, client_id, bufnr, config)
-  --     return
-  --   end
-  -- end
+  if config.check_client_handlers then
+    -- this feature will be removed
+    local client = vim.lsp.get_client_by_id(client_id)
+    local handler = client and client.handlers["textDocument/signatureHelp"]
+    if handler then
+      log(" using 3rd handler deprecated")
+      config.check_client_handlers = nil
+      if nvim_0_6 then
+        handler(err, result, {client_id = client_id, bufnr = bufnr}, config)
+      else
+        handler(err, method, result, client_id, bufnr, config)
+      end
+      return
+    end
+  end
   if not (result and result.signatures and result.signatures[1]) then
     -- only close if this client opened the signature
     if _LSP_SIG_CFG.client_id == client_id then
@@ -391,9 +396,9 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
         -- elseif _LSP_SIG_CFG._fix_pos then
         --   vim.lsp.util.close_preview_autocmd(close_events_au, _LSP_SIG_CFG.winnr)
       end
-      vim.defer_fn(function()
+      vim.defer_fn(vim.schedule_wrap(function()
         helper.cleanup(true)
-      end, _LSP_SIG_CFG.close_timeout or 40000)
+      end), _LSP_SIG_CFG.close_timeout or 40000)
     end
     -- Not sure why this not working
     -- api.nvim_command("autocmd User SigComplete".." <buffer> ++once lua pcall(vim.api.nvim_win_close, "..winnr..", true)")
@@ -526,6 +531,7 @@ local signature = function()
                           check_client_handlers = true,
                           trigger_from_lsp_sig = true,
                           line_to_cursor = line_to_cursor:sub(1, trigger_position),
+                          border = _LSP_SIG_CFG.handler_opts.border,
                           triggered_chars = triggered_chars
                         }))
     -- LuaFormatter on

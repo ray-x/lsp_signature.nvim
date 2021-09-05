@@ -260,6 +260,16 @@ helper.is_new_line = function()
   return false
 end
 
+helper.close_float_win = function(close_float_win)
+  close_float_win = close_float_win or false
+  if _LSP_SIG_CFG.winnr and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and close_float_win then
+    log("closing winnr", _LSP_SIG_CFG.winnr)
+    vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
+    _LSP_SIG_CFG.winnr = nil
+  end
+end
+
+
 helper.cleanup = function(close_float_win)
   close_float_win = close_float_win or false
   if _LSP_SIG_CFG.ns and _LSP_SIG_CFG.bufnr and vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
