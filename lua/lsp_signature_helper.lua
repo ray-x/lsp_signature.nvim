@@ -310,7 +310,7 @@ helper.cal_pos = function(contents, opts)
 
 end
 
-local nvim_0_6 = false
+local nvim_0_6
 function helper.nvim_0_6()
   if nvim_0_6 ~= nil then
     return nvim_0_6
