@@ -7,6 +7,7 @@ local tbl_combine = require"lsp_signature_helper".tbl_combine
 local match_parameter = helper.match_parameter
 local check_trigger_char = helper.check_trigger_char
 local check_closer_char = helper.check_closer_char
+local signature_handler
 
 local manager = {
   insertChar = false, -- flag for InsertCharPre event, turn off imediately when performing completion
@@ -131,13 +132,13 @@ local close_events = {"CursorMoved", "CursorMovedI", "BufHidden", "InsertCharPre
 -- ----------------------
 -- --  signature help  --
 -- ----------------------
--- Note: nvim 0.6.2   - signature_help(err, {result}, {ctx}, {config})
+-- Note: nvim 0.5.1/0.6.x   - signature_help(err, {result}, {ctx}, {config})
 local function signature_handler_v1(err, method, result, client_id, bufnr, config)
   if err ~= nil then
     print(err)
     return
   end
-  log("sig result", result, config, client_id)
+  log("sig result", method, result, config, client_id)
   _LSP_SIG_CFG.signature_result = result
   if config.check_client_handlers then
     -- this feature will be removed
@@ -436,10 +437,20 @@ local function signature_handler_v1(err, method, result, client_id, bufnr, confi
 end
 
 local function signature_handler_v2(err, result, ctx, config)
-  return signature_handler(err, ctx.method, result, ctx.client_id, config)
+  log("v2", ctx, result, config, ctx.client_id)
+  return signature_handler_v1(err, ctx.method, result, ctx.client_id, config)
+end
+local function get_handler()
+  if debug.getinfo(vim.lsp.handlers.signature_help).nparams == 4 then
+    nvim_0_6 = true
+  end
+  if nvim_0_6 then
+    return signature_handler_v2
+  else
+    return signature_handler_v1
+  end
 end
 
-local signature_handler = signature_handler_v1
 
 local signature = function()
   local pos = api.nvim_win_get_cursor(0)
@@ -525,10 +536,11 @@ local signature = function()
     -- overwrite signature help here to disable "no signature help" message
     local params = vim.lsp.util.make_position_params()
     params.position.character = trigger_position
+    local handler = get_handler()
     -- Try using the already binded one, otherwise use it without custom config.
     -- LuaFormatter off
     vim.lsp.buf_request(0, "textDocument/signatureHelp", params,
-                        vim.lsp.with(signature_handler, {
+                        vim.lsp.with(handler, {
                           check_pumvisible = true,
                           check_client_handlers = true,
                           trigger_from_lsp_sig = true,
@@ -566,7 +578,6 @@ local signature = function()
 
 end
 
-M.signature_handler = signature_handler
 M.signature = signature
 
 function M.on_InsertCharPre()
@@ -674,8 +685,9 @@ M.toggle_float_win = function()
   local line_to_cursor = line:sub(1, pos[2])
   -- Try using the already binded one, otherwise use it without custom config.
   -- LuaFormatter off
+  local handler = get_handler()
   vim.lsp.buf_request(0, "textDocument/signatureHelp", params,
-                      vim.lsp.with(signature_handler, {
+                      vim.lsp.with(handler, {
                         check_pumvisible = true,
                         check_client_handlers = true,
                         trigger_from_lsp_sig = true,
@@ -690,15 +702,9 @@ end
 -- call it before startup lsp client
 M.setup = function(cfg)
   cfg = cfg or {}
-  if debug.getinfo(vim.lsp.handlers.signature_help).nparams == 4 then
-    nvim_0_6 = true
-  end
 
-  if nvim_0_6 then
-    signature_handler = signature_handler_v2
-  else
-    signature_handler = signature_handler_v1
-  end
+  signature_handler = get_handler()
+  M.signatre_handler = signature_handler
 
   local _start_client = vim.lsp.start_client
   vim.lsp.start_client = function(lsp_config)
