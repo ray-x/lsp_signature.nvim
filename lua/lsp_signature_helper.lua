@@ -269,7 +269,6 @@ helper.close_float_win = function(close_float_win)
   end
 end
 
-
 helper.cleanup = function(close_float_win)
   close_float_win = close_float_win or false
   if _LSP_SIG_CFG.ns and _LSP_SIG_CFG.bufnr and vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
@@ -311,6 +310,7 @@ helper.cal_pos = function(contents, opts)
 
 end
 
+local nvim_0_6 = false
 function helper.nvim_0_6()
   if nvim_0_6 ~= nil then
     return nvim_0_6
@@ -340,6 +340,5 @@ function helper.mk_handler(fn)
     end
   end
 end
-
 
 return helper

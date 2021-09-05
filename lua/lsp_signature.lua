@@ -61,8 +61,6 @@ function manager.init()
   manager.confirmedCompletion = false
 end
 
-local nvim_0_6 = false
-
 local function virtual_hint(hint, off_y)
   if hint == nil or hint == "" then
     return
@@ -147,10 +145,10 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
       config.check_client_handlers = false
       log(" using 3rd handler deprecated")
       config.check_client_handlers = nil
-      if nvim_0_6 then
+      if helper.nvim_0_6() then
         handler(err, result, ctx, config)
       else
-        handler(err, method, result, client_id, bufnr, config)
+        handler(err, ctx.method, result, ctx.client_id, ctx.bufnr, config)
       end
       return
     end
@@ -683,13 +681,12 @@ M.toggle_float_win = function()
 
 end
 
+M.signature_handler = signature_handler
 -- setup function enable the signature and attach it to client
 -- call it before startup lsp client
+
 M.setup = function(cfg)
   cfg = cfg or {}
-
-  M.signatre_handler = signature_handler
-
   local _start_client = vim.lsp.start_client
   vim.lsp.start_client = function(lsp_config)
     if lsp_config.on_attach == nil then

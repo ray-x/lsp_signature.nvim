@@ -31,9 +31,10 @@ describe("should show signature ", function()
     triggered_chars = {'(', ','}
   }
   it("should show signature Date golang", function()
-    local lines, s, l = require"lsp_signature".signature_handler(nil, "textDocument/signatureHelp",
-                                                                 result, 1, 0, cfg)
-
+    local signature = require "lsp_signature"
+    signature.setup {}
+    local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
+    local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
     eq(
         "Date(year int, month time.Month, day int, hour int, min int, sec int, nsec int, loc *time.Location) time.Time",
         lines[2])
@@ -64,8 +65,11 @@ describe("should show signature ", function()
       triggered_chars = {'(', ','}
     }
 
-    local lines, s, l = require"lsp_signature".signature_handler(nil, "textDocument/signatureHelp",
-                                                                 result, 1, 0, cfg)
+    local signature = require "lsp_signature"
+    signature.setup {}
+
+    local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
+    local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
 
     eq("fn add(left: i32, right: i32) -> i32", lines[1])
     eq(7, s) -- match `year int`
@@ -98,8 +102,11 @@ describe("should show signature ", function()
       triggered_chars = {'(', ','}
     }
 
-    local lines, s, l = require"lsp_signature".signature_handler(nil, "textDocument/signatureHelp",
-                                                                 result, 1, 0, cfg)
+    local signature = require "lsp_signature"
+    signature.setup {}
+
+    local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
+    local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
 
     eq("HandleFunc(path string, f func(http.ResponseWriter,  *http.Request)) *mux.Route", lines[2])
   end)
