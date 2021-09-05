@@ -311,4 +311,35 @@ helper.cal_pos = function(contents, opts)
 
 end
 
+function helper.nvim_0_6()
+  if nvim_0_6 ~= nil then
+    return nvim_0_6
+  end
+  if debug.getinfo(vim.lsp.handlers.signature_help).nparams == 4 then
+    nvim_0_6 = true
+  else
+    nvim_0_6 = false
+  end
+  return nvim_0_6
+end
+
+function helper.mk_handler(fn)
+  return function(...)
+    local config_or_client_id = select(4, ...)
+    local is_new = helper.nvim_0_6()
+    if is_new then
+      fn(...)
+    else
+      local err = select(1, ...)
+      local method = select(2, ...)
+      local result = select(3, ...)
+      local client_id = select(4, ...)
+      local bufnr = select(5, ...)
+      local config = select(6, ...)
+      fn(err, result, {method = method, client_id = client_id, bufnr = bufnr}, config)
+    end
+  end
+end
+
+
 return helper
