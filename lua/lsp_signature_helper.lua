@@ -1,13 +1,21 @@
 local helper = {}
 
 local log = function(...)
-  if _LSP_SIG_CFG.debug ~= true then
+  if _LSP_SIG_CFG.debug ~= true or _LSP_SIG_CFG.verbose ~= true then
     return
   end
+
   local arg = {...}
   -- print(_LSP_SIG_CFG.log_path)
   local log_path = _LSP_SIG_CFG.log_path or nil
   local str = "שׁ "
+  local lineinfo = ''
+  if _LSP_SIG_CFG.verbose == true then
+    local info = debug.getinfo(2, "Sl")
+    lineinfo = info.short_src .. ":" .. info.currentline
+  end
+  str = str .. lineinfo
+
   for i, v in ipairs(arg) do
     if type(v) == "table" then
       str = str .. " |" .. tostring(i) .. ": " .. vim.inspect(v) .. "\n"
@@ -269,7 +277,6 @@ helper.close_float_win = function(close_float_win)
   end
 end
 
-
 helper.cleanup = function(close_float_win)
   close_float_win = close_float_win or false
   if _LSP_SIG_CFG.ns and _LSP_SIG_CFG.bufnr and vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
@@ -309,6 +316,37 @@ helper.cal_pos = function(contents, opts)
   end
   return float_option, off_y
 
+end
+
+local nvim_0_6
+function helper.nvim_0_6()
+  if nvim_0_6 ~= nil then
+    return nvim_0_6
+  end
+  if debug.getinfo(vim.lsp.handlers.signature_help).nparams == 4 then
+    nvim_0_6 = true
+  else
+    nvim_0_6 = false
+  end
+  return nvim_0_6
+end
+
+function helper.mk_handler(fn)
+  return function(...)
+    local config_or_client_id = select(4, ...)
+    local is_new = helper.nvim_0_6()
+    if is_new then
+      return fn(...)
+    else
+      local err = select(1, ...)
+      local method = select(2, ...)
+      local result = select(3, ...)
+      local client_id = select(4, ...)
+      local bufnr = select(5, ...)
+      local config = select(6, ...)
+      return fn(err, result, {method = method, client_id = client_id, bufnr = bufnr}, config)
+    end
+  end
 end
 
 return helper

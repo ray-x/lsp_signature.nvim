@@ -30,10 +30,26 @@ describe("should show signature ", function()
     line_to_cursor = "\ttime.Date(2020, ",
     triggered_chars = {'(', ','}
   }
-  it("should show signature Date golang", function()
-    local lines, s, l = require"lsp_signature".signature_handler(nil, "textDocument/signatureHelp",
-                                                                 result, 1, 0, cfg)
 
+  local signature = require "lsp_signature"
+  signature.setup {debug = true, verbose = true}
+  _LSP_SIG_CFG.debug = true
+  _LSP_SIG_CFG.verbose = true
+  local nvim_6 = true
+  if debug.getinfo(vim.lsp.handlers.signature_help).nparams > 4 then
+    nvim_6 = false
+  end
+  it("should show signature Date golang", function()
+    local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
+    -- local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
+    local lines, s, l
+
+    if nvim_6 then
+      lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
+    else
+      lines, s, l = signature.signature_handler(nil, "", result, 1, 1, cfg)
+    end
+    print("lines", vim.inspect(lines))
     eq(
         "Date(year int, month time.Month, day int, hour int, min int, sec int, nsec int, loc *time.Location) time.Time",
         lines[2])
@@ -64,8 +80,12 @@ describe("should show signature ", function()
       triggered_chars = {'(', ','}
     }
 
-    local lines, s, l = require"lsp_signature".signature_handler(nil, "textDocument/signatureHelp",
-                                                                 result, 1, 0, cfg)
+    local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
+    if nvim_6 then
+      lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
+    else
+      lines, s, l = signature.signature_handler(nil, "", result, 1, 1, cfg)
+    end
 
     eq("fn add(left: i32, right: i32) -> i32", lines[1])
     eq(7, s) -- match `year int`
@@ -98,8 +118,13 @@ describe("should show signature ", function()
       triggered_chars = {'(', ','}
     }
 
-    local lines, s, l = require"lsp_signature".signature_handler(nil, "textDocument/signatureHelp",
-                                                                 result, 1, 0, cfg)
+    local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
+
+    if nvim_6 then
+      lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
+    else
+      lines, s, l = signature.signature_handler(nil, "", result, 1, 1, cfg)
+    end
 
     eq("HandleFunc(path string, f func(http.ResponseWriter,  *http.Request)) *mux.Route", lines[2])
   end)
