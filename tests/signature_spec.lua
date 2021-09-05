@@ -30,11 +30,14 @@ describe("should show signature ", function()
     line_to_cursor = "\ttime.Date(2020, ",
     triggered_chars = {'(', ','}
   }
+
+  local signature = require "lsp_signature"
+  signature.setup {log_path = vim.fn.expand("$HOME") .. "/tmp/sig.log", debug = true}
   it("should show signature Date golang", function()
-    local signature = require "lsp_signature"
-    signature.setup {}
     local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
-    local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
+    -- local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
+    local lines, s, l = signature.signature_handler(nil, "", result, 1, 1, cfg)
+    print("lines", vim.inspect(lines))
     eq(
         "Date(year int, month time.Month, day int, hour int, min int, sec int, nsec int, loc *time.Location) time.Time",
         lines[2])
