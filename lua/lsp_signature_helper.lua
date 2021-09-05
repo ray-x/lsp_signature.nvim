@@ -1,13 +1,21 @@
 local helper = {}
 
 local log = function(...)
-  if _LSP_SIG_CFG.debug ~= true then
+  if _LSP_SIG_CFG.debug ~= true or _LSP_SIG_CFG.verbose ~= true then
     return
   end
+
   local arg = {...}
   -- print(_LSP_SIG_CFG.log_path)
   local log_path = _LSP_SIG_CFG.log_path or nil
   local str = "שׁ "
+  local lineinfo = ''
+  if _LSP_SIG_CFG.verbose == true then
+    local info = debug.getinfo(2, "Sl")
+    lineinfo = info.short_src .. ":" .. info.currentline
+  end
+  str = str .. lineinfo
+
   for i, v in ipairs(arg) do
     if type(v) == "table" then
       str = str .. " |" .. tostring(i) .. ": " .. vim.inspect(v) .. "\n"

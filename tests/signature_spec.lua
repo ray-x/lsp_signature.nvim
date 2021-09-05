@@ -32,7 +32,7 @@ describe("should show signature ", function()
   }
 
   local signature = require "lsp_signature"
-  signature.setup {log_path = vim.fn.expand("$HOME") .. "/tmp/sig.log", debug = true}
+  signature.setup {debug = true, verbose = true}
   it("should show signature Date golang", function()
     local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
     -- local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
@@ -68,9 +68,6 @@ describe("should show signature ", function()
       triggered_chars = {'(', ','}
     }
 
-    local signature = require "lsp_signature"
-    signature.setup {}
-
     local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
     local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
 
@@ -104,9 +101,6 @@ describe("should show signature ", function()
       line_to_cursor = [[\t HandleFunc(" / ", ]],
       triggered_chars = {'(', ','}
     }
-
-    local signature = require "lsp_signature"
-    signature.setup {}
 
     local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
     local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
