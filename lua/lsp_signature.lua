@@ -366,7 +366,8 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
 
     config.offset_y = off_y
     config.focusable = false
-    log("floating opt", config, display_opts)
+    config.max_height = display_opts.height
+    -- log("floating opt", config, display_opts)
 
     if _LSP_SIG_CFG._fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
       if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and _LSP_SIG_CFG.label == label and not new_line then

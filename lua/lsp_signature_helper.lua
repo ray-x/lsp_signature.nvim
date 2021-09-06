@@ -1,7 +1,7 @@
 local helper = {}
 
 local log = function(...)
-  if _LSP_SIG_CFG.debug ~= true or _LSP_SIG_CFG.verbose ~= true then
+  if _LSP_SIG_CFG.debug ~= true and _LSP_SIG_CFG.verbose ~= true then
     return
   end
 
@@ -302,20 +302,22 @@ helper.cal_pos = function(contents, opts)
     return {}, 0
   end
   local util = vim.lsp.util
+  contents = util._trim(contents, opts)
+
   local width, height = util._make_floating_popup_size(contents, opts)
   local float_option = util.make_floating_popup_options(width, height, opts)
-  helper.log("pos", width, height, float_option)
   local off_y = 0
-  if float_option.anchor == 'NW' then
+  local lines_above
+  if float_option.anchor == 'NW' or float_option.anchor == 'NE' then
     -- note: the floating widnows will be under current line
     local lines_above = vim.fn.winline() - 1
     local lines_below = vim.fn.winheight(0) - lines_above
-    if lines_above > float_option.height + 3 then -- border
+    if lines_above >= float_option.height + 3 then -- border
       off_y = -(float_option.height + 3)
     end
+    log(float_option, off_y, lines_above)
   end
   return float_option, off_y
-
 end
 
 local nvim_0_6
