@@ -38,7 +38,9 @@ _LSP_SIG_CFG = {
   handler_opts = {border = "single"},
   padding = '', -- character to pad on left and right of signature
   use_lspsaga = false,
-  trigger_on_newline = false, -- sometime show signature on new line can be confusing, set it to false for #58
+  always_trigger = false, -- sometime show signature on new line can be confusing, set it to false for #58
+  -- set this to true if you the triggered_chars failed to work
+  -- this will allow lsp server decide show signature or not
   debug = false,
   log_path = '', -- log dir when debug is no
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
@@ -49,6 +51,7 @@ _LSP_SIG_CFG = {
   shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
   timer_interval = 200, -- default timer check interval
   toggle_key = nil -- toggle signature on and off in insert mode,  e.g. '<M-x>'
+  -- set this key also helps if you want see signature in newline
 }
 
 local double = {"╔", "═", "╗", "║", "╝", "═", "╚", "║"}
@@ -616,6 +619,16 @@ function M.on_CompleteDone()
   end
 end
 
+M.deprecated = function(cfg)
+  if cfg.always_trigger ~= nil then
+    print('trigger_on_new_line deprecated, using trigger_on_nomatch instead')
+  end
+
+  if cfg.use_lspsaga ~= nil then
+    print('use_lspsaga deprecated')
+  end
+end
+
 M.on_attach = function(cfg, bufnr)
   bufnr = bufnr or 0
 
@@ -669,7 +682,6 @@ M.toggle_float_win = function()
   local line_to_cursor = line:sub(1, pos[2])
   -- Try using the already binded one, otherwise use it without custom config.
   -- LuaFormatter off
-  local handler = get_handler()
   vim.lsp.buf_request(0, "textDocument/signatureHelp", params,
                       vim.lsp.with(signature_handler, {
                         check_pumvisible = true,
@@ -688,6 +700,7 @@ M.signature_handler = signature_handler
 
 M.setup = function(cfg)
   cfg = cfg or {}
+  M.deprecated(cfg)
   local _start_client = vim.lsp.start_client
   vim.lsp.start_client = function(lsp_config)
     if lsp_config.on_attach == nil then

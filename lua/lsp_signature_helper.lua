@@ -178,8 +178,8 @@ helper.check_trigger_char = function(line_to_cursor, trigger_character)
   local no_ws_line_to_cursor = string.gsub(line_to_cursor, "%s+", "")
   -- log("newline: ", #line_to_cursor, line_to_cursor)
   if #no_ws_line_to_cursor < 1 then
-    log("newline, lets try signature")
-    return true, #line_to_cursor
+    log("newline, lets try signature based on setup")
+    return _LSP_SIG_CFG.always_trigger, #line_to_cursor
   end
 
   -- with a this bit of logic we're gonna search for the nearest trigger
@@ -204,10 +204,10 @@ helper.check_trigger_char = function(line_to_cursor, trigger_character)
         return true, #line_to_cursor
       end
     else
-      -- when there is no trigger character, still trigger and let the lsp
-      -- decide if there should be a signature useful in multi-line function
-      -- calls.
-      return true, #line_to_cursor
+      -- when there is no trigger character, still trigger if always_trigger is set
+      -- and let the lsp decide if there should be a signature useful in
+      -- multi-line function calls.
+      return _LSP_SIG_CFG.always_trigger, #line_to_cursor
     end
   end
 
