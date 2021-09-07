@@ -298,7 +298,7 @@ helper.cleanup = function(close_float_win)
 end
 
 helper.cal_pos = function(contents, opts)
-  if not _LSP_SIG_CFG.floating_window_above_first then
+  if not _LSP_SIG_CFG.floating_window_above_cur_line then
     return {}, 0
   end
   local util = vim.lsp.util

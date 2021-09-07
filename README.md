@@ -145,7 +145,7 @@ Or:
 
   floating_window = true, -- show hint in a floating window, set to false for virtual text only mode
 
-  floating_window_above_first = false, -- try to place the floating above the current line when possible Note:
+  floating_window_above_cur_line = false, -- try to place the floating above the current line when possible Note:
   -- will set to true when fully tested
   fix_pos = false,  -- set to true, the floating window will not auto-close until finish all parameters
   hint_enable = true, -- virtual hint enable

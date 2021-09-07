@@ -24,7 +24,7 @@ _LSP_SIG_CFG = {
   max_width = 120, -- max_width of signature floating_window
 
   floating_window = true, -- show hint in a floating window
-  floating_window_above_first = false, -- try to place the floating above the current line
+  floating_window_above_cur_line = false, -- try to place the floating above the current line
   floating_window_off_y = 1, -- adjust float windows y position. allow the pum to show a few lines
   close_timeout = 4000, -- close floating window after ms when laster parameter is entered
   fix_pos = function(signatures, _) -- second argument is the client
@@ -626,6 +626,9 @@ M.deprecated = function(cfg)
 
   if cfg.use_lspsaga ~= nil then
     print('use_lspsaga deprecated')
+  end
+  if cfg.floating_window_above_first ~= nil then
+    print('use floating_window_above_cur_line instead')
   end
 end
 
