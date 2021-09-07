@@ -200,7 +200,9 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
 
   if _LSP_SIG_CFG.doc_lines == 0 then -- doc disabled
     for i = 1, #result.signatures do
-      result.signatures[i].documentation.value = nil
+      if result.signatures[i].documentation then
+        result.signatures[i].documentation.value = nil
+      end
     end
   end
 
