@@ -24,7 +24,7 @@ _LSP_SIG_CFG = {
   max_width = 120, -- max_width of signature floating_window
 
   floating_window = true, -- show hint in a floating window
-  floating_window_above_cur_line = false, -- try to place the floating above the current line
+  floating_window_above_cur_line = true, -- try to place the floating above the current line
   floating_window_off_y = 1, -- adjust float windows y position. allow the pum to show a few lines
   close_timeout = 4000, -- close floating window after ms when laster parameter is entered
   fix_pos = function(signatures, _) -- second argument is the client
@@ -301,9 +301,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     end
 
     if vim.tbl_isempty(lines) then
-      return
-    end
-    if config.check_pumvisible and vim.fn.pumvisible() ~= 0 then
+      log("empty lines")
       return
     end
 
@@ -377,6 +375,13 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     config.offset_y = off_y
     config.focusable = false
     config.max_height = display_opts.height
+
+    -- try not to overlap with pum autocomplete menu
+    if config.check_pumvisible and vim.fn.pumvisible() ~= 0 and off_y < 0 and _LSP_SIG_CFG.zindex < 50 then
+      log("pumvisible no need to show")
+      return
+    end
+
     -- log("floating opt", config, display_opts)
 
     if _LSP_SIG_CFG._fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
