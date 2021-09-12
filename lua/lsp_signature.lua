@@ -71,7 +71,7 @@ local function virtual_hint(hint, off_y)
   local r = vim.api.nvim_win_get_cursor(0)
   local line = api.nvim_get_current_line()
   local line_to_cursor = line:sub(1, r[2])
-  local cur_line = r[1] - 1 -- line number of current line
+  local cur_line = r[1] - 1 -- line number of current line, 0 based
   local show_at = cur_line - 1 -- show at above line
   local lines_above = vim.fn.winline() - 1
   local lines_below = vim.fn.winheight(0) - lines_above
@@ -79,8 +79,13 @@ local function virtual_hint(hint, off_y)
     show_at = cur_line + 1 -- same line
   end
   local pl
-  if off_y ~= nil and off_y < -1 then -- floating win above first
-    show_at = cur_line + 1
+  local puvis = vim.fn.pumvisible() ~= 0
+  if off_y ~= nil and off_y < 0 then -- floating win above first
+    if puvis then
+      show_at = cur_line -- pum, show at current line
+    else
+      show_at = cur_line + 1 -- show at below line
+    end
   end
 
   if _LSP_SIG_CFG.floating_window == false then
@@ -90,10 +95,10 @@ local function virtual_hint(hint, off_y)
     end
     next_line = vim.api.nvim_buf_get_lines(0, cur_line + 1, cur_line + 2, false)[1]
     -- log(prev_line, next_line, r)
-    if prev_line and #prev_line < r[2] + 2 then
+    if prev_line and #prev_line < r[2] then
       show_at = cur_line - 1
       pl = prev_line
-    elseif next_line and #next_line < r[2] + 2 then
+    elseif next_line and #next_line < r[2] + 2 and not puvis then
       show_at = cur_line + 1
       pl = next_line
     else
