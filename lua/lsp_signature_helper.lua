@@ -310,7 +310,7 @@ helper.cal_pos = function(contents, opts)
   local lines_above
   if float_option.anchor == 'NW' or float_option.anchor == 'NE' then
     -- note: the floating widnows will be under current line
-    local lines_above = vim.fn.winline() - 1
+    lines_above = vim.fn.winline() - 1
     local lines_below = vim.fn.winheight(0) - lines_above
     if lines_above >= float_option.height + 3 then -- border
       off_y = -(float_option.height + 3)

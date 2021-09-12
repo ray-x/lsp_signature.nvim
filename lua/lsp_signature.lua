@@ -377,8 +377,10 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     config.max_height = display_opts.height
 
     -- try not to overlap with pum autocomplete menu
-    if config.check_pumvisible and vim.fn.pumvisible() ~= 0 and off_y < 0 and _LSP_SIG_CFG.zindex < 50 then
-      log("pumvisible no need to show")
+    if config.check_pumvisible and vim.fn.pumvisible() ~= 0
+        and ((display_opts.anchor == 'NW' or display_opts.anchor == 'NE') and off_y == 0)
+        and _LSP_SIG_CFG.zindex < 50 then
+      log("pumvisible no need to show off_y", off_y)
       return
     end
 
