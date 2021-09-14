@@ -222,6 +222,8 @@ Q: It is not working 😡
 
 A: Here is some trouble shooting: https://github.com/ray-x/lsp_signature.nvim/issues/1
 
+If you are using JDTLS, please read this: issue #97  [#97](https://github.com/ray-x/lsp_signature.nvim/issues/97)
+
 
 Q:I do not like the pop window background highlight, how to change it?
 
