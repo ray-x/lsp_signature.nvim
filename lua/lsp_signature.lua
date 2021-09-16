@@ -2,10 +2,8 @@ local vim = _G.vim or vim -- suppress warning, allow complete without lua-dev
 local api = vim.api
 local M = {}
 local helper = require "lsp_signature_helper"
-local tbl_combine = require"lsp_signature_helper".tbl_combine
 local match_parameter = helper.match_parameter
-local check_trigger_char = helper.check_trigger_char
-local check_closer_char = helper.check_closer_char
+-- local check_closer_char = helper.check_closer_char
 
 local manager = {
   insertChar = false, -- flag for InsertCharPre event, turn off imediately when performing completion
@@ -251,7 +249,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
 
     local woff = 1
     if config.triggered_chars and vim.tbl_contains(config.triggered_chars, '(') then
-      woff = helper.cal_off(line_to_cursor, label)
+      woff = helper.cal_woff(line_to_cursor, label)
     end
 
     -- total lines allowed
@@ -326,10 +324,11 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
       if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and _LSP_SIG_CFG.label == label and not new_line then
         helper.cleanup(false) -- cleanup extmark
       else
-        log("sig_cfg bufnr, winnr not valid", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr)
         -- vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
         _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax,
                                                                                     config)
+
+        log("sig_cfg bufnr, winnr not valid recreate", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr)
         _LSP_SIG_CFG.label = label
         _LSP_SIG_CFG.client_id = client_id
       end
@@ -338,6 +337,8 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
                                                                                   config)
       _LSP_SIG_CFG.label = label
       _LSP_SIG_CFG.client_id = client_id
+
+      log("sig_cfg new bufnr, winnr ", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr)
     end
 
     if _LSP_SIG_CFG.transpancy and _LSP_SIG_CFG.transpancy > 1 and _LSP_SIG_CFG.transpancy < 100 then
@@ -375,23 +376,15 @@ local signature = function()
     return
   end
 
-  local signature_cap, triggered = helper.check_lsp_cap(clients, line_to_cursor)
+  local signature_cap, triggered, trigger_position, trigger_chars =
+      helper.check_lsp_cap(clients, line_to_cursor)
 
   if signature_cap == false then
+    log("signature capabilities not enabled")
     return
   end
 
   if triggered then
-    log("signature triggered")
-    if _LSP_SIG_CFG.use_lspsaga then
-      local ok, saga = pcall(require, "lspsaga.signaturehelp")
-      if ok then
-        saga.signature_help()
-        return
-      else
-        print("Check your config, lspsaga not configured correctly")
-      end
-    end
     -- overwrite signature help here to disable "no signature help" message
     local params = vim.lsp.util.make_position_params()
     params.position.character = trigger_position
@@ -403,7 +396,7 @@ local signature = function()
                           trigger_from_lsp_sig = true,
                           line_to_cursor = line_to_cursor:sub(1, trigger_position),
                           border = _LSP_SIG_CFG.handler_opts.border,
-                          triggered_chars = triggered_chars
+                          triggered_chars = trigger_chars
                         }))
     -- LuaFormatter on
   else
@@ -448,7 +441,7 @@ function M.on_InsertLeave()
     manager.timer:close()
     manager.timer = nil
   end
-  log('Insert leave', cleanup)
+  log('Insert leave cleanup')
   helper.cleanup(true)
 end
 
@@ -503,7 +496,6 @@ M.deprecated = function(cfg)
 end
 
 M.on_attach = function(cfg, bufnr)
-  print('lsp_sig on_attach') -- TODO delete
   bufnr = bufnr or 0
 
   api.nvim_command("augroup Signature")
@@ -516,6 +508,7 @@ M.on_attach = function(cfg, bufnr)
 
   if type(cfg) == "table" then
     _LSP_SIG_CFG = vim.tbl_extend("keep", cfg, _LSP_SIG_CFG)
+    log(_LSP_SIG_CFG)
   end
 
   vim.cmd([[hi default FloatBorder guifg = #777777]])
@@ -528,8 +521,8 @@ M.on_attach = function(cfg, bufnr)
                                    _LSP_SIG_CFG.shadow_blend, _LSP_SIG_CFG.shadow_guibg)
   vim.cmd(shadow_cmd)
 
-  local shadow_cmd = string.format("hi default FloatShadowThrough blend=%i guibg=%s",
-                                   _LSP_SIG_CFG.shadow_blend + 20, _LSP_SIG_CFG.shadow_guibg)
+  shadow_cmd = string.format("hi default FloatShadowThrough blend=%i guibg=%s",
+                             _LSP_SIG_CFG.shadow_blend + 20, _LSP_SIG_CFG.shadow_guibg)
   vim.cmd(shadow_cmd)
 
   if _LSP_SIG_CFG.toggle_key then
@@ -576,6 +569,7 @@ M.signature_handler = signature_handler
 M.setup = function(cfg)
   cfg = cfg or {}
   M.deprecated(cfg)
+  log("user cfg:", cfg)
   local _start_client = vim.lsp.start_client
   vim.lsp.start_client = function(lsp_config)
     if lsp_config.on_attach == nil then

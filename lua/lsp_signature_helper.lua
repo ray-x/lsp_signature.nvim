@@ -1,12 +1,11 @@
 local helper = {}
 
-local log = function(...)
-  if _LSP_SIG_CFG.debug ~= true or _LSP_SIG_CFG.verbose ~= true then
+helper.log = function(...)
+  if _LSP_SIG_CFG.debug ~= true and _LSP_SIG_CFG.verbose ~= true then
     return
   end
 
   local arg = {...}
-  print(_LSP_SIG_CFG.log_path, _LSP_SIG_CFG.debug, _LSP_SIG_CFG.verbose)
   local log_path = _LSP_SIG_CFG.log_path or nil
   local str = "שׁ "
   local lineinfo = ''
@@ -34,7 +33,8 @@ local log = function(...)
     end
   end
 end
-helper.log = log
+
+local log = helper.log
 
 local function findwholeword(input, word)
   local special_chars = {"%", "*", "[", "]", "^", "$", "(", ")", ".", "+", "-", "?"}
@@ -235,7 +235,7 @@ helper.check_trigger_char = function(line_to_cursor, trigger_character)
       prev_prev_char = string.sub(line_to_cursor, #line_to_cursor - #ch - 1,
                                   #line_to_cursor - #ch - 1)
     end
-    -- log(prev_prev_char, prev_char, current_char)
+    log(prev_prev_char, prev_char, current_char)
     if prev_char == " " and prev_prev_char == ch then
       return true, #line_to_cursor
     end
@@ -256,7 +256,6 @@ helper.check_closer_char = function(line_to_cursor, trigger_chars)
 end
 
 helper.is_new_line = function()
-  local new_line = false
   local line = vim.api.nvim_get_current_line()
   local r = vim.api.nvim_win_get_cursor(0)
   local line_to_cursor = line:sub(1, r[2])
@@ -278,23 +277,23 @@ helper.close_float_win = function(close_float_win)
 end
 
 helper.cleanup = function(close_float_win)
-  vim.schedule(function()
-    vim.api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
-    close_float_win = close_float_win or false
-    if _LSP_SIG_CFG.ns and _LSP_SIG_CFG.bufnr and vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
-      log("bufnr, ns", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns)
-      vim.api.nvim_buf_clear_namespace(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, -1)
-    end
-    _LSP_SIG_CFG.markid = nil
-    _LSP_SIG_CFG.ns = nil
+  -- vim.schedule(function()
+  vim.api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
+  close_float_win = close_float_win or false
+  if _LSP_SIG_CFG.ns and _LSP_SIG_CFG.bufnr and vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
+    log("bufnr, ns", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns)
+    vim.api.nvim_buf_clear_namespace(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, -1)
+  end
+  _LSP_SIG_CFG.markid = nil
+  _LSP_SIG_CFG.ns = nil
 
-    if _LSP_SIG_CFG.winnr and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and close_float_win then
-      log("closing winnr", _LSP_SIG_CFG.winnr)
-      vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
-      _LSP_SIG_CFG.winnr = nil
-      _LSP_SIG_CFG.bufnr = nil
-    end
-  end)
+  if _LSP_SIG_CFG.winnr and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and close_float_win then
+    log("closing winnr", _LSP_SIG_CFG.winnr)
+    vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
+    _LSP_SIG_CFG.winnr = nil
+    _LSP_SIG_CFG.bufnr = nil
+  end
+  -- end)
 
 end
 
@@ -319,7 +318,7 @@ helper.cal_pos = function(contents, opts)
   if float_option.anchor == 'NW' or float_option.anchor == 'NE' then
     -- note: the floating widnows will be under current line
     lines_above = vim.fn.winline() - 1
-    local lines_below = vim.fn.winheight(0) - lines_above
+    -- local lines_below = vim.fn.winheight(0) - lines_above
     if lines_above >= float_option.height + 3 then -- border
       off_y = -(float_option.height + 3)
     end
@@ -344,7 +343,6 @@ end
 
 function helper.mk_handler(fn)
   return function(...)
-    local config_or_client_id = select(4, ...)
     local is_new = helper.nvim_0_6()
     if is_new then
       return fn(...)
@@ -359,22 +357,6 @@ function helper.mk_handler(fn)
     end
   end
 end
-
--- function helper.client_handler(err, result, ctx, config)
---   local client = vim.lsp.get_client_by_id(ctx.client_id)
---   local handler = client and client.handlers["textDocument/signatureHelp"]
---   if handler then
---     config.check_client_handlers = false
---     log(" using 3rd handler deprecated")
---     config.check_client_handlers = nil
---     if helper.nvim_0_6() then
---       handler(err, result, ctx, config)
---     else
---       handler(err, ctx.method, result, ctx.client_id, ctx.bufnr, config)
---     end
---     return true
---   end
--- end
 
 function helper.cal_woff(line_to_cursor, label)
   local woff = line_to_cursor:find("%([^%(]*$")
@@ -464,6 +446,7 @@ function helper.check_lsp_cap(clients, line_to_cursor)
         end
 
         if sig_provider ~= nil then
+          log(sig_provider, line_to_cursor)
           if sig_provider.triggerCharacters ~= nil then
             triggered_chars = sig_provider.triggerCharacters
           end
@@ -495,8 +478,9 @@ function helper.check_lsp_cap(clients, line_to_cursor)
   if total_lsp > 1 then
     log("you have multiple lsp with signatureHelp enabled")
   end
+  log("lsp cap: ", signature_cap, triggered, trigger_position)
 
-  return signature_cap, triggered
+  return signature_cap, triggered, trigger_position, triggered_chars
 end
 
 helper.highlight_parameter = function(s, l)
@@ -505,7 +489,7 @@ helper.highlight_parameter = function(s, l)
 
   _LSP_SIG_CFG.ns = vim.api.nvim_create_namespace('lsp_signature_hi_parameter')
   local hi = _LSP_SIG_CFG.hi_parameter
-  log("extmark", s, l, #_LSP_SIG_CFG.padding)
+  log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding)
   if s and l and s > 0 then
     if _LSP_SIG_CFG.padding == "" then
       s = s - 1
@@ -514,8 +498,11 @@ helper.highlight_parameter = function(s, l)
       l = l + #_LSP_SIG_CFG.padding
     end
     if vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
+
       _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, s,
                                                          {end_line = 0, end_col = l, hl_group = hi})
+
+      log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding, _LSP_SIG_CFG.markid)
     end
 
   else
