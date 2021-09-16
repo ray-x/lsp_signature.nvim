@@ -138,6 +138,8 @@ helper.match_parameter = function(result, config)
   local label = signature.label
   local nexp = ""
   local s, e
+
+  log("func", label, nextParameter)
   if type(nextParameter.label) == "table" then -- label = {2, 4} c style
     local range = nextParameter.label
     nexp = label:sub(range[1] + 1, range[2])

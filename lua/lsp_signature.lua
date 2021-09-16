@@ -119,7 +119,7 @@ local function virtual_hint(hint, off_y)
   if show_at ~= cur_line and #line_to_cursor > #pl + 1 then
     pad = string.rep(" ", #line_to_cursor - #pl)
   end
-
+  _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api()
   vim.api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
   if r ~= nil then
     vim.api.nvim_buf_set_virtual_text(0, _LSP_SIG_VT_NS, show_at, {
@@ -571,6 +571,7 @@ M.setup = function(cfg)
   M.deprecated(cfg)
   log("user cfg:", cfg)
   local _start_client = vim.lsp.start_client
+  _LSP_SIG_VT_NS = api.nvim_create_namespace("lsp_signature")
   vim.lsp.start_client = function(lsp_config)
     if lsp_config.on_attach == nil then
       lsp_config.on_attach = function(client, bufnr)
