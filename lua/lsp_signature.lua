@@ -143,18 +143,19 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
   end
   log("sig result", ctx, result, config)
   _LSP_SIG_CFG.signature_result = result
-  if config.check_client_handlers then
-    -- this feature will be removed
-    if helper.client_handler(err, result, ctx, config) then
-      return
-    end
-  end
+  -- if config.check_client_handlers then
+  --   -- this feature will be removed
+  --   if helper.client_handler(err, result, ctx, config) then
+  --     return
+  --   end
+  -- end
   local client_id = ctx.client_id
   local bufnr = ctx.bufnr
   if not (result and result.signatures and result.signatures[1]) then
     -- only close if this client opened the signature
     if _LSP_SIG_CFG.client_id == client_id then
       helper.cleanup(true)
+
       -- need to close floating window and virtual text (if they are active)
     end
 
@@ -399,7 +400,6 @@ local signature = function()
     vim.lsp.buf_request(0, "textDocument/signatureHelp", params,
                         vim.lsp.with(signature_handler, {
                           check_pumvisible = true,
-                          check_client_handlers = true,
                           trigger_from_lsp_sig = true,
                           line_to_cursor = line_to_cursor:sub(1, trigger_position),
                           border = _LSP_SIG_CFG.handler_opts.border,
@@ -503,6 +503,7 @@ M.deprecated = function(cfg)
 end
 
 M.on_attach = function(cfg, bufnr)
+  print('lsp_sig on_attach') -- TODO delete
   bufnr = bufnr or 0
 
   api.nvim_command("augroup Signature")
@@ -560,7 +561,6 @@ M.toggle_float_win = function()
   vim.lsp.buf_request(0, "textDocument/signatureHelp", params,
                       vim.lsp.with(signature_handler, {
                         check_pumvisible = true,
-                        check_client_handlers = true,
                         trigger_from_lsp_sig = true,
                         line_to_cursor = line_to_cursor,
                         border = _LSP_SIG_CFG.handler_opts.border,

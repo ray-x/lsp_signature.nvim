@@ -6,7 +6,7 @@ local log = function(...)
   end
 
   local arg = {...}
-  -- print(_LSP_SIG_CFG.log_path)
+  print(_LSP_SIG_CFG.log_path, _LSP_SIG_CFG.debug, _LSP_SIG_CFG.verbose)
   local log_path = _LSP_SIG_CFG.log_path or nil
   local str = "שׁ "
   local lineinfo = ''
@@ -360,21 +360,21 @@ function helper.mk_handler(fn)
   end
 end
 
-function helper.client_handler(err, result, ctx, config)
-  local client = vim.lsp.get_client_by_id(ctx.client_id)
-  local handler = client and client.handlers["textDocument/signatureHelp"]
-  if handler then
-    config.check_client_handlers = false
-    log(" using 3rd handler deprecated")
-    config.check_client_handlers = nil
-    if helper.nvim_0_6() then
-      handler(err, result, ctx, config)
-    else
-      handler(err, ctx.method, result, ctx.client_id, ctx.bufnr, config)
-    end
-    return true
-  end
-end
+-- function helper.client_handler(err, result, ctx, config)
+--   local client = vim.lsp.get_client_by_id(ctx.client_id)
+--   local handler = client and client.handlers["textDocument/signatureHelp"]
+--   if handler then
+--     config.check_client_handlers = false
+--     log(" using 3rd handler deprecated")
+--     config.check_client_handlers = nil
+--     if helper.nvim_0_6() then
+--       handler(err, result, ctx, config)
+--     else
+--       handler(err, ctx.method, result, ctx.client_id, ctx.bufnr, config)
+--     end
+--     return true
+--   end
+-- end
 
 function helper.cal_woff(line_to_cursor, label)
   local woff = line_to_cursor:find("%([^%(]*$")
