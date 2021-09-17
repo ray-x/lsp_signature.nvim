@@ -131,14 +131,18 @@ Or:
 
 ```
 
-### Full configuration
+### Full configuration (with default values)
 
 ```lua
 
  cfg = {
+  debug = false, -- set to true to enable debug logging
+  log_path = "debug_log_file_path", -- debug log path
+  verbose = false, -- show debug line number
+
   bind = true, -- This is mandatory, otherwise border config won't get registered.
                -- If you want to hook lspsaga or other signature handler, pls set to false
-  doc_lines = 2, -- will show two lines of comment/doc(if there are more than two lines in doc, will be truncated);
+  doc_lines = 10, -- will show two lines of comment/doc(if there are more than two lines in doc, will be truncated);
                  -- set to 0 if you DO NOT want any API comments be shown
                  -- This setting only take effect in insert mode, it does not affect signature help in normal
                  -- mode, 10 by default
@@ -159,19 +163,20 @@ Or:
   max_width = 120, -- max_width of signature floating_window, line will be wrapped if exceed max_width
   transpancy = 10, -- set this value if you want the floating windows to be transpant (100 fully transpant), nil to disable(default)
   handler_opts = {
-    border = "shadow"   -- double, single, shadow, none
+    border = "single"   -- double, single, shadow, none
   },
 
-  trigger_on_newline = false, -- set to true if you need multiple line parameter, sometime show signature on new line can be confusing, set it to false for #58
+  always_trigger = false, -- sometime show signature on new line or in middle of parameter can be confusing, set it to false for #58
+
+  auto_close_after = nil, -- autoclose signature float win after x sec, disabled if nil.
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- deprecate !!
   -- decorator = {"`", "`"}  -- this is no longer needed as nvim give me a handler and it allow me to highlight active parameter in floating_window
-  zindex = 200, -- by default it will be on top of all floating windows, set to 50 send it to bottom
-  debug = false, -- set to true to enable debug logging
-  log_path = "debug_log_file_path", -- debug log path
+  zindex = 200, -- by default it will be on top of all floating windows, set to <= 50 send it to bottom
 
   padding = '', -- character to pad on left and right of signature can be ' ', or '|'  etc
 
+  transpancy = nil, -- disabled by default, allow floating win transparent value 1~100
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
   shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
   timer_interval = 200, -- default timer check interval set to lower value if you want to reduce latency

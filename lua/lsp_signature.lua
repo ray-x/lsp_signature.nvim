@@ -38,9 +38,10 @@ _LSP_SIG_CFG = {
   always_trigger = false, -- sometime show signature on new line can be confusing, set it to false for #58
   -- set this to true if you the triggered_chars failed to work
   -- this will allow lsp server decide show signature or not
-  auto_close_after = 4, -- autoclose signature after x sec, disabled if nil.
+  auto_close_after = nil, -- autoclose signature after x sec, disabled if nil.
   debug = false,
   log_path = '', -- log dir when debug is no
+  verbose = false, -- debug show code line number
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- decorator = {"`", "`"} -- set to nil if using guihua.lua
   zindex = 200,
@@ -48,9 +49,8 @@ _LSP_SIG_CFG = {
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
   shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
   timer_interval = 200, -- default timer check interval
-  toggle_key = nil, -- toggle signature on and off in insert mode,  e.g. '<M-x>'
+  toggle_key = nil -- toggle signature on and off in insert mode,  e.g. '<M-x>'
   -- set this key also helps if you want see signature in newline
-  check_3rd_handler = nil -- provide you own handler
 }
 
 local log = helper.log
@@ -483,12 +483,12 @@ function M.on_CompleteDone()
 end
 
 M.deprecated = function(cfg)
-  if cfg.always_trigger ~= nil then
-    print('trigger_on_new_line deprecated, using trigger_on_nomatch instead')
+  if cfg.trigger_on_new_line ~= nil or cfg.trigger_on_nomatch ~= nil then
+    print('trigger_on_new_line and trigger_on_nomatch deprecated, using always_trigger instead')
   end
 
-  if cfg.use_lspsaga ~= nil then
-    print('use_lspsaga deprecated')
+  if cfg.use_lspsaga or cfg.check_3rd_handler ~= nil then
+    print('lspsaga signature and 3rd handler deprecated')
   end
   if cfg.floating_window_above_first ~= nil then
     print('use floating_window_above_cur_line instead')
