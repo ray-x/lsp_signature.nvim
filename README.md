@@ -12,7 +12,6 @@ Show function signature when you type
 - Virtual text available
 
 
-Note: decorator = {"\`", "\`"} setup is deprecate
 
 ##### Golang with markdown
 Highlight with "Search"
@@ -170,8 +169,6 @@ Or:
 
   auto_close_after = nil, -- autoclose signature float win after x sec, disabled if nil.
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
-  -- deprecate !!
-  -- decorator = {"`", "`"}  -- this is no longer needed as nvim give me a handler and it allow me to highlight active parameter in floating_window
   zindex = 200, -- by default it will be on top of all floating windows, set to <= 50 send it to bottom
 
   padding = '', -- character to pad on left and right of signature can be ' ', or '|'  etc
@@ -183,10 +180,13 @@ Or:
   toggle_key = nil -- toggle signature on and off in insert mode,  e.g. toggle_key = '<M-x>'
 }
 
+-- recommanded:
+require'lsp_signature'.setup(cfg) -- no need to specify bufnr if you don't use toggle_key
+
+-- You can also do this inside lsp on_attach
+-- note: on_attach deprecated
 require'lsp_signature'.on_attach(cfg, bufnr) -- no need to specify bufnr if you don't use toggle_key
 ```
-Note: navigator.lua no longer support auto setup for lsp_signature as the setup options is getting more complicated now
-
 ### Should signature floating windows fixed
 
 fix_pos can be a function, it took two element, first is the signature result for your signature, second is lsp

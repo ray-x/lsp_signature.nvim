@@ -493,6 +493,9 @@ M.deprecated = function(cfg)
   if cfg.floating_window_above_first ~= nil then
     print('use floating_window_above_cur_line instead')
   end
+  if cfg.decorator then
+    print('decorator deprecated, use hi_parameter instead')
+  end
 end
 
 M.on_attach = function(cfg, bufnr)
