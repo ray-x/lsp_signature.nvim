@@ -23,6 +23,37 @@ describe("should show signature ", function()
     }
   }
 
+  local result_ccls = {
+    activeParameter = 0,
+    activeSignature = 0,
+    signatures = {
+      {documentation = "no args s1", label = "func() -> int", parameters = {}},
+      {
+        documentation = "one int arg s2",
+        label = "func(int a) -> int",
+        parameters = {{label = {5, 10}}}
+      },
+      {
+        documentation = "one ref arg s3",
+        label = "func(int &a) -> int",
+        parameters = {{label = {5, 11}}}
+      },
+      {
+        documentation = "on pointer s3",
+        label = "func(int *a) -> int",
+        parameters = {{label = {5, 11}}}
+      }, {
+        documentation = "two args s4",
+        label = "func(int a, int b) -> int",
+        parameters = {{label = {5, 10}}, {label = {12, 17}}}
+      }, {
+        documentation = "three args",
+        label = "func(int a, int b, int c) -> int",
+        parameters = {{label = {5, 10}}, {label = {12, 17}}, {label = {19, 24}}}
+      }
+    }
+  }
+
   local cfg = {
     check_pumvisible = true,
     check_client_handlers = true,
@@ -39,6 +70,34 @@ describe("should show signature ", function()
   if debug.getinfo(vim.lsp.handlers.signature_help).nparams > 4 then
     nvim_6 = false
   end
+
+  local match_parameter = require('lsp_signature_helper').match_parameter
+  it("match should get signature pos", function()
+    local result1 = vim.deepcopy(result)
+    local _, nextp, s, e = match_parameter(result1, cfg)
+    eq("year int", nextp)
+    eq(6, s)
+    eq(13, e)
+  end)
+
+  it("match should get signature pos 3", function()
+    local result1 = vim.deepcopy(result)
+    result1.activeParameter = 2
+    local _, nextp, s, e = match_parameter(result1, cfg)
+    eq("day int", nextp)
+    eq(34, s)
+    eq(40, e)
+  end)
+
+  it("match should get signature for ccls multi ", function()
+    local result1 = vim.deepcopy(result_ccls)
+    result1.activeParameter = 1
+    result1.activeSignature = 4
+    local _, nextp, s, e = match_parameter(result1, cfg)
+    eq("int b", nextp)
+    eq(13, s)
+    eq(17, e)
+  end)
   it("should show signature Date golang", function()
     local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
     -- local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
@@ -53,7 +112,25 @@ describe("should show signature ", function()
     eq(
         "Date(year int, month time.Month, day int, hour int, min int, sec int, nsec int, loc *time.Location) time.Time",
         lines[2])
-    eq(5, s) -- match `year int`
+    eq(6, s) -- match `year int`
+    eq(13, l)
+  end)
+
+  it("should show signature Date golang", function()
+    local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
+    -- local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
+    local lines, s, l
+
+    if nvim_6 then
+      lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
+    else
+      lines, s, l = signature.signature_handler(nil, "", result, 1, 1, cfg)
+    end
+    print("lines", vim.inspect(lines))
+    eq(
+        "Date(year int, month time.Month, day int, hour int, min int, sec int, nsec int, loc *time.Location) time.Time",
+        lines[2])
+    eq(6, s) -- match `year int`
     eq(13, l)
   end)
   it("should show fn add", function()
@@ -81,6 +158,8 @@ describe("should show signature ", function()
     }
 
     local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
+
+    local lines, s, l
     if nvim_6 then
       lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
     else
@@ -88,7 +167,7 @@ describe("should show signature ", function()
     end
 
     eq("fn add(left: i32, right: i32) -> i32", lines[1])
-    eq(7, s) -- match `year int`
+    eq(8, s) -- match `left: i32`
     eq(16, l)
   end)
 
@@ -119,7 +198,7 @@ describe("should show signature ", function()
     }
 
     local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
-
+    local lines, s, l
     if nvim_6 then
       lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
     else
