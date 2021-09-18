@@ -49,8 +49,9 @@ _LSP_SIG_CFG = {
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
   shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
   timer_interval = 200, -- default timer check interval
-  toggle_key = nil -- toggle signature on and off in insert mode,  e.g. '<M-x>'
+  toggle_key = nil, -- toggle signature on and off in insert mode,  e.g. '<M-x>'
   -- set this key also helps if you want see signature in newline
+  check_3rd_handler = nil -- provide you own handler
 }
 
 local log = helper.log
@@ -122,12 +123,6 @@ local function virtual_hint(hint, off_y)
   _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace("lsp_signature_vt"")
   vim.api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
   if r ~= nil then
-    vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, show_at, 0, {
-      virt_text = {{pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme}},
-      virt_text_pos = "overlay",
-      hl_mode = "combine"
-      -- hl_group = _LSP_SIG_CFG.hint_scheme
-    })
   end
 end
 
