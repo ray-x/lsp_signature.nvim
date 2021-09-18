@@ -119,12 +119,15 @@ local function virtual_hint(hint, off_y)
   if show_at ~= cur_line and #line_to_cursor > #pl + 1 then
     pad = string.rep(" ", #line_to_cursor - #pl)
   end
-  _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api()
+  _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace("lsp_signature_vt"")
   vim.api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
   if r ~= nil then
-    vim.api.nvim_buf_set_virtual_text(0, _LSP_SIG_VT_NS, show_at, {
-      {pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme}
-    }, {})
+    vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, show_at, 0, {
+      virt_text = {{pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme}},
+      virt_text_pos = "overlay",
+      hl_mode = "combine"
+      -- hl_group = _LSP_SIG_CFG.hint_scheme
+    })
   end
 end
 
@@ -533,7 +536,7 @@ M.on_attach = function(cfg, bufnr)
                                 [[<cmd>lua require('lsp_signature').toggle_float_win()<CR>]],
                                 {silent = true, noremap = true})
   end
-  _LSP_SIG_VT_NS = api.nvim_create_namespace("lsp_signature")
+  _LSP_SIG_VT_NS = api.nvim_create_namespace("lsp_signature_vt")
 
 end
 
@@ -574,7 +577,7 @@ M.setup = function(cfg)
   M.deprecated(cfg)
   log("user cfg:", cfg)
   local _start_client = vim.lsp.start_client
-  _LSP_SIG_VT_NS = api.nvim_create_namespace("lsp_signature")
+  _LSP_SIG_VT_NS = api.nvim_create_namespace("lsp_signature_vt")
   vim.lsp.start_client = function(lsp_config)
     if lsp_config.on_attach == nil then
       lsp_config.on_attach = function(client, bufnr)
