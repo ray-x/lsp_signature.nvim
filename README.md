@@ -11,19 +11,19 @@ Show function signature when you type
 
 - Virtual text available
 
-
-
 ##### Golang with markdown
+
 Highlight with "Search"
 
 https://user-images.githubusercontent.com/1681295/122633027-a7879400-d119-11eb-95ff-d06e6aeeb0b2.mov
 
 ##### Lua
+
 ![lua](https://user-images.githubusercontent.com/1681295/109505092-5b73fd80-7af0-11eb-9ec7-15b297c6e3be.png?raw=true "lua")
 
 #### The plugin also re-write the builtin lsp signature allow the parameter highlight
-<img width="1230" alt="signature_with_virtual_hint" src="https://user-images.githubusercontent.com/1681295/122689853-11628380-d269-11eb-994f-65974fb1312d.png">
 
+<img width="1230" alt="signature_with_virtual_hint" src="https://user-images.githubusercontent.com/1681295/122689853-11628380-d269-11eb-994f-65974fb1312d.png">
 
 #### Using virtual text to show the next parameter
 
@@ -34,7 +34,6 @@ https://user-images.githubusercontent.com/1681295/122633027-a7879400-d119-11eb-9
 (from @fdioguardi)
 
 <img width="600" alt="virtual_text_only" src="https://user-images.githubusercontent.com/1681295/120172944-e3c88280-c246-11eb-95a6-40a0bbc1df9c.png">
-
 
 #### Multiple signatures
 
@@ -47,7 +46,6 @@ In case some of the languages allow function overload, the plugin will show all 
 
 If max_height is set in the config and content exceed max_height, you can scroll up and down in signature window
 to view the hiding content.
-
 
 # Install:
 
@@ -86,13 +84,11 @@ require'lspconfig'.gopls.setup(golang_setup)
 
 ```
 
-
 Alternatively, use setup function
 
 ```vim
 require "lsp_signature".setup()
 ```
-
 
 ## Configure
 
@@ -156,7 +152,7 @@ Or:
   hint_prefix = "🐼 ",  -- Panda for parameter
   hint_scheme = "String",
   use_lspsaga = false,  -- set to true if you want to use lspsaga popup
-  hi_parameter = "Search", -- how your parameter will be highlight
+  hi_parameter = "LspSignatureActiveParameter", -- how your parameter will be highlight
   max_height = 12, -- max height of signature floating_window, if content is more than max_height, you can scroll down
                    -- to view the hiding contents
   max_width = 120, -- max_width of signature floating_window, line will be wrapped if exceed max_width
@@ -187,6 +183,7 @@ require'lsp_signature'.setup(cfg) -- no need to specify bufnr if you don't use t
 -- note: on_attach deprecated
 require'lsp_signature'.on_attach(cfg, bufnr) -- no need to specify bufnr if you don't use toggle_key
 ```
+
 ### Should signature floating windows fixed
 
 fix_pos can be a function, it took two element, first is the signature result for your signature, second is lsp
@@ -209,36 +206,30 @@ end
 
 ```
 
-
-
 ### Q&A:
 
 Q: What is the default colorscheme in screenshot:
 
 A: [aurora](https://github.com/ray-x/aurora)
 
-
 Q: I can not see border after enable border = "single"
 
 A: Try another colorscheme (e.g. colorscheme aurora, or colorscheme luna). If issue persists, please submit an issue
-
 
 Q: It is not working 😡
 
 A: Here is some trouble shooting: https://github.com/ray-x/lsp_signature.nvim/issues/1
 
-If you are using JDTLS, please read this: issue  [#97](https://github.com/ray-x/lsp_signature.nvim/issues/97)
-
+If you are using JDTLS, please read this: issue [#97](https://github.com/ray-x/lsp_signature.nvim/issues/97)
 
 Q:I do not like the pop window background highlight, how to change it?
 
 A: Redefine your `NormalFloat` and `FloatBorder`, esp if your colorscheme dose not define it.
 
-
 Q: How to change parameter highlight
 
-A: By default, the highlight is using "Search" defined in your colorscheme, you can either override "Search" or
-define, e.g. use `IncSearch`  on_attach({ hi_parameter = "IncSearch"})
+A: By default, the highlight is using "LspSignatureActiveParameter" defined in your colorscheme, you can either override "LspSignatureActiveParameter" or
+define, e.g. use `IncSearch` setup({ hi_parameter = "IncSearch"})
 
 Q: I can not see 🐼 in virtual text
 

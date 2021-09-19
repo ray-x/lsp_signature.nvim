@@ -31,7 +31,7 @@ _LSP_SIG_CFG = {
   hint_enable = true, -- virtual hint
   hint_prefix = "🐼 ",
   hint_scheme = "String",
-  hi_parameter = "Search",
+  hi_parameter = "LspSignatureActiveParameter",
   handler_opts = {border = "single"},
   padding = '', -- character to pad on left and right of signature
   use_lspsaga = false,
@@ -228,7 +228,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
       end
     end
 
-    log("md lines", lines)
+    -- log("md lines", lines)
     local label = result.signatures[1].label
     if #result.signatures > 1 then
       label = result.signatures[activeSignature].label
@@ -593,6 +593,9 @@ M.setup = function(cfg)
     end
     return _start_client(lsp_config)
   end
+
+  -- default if not defined
+  vim.cmd([[hi default link LspSignatureActiveParameter Search]])
 end
 
 return M
