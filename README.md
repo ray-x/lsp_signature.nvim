@@ -11,20 +11,19 @@ Show function signature when you type
 
 - Virtual text available
 
-
-Note: decorator = {"\`", "\`"} setup is deprecate
-
 ##### Golang with markdown
+
 Highlight with "Search"
 
 https://user-images.githubusercontent.com/1681295/122633027-a7879400-d119-11eb-95ff-d06e6aeeb0b2.mov
 
 ##### Lua
+
 ![lua](https://user-images.githubusercontent.com/1681295/109505092-5b73fd80-7af0-11eb-9ec7-15b297c6e3be.png?raw=true "lua")
 
 #### The plugin also re-write the builtin lsp signature allow the parameter highlight
-<img width="1230" alt="signature_with_virtual_hint" src="https://user-images.githubusercontent.com/1681295/122689853-11628380-d269-11eb-994f-65974fb1312d.png">
 
+<img width="1230" alt="signature_with_virtual_hint" src="https://user-images.githubusercontent.com/1681295/122689853-11628380-d269-11eb-994f-65974fb1312d.png">
 
 #### Using virtual text to show the next parameter
 
@@ -35,7 +34,6 @@ https://user-images.githubusercontent.com/1681295/122633027-a7879400-d119-11eb-9
 (from @fdioguardi)
 
 <img width="600" alt="virtual_text_only" src="https://user-images.githubusercontent.com/1681295/120172944-e3c88280-c246-11eb-95a6-40a0bbc1df9c.png">
-
 
 #### Multiple signatures
 
@@ -48,7 +46,6 @@ In case some of the languages allow function overload, the plugin will show all 
 
 If max_height is set in the config and content exceed max_height, you can scroll up and down in signature window
 to view the hiding content.
-
 
 # Install:
 
@@ -87,13 +84,11 @@ require'lspconfig'.gopls.setup(golang_setup)
 
 ```
 
-
 Alternatively, use setup function
 
 ```vim
 require "lsp_signature".setup()
 ```
-
 
 ## Configure
 
@@ -131,14 +126,18 @@ Or:
 
 ```
 
-### Full configuration
+### Full configuration (with default values)
 
 ```lua
 
  cfg = {
+  debug = false, -- set to true to enable debug logging
+  log_path = "debug_log_file_path", -- debug log path
+  verbose = false, -- show debug line number
+
   bind = true, -- This is mandatory, otherwise border config won't get registered.
                -- If you want to hook lspsaga or other signature handler, pls set to false
-  doc_lines = 2, -- will show two lines of comment/doc(if there are more than two lines in doc, will be truncated);
+  doc_lines = 10, -- will show two lines of comment/doc(if there are more than two lines in doc, will be truncated);
                  -- set to 0 if you DO NOT want any API comments be shown
                  -- This setting only take effect in insert mode, it does not affect signature help in normal
                  -- mode, 10 by default
@@ -153,34 +152,37 @@ Or:
   hint_prefix = "🐼 ",  -- Panda for parameter
   hint_scheme = "String",
   use_lspsaga = false,  -- set to true if you want to use lspsaga popup
-  hi_parameter = "Search", -- how your parameter will be highlight
+  hi_parameter = "LspSignatureActiveParameter", -- how your parameter will be highlight
   max_height = 12, -- max height of signature floating_window, if content is more than max_height, you can scroll down
                    -- to view the hiding contents
   max_width = 120, -- max_width of signature floating_window, line will be wrapped if exceed max_width
   transpancy = 10, -- set this value if you want the floating windows to be transpant (100 fully transpant), nil to disable(default)
   handler_opts = {
-    border = "shadow"   -- double, single, shadow, none
+    border = "single"   -- double, single, shadow, none
   },
 
-  trigger_on_newline = false, -- set to true if you need multiple line parameter, sometime show signature on new line can be confusing, set it to false for #58
+  always_trigger = false, -- sometime show signature on new line or in middle of parameter can be confusing, set it to false for #58
+
+  auto_close_after = nil, -- autoclose signature float win after x sec, disabled if nil.
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
-  -- deprecate !!
-  -- decorator = {"`", "`"}  -- this is no longer needed as nvim give me a handler and it allow me to highlight active parameter in floating_window
-  zindex = 200, -- by default it will be on top of all floating windows, set to 50 send it to bottom
-  debug = false, -- set to true to enable debug logging
-  log_path = "debug_log_file_path", -- debug log path
+  zindex = 200, -- by default it will be on top of all floating windows, set to <= 50 send it to bottom
 
   padding = '', -- character to pad on left and right of signature can be ' ', or '|'  etc
 
+  transpancy = nil, -- disabled by default, allow floating win transparent value 1~100
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
   shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
   timer_interval = 200, -- default timer check interval set to lower value if you want to reduce latency
   toggle_key = nil -- toggle signature on and off in insert mode,  e.g. toggle_key = '<M-x>'
 }
 
+-- recommanded:
+require'lsp_signature'.setup(cfg) -- no need to specify bufnr if you don't use toggle_key
+
+-- You can also do this inside lsp on_attach
+-- note: on_attach deprecated
 require'lsp_signature'.on_attach(cfg, bufnr) -- no need to specify bufnr if you don't use toggle_key
 ```
-Note: navigator.lua no longer support auto setup for lsp_signature as the setup options is getting more complicated now
 
 ### Should signature floating windows fixed
 
@@ -204,36 +206,30 @@ end
 
 ```
 
-
-
 ### Q&A:
 
 Q: What is the default colorscheme in screenshot:
 
 A: [aurora](https://github.com/ray-x/aurora)
 
-
 Q: I can not see border after enable border = "single"
 
 A: Try another colorscheme (e.g. colorscheme aurora, or colorscheme luna). If issue persists, please submit an issue
-
 
 Q: It is not working 😡
 
 A: Here is some trouble shooting: https://github.com/ray-x/lsp_signature.nvim/issues/1
 
-If you are using JDTLS, please read this: issue  [#97](https://github.com/ray-x/lsp_signature.nvim/issues/97)
-
+If you are using JDTLS, please read this: issue [#97](https://github.com/ray-x/lsp_signature.nvim/issues/97)
 
 Q:I do not like the pop window background highlight, how to change it?
 
 A: Redefine your `NormalFloat` and `FloatBorder`, esp if your colorscheme dose not define it.
 
-
 Q: How to change parameter highlight
 
-A: By default, the highlight is using "Search" defined in your colorscheme, you can either override "Search" or
-define, e.g. use `IncSearch`  on_attach({ hi_parameter = "IncSearch"})
+A: By default, the highlight is using "LspSignatureActiveParameter" defined in your colorscheme, you can either override "LspSignatureActiveParameter" or
+define, e.g. use `IncSearch` setup({ hi_parameter = "IncSearch"})
 
 Q: I can not see 🐼 in virtual text
 

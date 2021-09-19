@@ -280,6 +280,8 @@ end
 
 helper.cleanup = function(close_float_win)
   -- vim.schedule(function()
+
+  log("cleanup vt", _LSP_SIG_VT_NS)
   vim.api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
   close_float_win = close_float_win or false
   if _LSP_SIG_CFG.ns and _LSP_SIG_CFG.bufnr and vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
@@ -491,7 +493,7 @@ helper.highlight_parameter = function(s, l)
 
   _LSP_SIG_CFG.ns = vim.api.nvim_create_namespace('lsp_signature_hi_parameter')
   local hi = _LSP_SIG_CFG.hi_parameter
-  log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding)
+  log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding, hi)
   if s and l and s > 0 then
     if _LSP_SIG_CFG.padding == "" then
       s = s - 1

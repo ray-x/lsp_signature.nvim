@@ -31,16 +31,17 @@ _LSP_SIG_CFG = {
   hint_enable = true, -- virtual hint
   hint_prefix = "🐼 ",
   hint_scheme = "String",
-  hi_parameter = "Search",
+  hi_parameter = "LspSignatureActiveParameter",
   handler_opts = {border = "single"},
   padding = '', -- character to pad on left and right of signature
   use_lspsaga = false,
   always_trigger = false, -- sometime show signature on new line can be confusing, set it to false for #58
   -- set this to true if you the triggered_chars failed to work
   -- this will allow lsp server decide show signature or not
-  auto_close_after = 4, -- autoclose signature after x sec, disabled if nil.
+  auto_close_after = nil, -- autoclose signature after x sec, disabled if nil.
   debug = false,
   log_path = '', -- log dir when debug is no
+  verbose = false, -- debug show code line number
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- decorator = {"`", "`"} -- set to nil if using guihua.lua
   zindex = 200,
@@ -119,12 +120,15 @@ local function virtual_hint(hint, off_y)
   if show_at ~= cur_line and #line_to_cursor > #pl + 1 then
     pad = string.rep(" ", #line_to_cursor - #pl)
   end
-  _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api()
+  _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace("lsp_signature_vt")
   vim.api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
   if r ~= nil then
-    vim.api.nvim_buf_set_virtual_text(0, _LSP_SIG_VT_NS, show_at, {
-      {pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme}
-    }, {})
+    vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, show_at, 0, {
+      virt_text = {{pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme}},
+      virt_text_pos = "overlay",
+      hl_mode = "combine"
+      -- hl_group = _LSP_SIG_CFG.hint_scheme
+    })
   end
 end
 
@@ -224,7 +228,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
       end
     end
 
-    log("md lines", lines)
+    -- log("md lines", lines)
     local label = result.signatures[1].label
     if #result.signatures > 1 then
       label = result.signatures[activeSignature].label
@@ -483,15 +487,18 @@ function M.on_CompleteDone()
 end
 
 M.deprecated = function(cfg)
-  if cfg.always_trigger ~= nil then
-    print('trigger_on_new_line deprecated, using trigger_on_nomatch instead')
+  if cfg.trigger_on_new_line ~= nil or cfg.trigger_on_nomatch ~= nil then
+    print('trigger_on_new_line and trigger_on_nomatch deprecated, using always_trigger instead')
   end
 
-  if cfg.use_lspsaga ~= nil then
-    print('use_lspsaga deprecated')
+  if cfg.use_lspsaga or cfg.check_3rd_handler ~= nil then
+    print('lspsaga signature and 3rd handler deprecated')
   end
   if cfg.floating_window_above_first ~= nil then
     print('use floating_window_above_cur_line instead')
+  end
+  if cfg.decorator then
+    print('decorator deprecated, use hi_parameter instead')
   end
 end
 
@@ -530,7 +537,7 @@ M.on_attach = function(cfg, bufnr)
                                 [[<cmd>lua require('lsp_signature').toggle_float_win()<CR>]],
                                 {silent = true, noremap = true})
   end
-  _LSP_SIG_VT_NS = api.nvim_create_namespace("lsp_signature")
+  _LSP_SIG_VT_NS = api.nvim_create_namespace("lsp_signature_vt")
 
 end
 
@@ -571,7 +578,7 @@ M.setup = function(cfg)
   M.deprecated(cfg)
   log("user cfg:", cfg)
   local _start_client = vim.lsp.start_client
-  _LSP_SIG_VT_NS = api.nvim_create_namespace("lsp_signature")
+  _LSP_SIG_VT_NS = api.nvim_create_namespace("lsp_signature_vt")
   vim.lsp.start_client = function(lsp_config)
     if lsp_config.on_attach == nil then
       lsp_config.on_attach = function(client, bufnr)
@@ -586,6 +593,9 @@ M.setup = function(cfg)
     end
     return _start_client(lsp_config)
   end
+
+  -- default if not defined
+  vim.cmd([[hi default link LspSignatureActiveParameter Search]])
 end
 
 return M
