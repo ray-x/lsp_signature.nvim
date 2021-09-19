@@ -92,10 +92,10 @@ local function virtual_hint(hint, off_y)
     end
     next_line = vim.api.nvim_buf_get_lines(0, cur_line + 1, cur_line + 2, false)[1]
     -- log(prev_line, next_line, r)
-    if prev_line and #prev_line < r[2] then
+    if prev_line and vim.fn.strdisplaywidth(prev_line) < r[2] then
       show_at = cur_line - 1
       pl = prev_line
-    elseif next_line and #next_line < r[2] + 2 and not puvis then
+    elseif next_line and vim.fn.strdisplaywidth(next_line) < r[2] + 2 and not puvis then
       show_at = cur_line + 1
       pl = next_line
     else
@@ -117,8 +117,10 @@ local function virtual_hint(hint, off_y)
   -- log("virtual text: ", cur_line, show_at)
   pl = pl or ""
   local pad = ""
-  if show_at ~= cur_line and #line_to_cursor > #pl + 1 then
-    pad = string.rep(" ", #line_to_cursor - #pl)
+  local line_to_cursor_width = vim.fn.strdisplaywidth(line_to_cursor)
+  local pl_width = vim.fn.strdisplaywidth(pl)
+  if show_at ~= cur_line and line_to_cursor_width > pl_width + 1 then
+    pad = string.rep(" ", line_to_cursor_width - pl_width)
   end
   _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace("lsp_signature_vt")
   vim.api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
