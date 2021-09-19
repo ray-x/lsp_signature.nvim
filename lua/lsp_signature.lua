@@ -125,7 +125,7 @@ local function virtual_hint(hint, off_y)
   if r ~= nil then
     vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, show_at, 0, {
       virt_text = {{pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme}},
-      virt_text_pos = "overlay",
+      virt_text_pos = "eol",
       hl_mode = "combine"
       -- hl_group = _LSP_SIG_CFG.hint_scheme
     })
