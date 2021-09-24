@@ -158,7 +158,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
   if not (result and result.signatures and result.signatures[1]) then
     -- only close if this client opened the signature
     if _LSP_SIG_CFG.client_id == client_id then
-      helper.cleanup(true)
+      helper.cleanup_async(true, 0.1)
 
       -- need to close floating window and virtual text (if they are active)
     end
@@ -351,7 +351,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
       vim.api.nvim_win_set_option(_LSP_SIG_CFG.winnr, "winblend", _LSP_SIG_CFG.transpancy)
     end
     local sig = result.signatures
-    -- if it is last parameter, close windows after cursor moved<F2>
+    -- if it is last parameter, close windows after cursor moved
     if sig and sig[activeSignature].parameters == nil or result.activeParameter == nil
         or result.activeParameter + 1 == #sig[activeSignature].parameters then
       -- log("last para", close_events)
@@ -448,7 +448,7 @@ function M.on_InsertLeave()
     manager.timer = nil
   end
   log('Insert leave cleanup')
-  helper.cleanup(true)
+  helper.cleanup_async(true, 0.3)  -- defer close after 0.3s
 end
 
 local start_watch_changes_timer = function()

@@ -120,7 +120,7 @@ helper.match_parameter = function(result, config)
 
   if activeParameter == nil or activeParameter < 0 then
     log("incorrect signature response?", result, config)
-    activeParameter = helper.fallback(config.triggered_chars or {'('})
+    activeParameter = helper.fallback(config.triggered_chars or {'(', ','})
   end
   if signature.parameters == nil then
     log("incorrect signature response?", result)
