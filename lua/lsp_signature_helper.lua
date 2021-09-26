@@ -308,6 +308,32 @@ helper.cleanup_async = function(close_float_win, delay)
   end, delay * 1000)
 end
 
+-- modified from https://github.com/neovim/neovim/blob/b3b02eb52943fdc8ba74af3b485e9d11655bc9c9/runtime/lua/vim/lsp/util.lua#L40-L86
+local function get_border_height(opts)
+  local border = opts.border
+  local height = 0
+
+  if type(border) == 'string' then
+    local border_height = {none = 0, single = 2, double = 2, rounded = 2, solid = 2, shadow = 1}
+    height = border_height[border]
+  else
+    local function border_height(id)
+      id = (id - 1) % #border + 1
+      if type(border[id]) == "table" then
+        -- border specified as a table of <character, highlight group>
+        return #border[id][1] > 0 and 1 or 0
+      elseif type(border[id]) == "string" then
+        -- border specified as a list of border characters
+        return #border[id] > 0 and 1 or 0
+      end
+    end
+    height = height + border_height(2)  -- top
+    height = height + border_height(6)  -- bottom
+  end
+
+  return height
+end
+
 helper.cal_pos = function(contents, opts)
   if not _LSP_SIG_CFG.floating_window_above_cur_line then
     return {}, 0
@@ -322,9 +348,10 @@ helper.cal_pos = function(contents, opts)
   if float_option.anchor == 'NW' or float_option.anchor == 'NE' then
     -- note: the floating widnows will be under current line
     lines_above = vim.fn.winline() - 1
+    local border_height = get_border_height(float_option)
     -- local lines_below = vim.fn.winheight(0) - lines_above
-    if lines_above >= float_option.height + 3 then -- border
-      off_y = -(float_option.height + 3)
+    if lines_above >= float_option.height + border_height + 1 then -- border
+      off_y = -(float_option.height + border_height + 1)
     end
     log(float_option, off_y, lines_above)
   end
