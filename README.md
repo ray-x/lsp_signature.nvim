@@ -42,10 +42,6 @@ In case some of the languages allow function overload, the plugin will show all 
 <img width="600" alt="multiple_signature" src="https://user-images.githubusercontent.com/1681295/120487194-17e3a500-c3f9-11eb-9561-82b3854694c5.png">
 <img width="600" alt="signature2" src="https://user-images.githubusercontent.com/1681295/120487380-43ff2600-c3f9-11eb-9684-f6e7a1f8e170.png">
 
-#### Scroll in side signature window
-
-If max_height is set in the config and content exceed max_height, you can scroll up and down in signature window
-to view the hiding content.
 
 # Install:
 
