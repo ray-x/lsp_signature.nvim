@@ -3,9 +3,18 @@ name: Tests
 on: [push, pull_request]
 
 jobs:
-  x64-ubuntu:
-    name: X64-ubuntu
-    runs-on: ubuntu-20.04
+  unit_tests:
+    name: unit tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            url: https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz
+          - os: ubuntu-20.04
+            url: https://github.com/neovim/neovim/releases/download/v0.5.1/nvim-linux64.tar.gz
+
     steps:
       - uses: actions/checkout@v2
       - run: date +%F > todays-date
@@ -23,9 +32,15 @@ jobs:
           git clone --depth 1 https://github.com/neovim/nvim-lspconfig ~/.local/share/nvim/site/pack/vendor/start/nvim-lspconfig
 
           ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
+
+          # sudo apt install go
+          test -d _neovim || {
+            mkdir -p _neovim
+            curl -sL ${{ matrix.url }} | tar xzf - --strip-components=1 -C "${PWD}/_neovim"
+          }
+
       - name: Run tests
         run: |
-          curl -OL https://raw.githubusercontent.com/norcalli/bot-ci/master/scripts/github-actions-setup.sh
-          source github-actions-setup.sh nightly-x64
-          nvim --headless -u tests/minimal.vim -c "TSInstallSync all" -c "q"
+          export PATH="${PWD}/_neovim/bin:${PATH}"
+          nvim --headless -u tests/minimal.vim  -c "q"
           make test
