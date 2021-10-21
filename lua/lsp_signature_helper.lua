@@ -90,6 +90,7 @@ end
 
 --  location of active parameter
 helper.match_parameter = function(result, config)
+  -- log("match para ", result, config)
   local signatures = result.signatures
 
   if #signatures == 0 then -- no parameter
@@ -106,7 +107,8 @@ helper.match_parameter = function(result, config)
     return result, "", 0, 0
   end
 
-  local activeParameter = signature.active_parameter
+  local activeParameter = result.activeParameter or signature.active_parameter
+  log("sig", signature, activeParameter)
 
   if result.activeParameter ~= nil and result.activeParameter < #signature.parameters then
     activeParameter = result.activeParameter
@@ -234,8 +236,7 @@ helper.check_trigger_char = function(line_to_cursor, trigger_character)
     end
 
     if #line_to_cursor > #ch + 2 then -- this case fun_name(a, b_
-      prev_prev_char = string.sub(line_to_cursor, #line_to_cursor - #ch - 1,
-                                  #line_to_cursor - #ch - 1)
+      prev_prev_char = string.sub(line_to_cursor, #line_to_cursor - #ch - 1, #line_to_cursor - #ch - 1)
     end
     log(prev_prev_char, prev_char, current_char)
     if prev_char == " " and prev_prev_char == ch then
@@ -327,8 +328,8 @@ local function get_border_height(opts)
         return #border[id] > 0 and 1 or 0
       end
     end
-    height = height + border_height(2)  -- top
-    height = height + border_height(6)  -- bottom
+    height = height + border_height(2) -- top
+    height = height + border_height(6) -- bottom
   end
 
   return height
@@ -412,8 +413,8 @@ function helper.truncate_doc(lines, num_sigs)
   local doc_num = 3 + _LSP_SIG_CFG.doc_lines -- 3: markdown code signature
   local vmode = vim.api.nvim_get_mode().mode
   -- truncate doc if in insert/replace mode
-  if vmode == 'i' or vmode == 'ic' or vmode == 'v' or vmode == 's' or vmode == 'S' or vmode == 'R'
-      or vmode == 'Rc' or vmode == 'Rx' then
+  if vmode == 'i' or vmode == 'ic' or vmode == 'v' or vmode == 's' or vmode == 'S' or vmode == 'R' or vmode == 'Rc'
+      or vmode == 'Rx' then
     -- truncate the doc?
     if #lines > doc_num + num_sigs - 1 then -- for markdown doc start with ```text and end with ```
       local last = lines[#lines]
@@ -488,12 +489,9 @@ function helper.check_lsp_cap(clients, line_to_cursor)
             triggered_chars = tbl_combine(triggered_chars, _LSP_SIG_CFG.extra_trigger_chars)
           end
         elseif rslv_cap ~= nil and rslv_cap.signature_help_trigger_characters ~= nil then
-          triggered_chars = tbl_combine(triggered_chars,
-                                        value.server_capabilities.signature_help_trigger_characters)
-        elseif rslv_cap and rslv_cap.signatureHelpProvider
-            and rslv_cap.signatureHelpProvider.triggerCharacters then
-          triggered_chars = tbl_combine(triggered_chars,
-                                        rslv_cap.signatureHelpProvider.triggerCharacters)
+          triggered_chars = tbl_combine(triggered_chars, value.server_capabilities.signature_help_trigger_characters)
+        elseif rslv_cap and rslv_cap.signatureHelpProvider and rslv_cap.signatureHelpProvider.triggerCharacters then
+          triggered_chars = tbl_combine(triggered_chars, rslv_cap.signatureHelpProvider.triggerCharacters)
         end
 
         if triggered == false then
@@ -530,10 +528,11 @@ helper.highlight_parameter = function(s, l)
     end
     if vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
 
+      log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding)
       _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, s,
                                                          {end_line = 0, end_col = l, hl_group = hi})
 
-      log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding, _LSP_SIG_CFG.markid)
+      log("extmark_id", _LSP_SIG_CFG.markid)
     end
 
   else
