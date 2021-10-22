@@ -145,8 +145,6 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     print(err)
     return
   end
-  log("sig result", ctx, result, config)
-  _LSP_SIG_CFG.signature_result = result
   -- if config.check_client_handlers then
   --   -- this feature will be removed
   --   if helper.client_handler(err, result, ctx, config) then
@@ -165,6 +163,17 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
 
     return
   end
+
+  if #result.signatures > _LSP_SIG_CFG.max_height then
+    result.signatures = {
+      unpack(result.signatures, (result.activeSignature or 0) + 1, _LSP_SIG_CFG.max_height)
+    }
+    result.activeSignature = 0 -- reset
+  end
+
+  log("sig result", ctx, result, config)
+  _LSP_SIG_CFG.signature_result = result
+
   local activeSignature = result.activeSignature or 0
   activeSignature = activeSignature + 1
 
@@ -191,6 +200,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
       -- hack for lua
       local actPar = sig.activeParameter or result.activeParameter or 0
       if actPar + 1 > #(sig.parameters or {}) then
+        log("hack for lua")
         table.remove(result.signatures, i)
         if i <= activeSignature and activeSignature > 1 then
           activeSignature = activeSignature - 1
@@ -217,11 +227,12 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     lines = vim.lsp.util.trim_empty_lines(lines)
     -- offset used for multiple signatures
 
+    log("md lines trim", lines)
     local offset = 2
     local num_sigs = #result.signatures
     if #result.signatures > 1 then
       if string.find(lines[1], [[```]]) then -- markdown format start with ```, insert pos need after that
-        log("line1 markdown")
+        log("line1 is markdown reset offset to 3")
         offset = 3
       end
       log("before insert", lines)
@@ -243,9 +254,8 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
         result.signatures[activeSignature])
 
     -- truncate empty document it
-    if result.signatures[activeSignature].documentation
-        and result.signatures[activeSignature].documentation.kind == "markdown"
-        and result.signatures[activeSignature].documentation.value == "```text\n\n```" then
+    if result.signatures[activeSignature].documentation and result.signatures[activeSignature].documentation.kind
+        == "markdown" and result.signatures[activeSignature].documentation.value == "```text\n\n```" then
       result.signatures[activeSignature].documentation = nil
       lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
 
@@ -294,8 +304,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     if force_redraw and _LSP_SIG_CFG._fix_pos == false then
       config.close_events = close_events
     end
-    if result.signatures[activeSignature].parameters == nil
-        or #result.signatures[activeSignature].parameters == 0 then
+    if result.signatures[activeSignature].parameters == nil or #result.signatures[activeSignature].parameters == 0 then
       -- auto close when fix_pos is false
       if _LSP_SIG_CFG._fix_pos == false then
         config.close_events = close_events
@@ -317,13 +326,12 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     display_opts, off_y = helper.cal_pos(lines, config)
 
     config.offset_y = off_y
-    config.focusable = false
+    config.focusable = true -- allow focus
     config.max_height = display_opts.height
 
     -- try not to overlap with pum autocomplete menu
     if config.check_pumvisible and vim.fn.pumvisible() ~= 0
-        and ((display_opts.anchor == 'NW' or display_opts.anchor == 'NE') and off_y == 0)
-        and _LSP_SIG_CFG.zindex < 50 then
+        and ((display_opts.anchor == 'NW' or display_opts.anchor == 'NE') and off_y == 0) and _LSP_SIG_CFG.zindex < 50 then
       log("pumvisible no need to show off_y", off_y)
       return
     end
@@ -334,16 +342,14 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
         helper.cleanup(false) -- cleanup extmark
       else
         -- vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
-        _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax,
-                                                                                    config)
+        _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax, config)
 
         log("sig_cfg bufnr, winnr not valid recreate", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr)
         _LSP_SIG_CFG.label = label
         _LSP_SIG_CFG.client_id = client_id
       end
     else
-      _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax,
-                                                                                  config)
+      _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax, config)
       _LSP_SIG_CFG.label = label
       _LSP_SIG_CFG.client_id = client_id
 
@@ -355,8 +361,8 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     end
     local sig = result.signatures
     -- if it is last parameter, close windows after cursor moved
-    if sig and sig[activeSignature].parameters == nil or result.activeParameter == nil
-        or result.activeParameter + 1 == #sig[activeSignature].parameters then
+    if sig and sig[activeSignature].parameters == nil or result.activeParameter == nil or result.activeParameter + 1
+        == #sig[activeSignature].parameters then
       -- log("last para", close_events)
       if _LSP_SIG_CFG._fix_pos == false then
         vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
@@ -385,8 +391,7 @@ local signature = function()
     return
   end
 
-  local signature_cap, triggered, trigger_position, trigger_chars =
-      helper.check_lsp_cap(clients, line_to_cursor)
+  local signature_cap, triggered, trigger_position, trigger_chars = helper.check_lsp_cap(clients, line_to_cursor)
 
   if signature_cap == false then
     log("signature capabilities not enabled")
@@ -525,16 +530,15 @@ M.on_attach = function(cfg, bufnr)
 
   vim.cmd([[hi default FloatBorder guifg = #777777]])
   if _LSP_SIG_CFG.bind then
-    vim.lsp.handlers["textDocument/signatureHelp"] =
-        vim.lsp.with(signature_handler, _LSP_SIG_CFG.handler_opts)
+    vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(signature_handler, _LSP_SIG_CFG.handler_opts)
   end
 
-  local shadow_cmd = string.format("hi default FloatShadow blend=%i guibg=%s",
-                                   _LSP_SIG_CFG.shadow_blend, _LSP_SIG_CFG.shadow_guibg)
+  local shadow_cmd = string.format("hi default FloatShadow blend=%i guibg=%s", _LSP_SIG_CFG.shadow_blend,
+                                   _LSP_SIG_CFG.shadow_guibg)
   vim.cmd(shadow_cmd)
 
-  shadow_cmd = string.format("hi default FloatShadowThrough blend=%i guibg=%s",
-                             _LSP_SIG_CFG.shadow_blend + 20, _LSP_SIG_CFG.shadow_guibg)
+  shadow_cmd = string.format("hi default FloatShadowThrough blend=%i guibg=%s", _LSP_SIG_CFG.shadow_blend + 20,
+                             _LSP_SIG_CFG.shadow_guibg)
   vim.cmd(shadow_cmd)
 
   if _LSP_SIG_CFG.toggle_key then
