@@ -178,14 +178,17 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
   activeSignature = activeSignature + 1
 
   local actSig = result.signatures[activeSignature]
-  actSig.label = string.gsub(actSig.label, '[\n\r\t]', " ")
 
-  if actSig.parameters then
-    for i = 1, #actSig.parameters do
-      if type(actSig.parameters[i].label) == "string" then
-        actSig.parameters[i].label = string.gsub(actSig.parameters[i].label, '[\n\r\t]', " ")
+  if actSig ~= nil then
+      actSig.label = string.gsub(actSig.label, '[\n\r\t]', " ")
+
+      if actSig.parameters then
+        for i = 1, #actSig.parameters do
+          if type(actSig.parameters[i].label) == "string" then
+            actSig.parameters[i].label = string.gsub(actSig.parameters[i].label, '[\n\r\t]', " ")
+          end
+        end
       end
-    end
   end
 
   local _, hint, s, l = match_parameter(result, config)
