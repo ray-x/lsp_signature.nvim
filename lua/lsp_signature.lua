@@ -145,6 +145,8 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     print(err)
     return
   end
+
+  -- log("sig result", ctx, result, config)
   -- if config.check_client_handlers then
   --   -- this feature will be removed
   --   if helper.client_handler(err, result, ctx, config) then
@@ -164,7 +166,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     return
   end
 
-  if #result.signatures > 1 and result.activeSignature > 0 then
+  if #result.signatures > 1 and (result.activeSignature or 0) > 0 then
     local sig_num = math.min(_LSP_SIG_CFG.max_height, #result.signatures - result.activeSignature)
     result.signatures = {unpack(result.signatures, result.activeSignature + 1, sig_num)}
     result.activeSignature = 0 -- reset
@@ -180,7 +182,6 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
 
   if actSig ~= nil then
     actSig.label = string.gsub(actSig.label, '[\n\r\t]', " ")
-
     if actSig.parameters then
       for i = 1, #actSig.parameters do
         if type(actSig.parameters[i].label) == "string" then
