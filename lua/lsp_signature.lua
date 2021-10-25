@@ -164,10 +164,9 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     return
   end
 
-  if #result.signatures > _LSP_SIG_CFG.max_height then
-    result.signatures = {
-      unpack(result.signatures, (result.activeSignature or 0) + 1, _LSP_SIG_CFG.max_height)
-    }
+  if #result.signatures > 1 and result.activeSignature > 0 then
+    local sig_num = math.min(_LSP_SIG_CFG.max_height, #result.signatures - result.activeSignature)
+    result.signatures = {unpack(result.signatures, result.activeSignature + 1, sig_num)}
     result.activeSignature = 0 -- reset
   end
 
@@ -180,15 +179,15 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
   local actSig = result.signatures[activeSignature]
 
   if actSig ~= nil then
-      actSig.label = string.gsub(actSig.label, '[\n\r\t]', " ")
+    actSig.label = string.gsub(actSig.label, '[\n\r\t]', " ")
 
-      if actSig.parameters then
-        for i = 1, #actSig.parameters do
-          if type(actSig.parameters[i].label) == "string" then
-            actSig.parameters[i].label = string.gsub(actSig.parameters[i].label, '[\n\r\t]', " ")
-          end
+    if actSig.parameters then
+      for i = 1, #actSig.parameters do
+        if type(actSig.parameters[i].label) == "string" then
+          actSig.parameters[i].label = string.gsub(actSig.parameters[i].label, '[\n\r\t]', " ")
         end
       end
+    end
   end
 
   local _, hint, s, l = match_parameter(result, config)
@@ -456,7 +455,7 @@ function M.on_InsertLeave()
     manager.timer = nil
   end
   log('Insert leave cleanup')
-  helper.cleanup_async(true, 0.3)  -- defer close after 0.3s
+  helper.cleanup_async(true, 0.3) -- defer close after 0.3s
 end
 
 local start_watch_changes_timer = function()

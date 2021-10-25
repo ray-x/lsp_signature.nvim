@@ -3,7 +3,7 @@ local eq = assert.are.same
 local busted = require("plenary/busted")
 -- local cur_dir = vim.fn.expand("%:p:h")
 describe("should show signature ", function()
-  _LSP_SIG_CFG.debug = false
+  _LSP_SIG_CFG.debug = true
   _LSP_SIG_CFG.floating_window = true
 
   local status = require("plenary.reload").reload_module("lsp_signature.nvim")
@@ -54,6 +54,62 @@ describe("should show signature ", function()
     }
   }
 
+  local result_csharp = {
+    activeParameter = 2,
+    activeSignature = 1,
+    signatures = {
+      {
+        documentation = "",
+        label = "bool EditorGUI.PropertyField(Rect position, SerializedProperty property)",
+        parameters = {
+          {documentation = "", label = "Rect position"},
+          {documentation = "", label = "SerializedProperty property"}
+        }
+      }, {
+        documentation = '\n      <summary>\n        <para>Use this to make a field for a SerializedProperty in the Editor.</para>\n      </summary>\n      <param name="position">Rectangle on the screen to use for the property field.</param>\n      <param name="property">The SerializedProperty to make a field for.</param>\n      <param name="label">Optional label to use. If not specified the label of the property itself is used. Use GUIContent.none to not display a label at all.</param>\n      <param name="includeChildren">If true the property including children is drawn; otherwise only the control itself (such as only a foldout but nothing below it).</param>\n      <returns>\n        <para>True if the property has children and is expanded and includeChildren was set to false; otherwise false.</para>\n      </returns>\n    ',
+        label = "bool EditorGUI.PropertyField(Rect position, SerializedProperty property, bool includeChildren)",
+        parameters = {
+          {
+            documentation = "Rectangle on the screen to use for the property field.",
+            label = "Rect position"
+          }, {
+            documentation = "The SerializedProperty to make a field for.",
+            label = "SerializedProperty property"
+          }, {
+            documentation = "If true the property including children is drawn; otherwise only the control itself (such as only a foldout but nothing below it).",
+            label = "bool includeChildren"
+          }
+        }
+      }, {
+        documentation = "",
+        label = "bool EditorGUI.PropertyField(Rect position, SerializedProperty property, GUIContent label)",
+        parameters = {
+          {documentation = "", label = "Rect position"},
+          {documentation = "", label = "SerializedProperty property"},
+          {documentation = "", label = "GUIContent label"}
+        }
+      }, {
+        documentation = '\n      <summary>\n        <para>Use this to make a field for a SerializedProperty in the Editor.</para>\n      </summary>\n      <param name="position">Rectangle on the screen to use for the property field.</param>\n      <param name="property">The SerializedProperty to make a field for.</param>\n      <param name="label">Optional label to use. If not specified the label of the property itself is used. Use GUIContent.none to not display a label at all.</param>\n      <param name="includeChildren">If true the property including children is drawn; otherwise only the control itself (such as only a foldout but nothing below it).</param>\n      <returns>\n        <para>True if the property has children and is expanded and includeChildren was set to false; otherwise false.</para>\n      </returns>\n    ',
+        label = "bool EditorGUI.PropertyField(Rect position, SerializedProperty property, GUIContent label, bool includeChildren)",
+        parameters = {
+          {
+            documentation = "Rectangle on the screen to use for the property field.",
+            label = "Rect position"
+          }, {
+            documentation = "The SerializedProperty to make a field for.",
+            label = "SerializedProperty property"
+          }, {
+            documentation = "Optional label to use. If not specified the label of the property itself is used. Use GUIContent.none to not display a label at all.",
+            label = "GUIContent label"
+          }, {
+            documentation = "If true the property including children is drawn; otherwise only the control itself (such as only a foldout but nothing below it).",
+            label = "bool includeChildren"
+          }
+        }
+      }
+    }
+  }
+
   local cfg = {
     check_pumvisible = true,
     check_client_handlers = true,
@@ -98,6 +154,14 @@ describe("should show signature ", function()
     eq(13, s)
     eq(17, e)
   end)
+
+  it("match should get signature for csharp multi ", function()
+    local result1 = vim.deepcopy(result_csharp)
+    local _, nextp, s, e = match_parameter(result1, cfg)
+    eq("bool includeChildren", nextp)
+    eq(74, s)
+    eq(93, e)
+  end)
   it("should show signature Date golang", function()
     local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
     -- local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
@@ -109,11 +173,27 @@ describe("should show signature ", function()
       lines, s, l = signature.signature_handler(nil, "", result, 1, 1, cfg)
     end
     print("lines", vim.inspect(lines))
-    eq(
-        "Date(year int, month time.Month, day int, hour int, min int, sec int, nsec int, loc *time.Location) time.Time",
-        lines[2])
+    eq("Date(year int, month time.Month, day int, hour int, min int, sec int, nsec int, loc *time.Location) time.Time",
+       lines[2])
     eq(6, s) -- match `year int`
     eq(13, l)
+  end)
+
+  it("should show multi signature csharp", function()
+    local ctx = {method = "textDocument/signatureHelp", client_id = 1, buffnr = 0}
+    -- local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
+    local lines, s, l
+
+    local result = vim.deepcopy(result_csharp)
+    if nvim_6 then
+      lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
+    else
+      lines, s, l = signature.signature_handler(nil, "", result, 1, 1, cfg)
+    end
+    print("lines", vim.inspect(lines))
+    eq("bool EditorGUI.PropertyField(Rect position, SerializedProperty property, bool includeChildren)", lines[2])
+    eq(74, s) -- match `year int`
+    eq(93, l)
   end)
 
   it("should show signature Date golang", function()
@@ -127,9 +207,8 @@ describe("should show signature ", function()
       lines, s, l = signature.signature_handler(nil, "", result, 1, 1, cfg)
     end
     print("lines", vim.inspect(lines))
-    eq(
-        "Date(year int, month time.Month, day int, hour int, min int, sec int, nsec int, loc *time.Location) time.Time",
-        lines[2])
+    eq("Date(year int, month time.Month, day int, hour int, min int, sec int, nsec int, loc *time.Location) time.Time",
+       lines[2])
     eq(6, s) -- match `year int`
     eq(13, l)
   end)
