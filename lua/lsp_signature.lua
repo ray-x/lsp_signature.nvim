@@ -32,7 +32,7 @@ _LSP_SIG_CFG = {
   hint_prefix = "🐼 ",
   hint_scheme = "String",
   hi_parameter = "LspSignatureActiveParameter",
-  handler_opts = {border = "single"},
+  handler_opts = {border = "rounded"},
   padding = '', -- character to pad on left and right of signature
   use_lspsaga = false,
   always_trigger = false, -- sometime show signature on new line can be confusing, set it to false for #58

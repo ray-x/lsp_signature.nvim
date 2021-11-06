@@ -432,7 +432,7 @@ end
 function helper.update_config(config)
 
   local double = {"╔", "═", "╗", "║", "╝", "═", "╚", "║"}
-  local single = {"╭", "─", "╮", "│", "╯", "─", "╰", "│"}
+  local rounded = {"╭", "─", "╮", "│", "╯", "─", "╰", "│"}
   local rand = math.random(1, 1000)
   local id = string.format("%d", rand)
   config.max_height = math.max(_LSP_SIG_CFG.max_height, 1)
@@ -446,8 +446,8 @@ function helper.update_config(config)
   if config.border == "double" then
     config.border = double
   end
-  if config.border == "single" then
-    config.border = single
+  if config.border == "rounded" then
+    config.border = rounded
   end
 
 end
