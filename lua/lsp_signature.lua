@@ -45,7 +45,7 @@ _LSP_SIG_CFG = {
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- decorator = {"`", "`"} -- set to nil if using guihua.lua
   zindex = 200,
-  transpancy = nil, -- disabled by default
+  transparency = nil, -- disabled by default
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
   shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
   timer_interval = 200, -- default timer check interval
@@ -356,8 +356,8 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
       log("sig_cfg new bufnr, winnr ", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr)
     end
 
-    if _LSP_SIG_CFG.transpancy and _LSP_SIG_CFG.transpancy > 1 and _LSP_SIG_CFG.transpancy < 100 then
-      vim.api.nvim_win_set_option(_LSP_SIG_CFG.winnr, "winblend", _LSP_SIG_CFG.transpancy)
+    if _LSP_SIG_CFG.transparency and _LSP_SIG_CFG.transparency > 1 and _LSP_SIG_CFG.transparency < 100 then
+      vim.api.nvim_win_set_option(_LSP_SIG_CFG.winnr, "winblend", _LSP_SIG_CFG.transparency)
     end
     local sig = result.signatures
     -- if it is last parameter, close windows after cursor moved
