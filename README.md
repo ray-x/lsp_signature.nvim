@@ -163,7 +163,7 @@ Or:
 
   padding = '', -- character to pad on left and right of signature can be ' ', or '|'  etc
 
-  transpancy = nil, -- disabled by default, allow floating win transparent value 1~100
+  transparency = nil, -- disabled by default, allow floating win transparent value 1~100
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
   shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
   timer_interval = 200, -- default timer check interval set to lower value if you want to reduce latency
