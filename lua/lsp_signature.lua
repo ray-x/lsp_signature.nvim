@@ -177,6 +177,10 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
 
   local activeSignature = result.activeSignature or 0
   activeSignature = activeSignature + 1
+  if activeSignature > #result.signatures then
+    -- this is a upstream bug of metals
+    activeSignature = #result.signatures
+  end
 
   local actSig = result.signatures[activeSignature]
 
@@ -294,7 +298,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
       _LSP_SIG_CFG._fix_pos = _LSP_SIG_CFG._fix_pos or true
     end
 
-    config.close_events = {'BufHidden', 'InsertLeavePre'}
+    config.close_events = {'BufHidden'} -- , 'InsertLeavePre'}
     if not _LSP_SIG_CFG._fix_pos then
       config.close_events = close_events
     end
@@ -449,6 +453,12 @@ function M.on_InsertCharPre()
 end
 
 function M.on_InsertLeave()
+  local mode = vim.api.nvim_get_mode().mode
+  if mode == 'niI' then
+    log('mode: ', vim.api.nvim_get_mode().mode)
+    return
+  end
+
   manager.insertLeave = true
   if manager.timer then
     manager.timer:stop()
@@ -475,7 +485,7 @@ local start_watch_changes_timer = function()
 end
 
 function M.on_InsertEnter()
-  log("insert enter")
+  -- log("insert enter")
   -- show signature immediately upon entering insert mode
   if manager.insertLeave == true then
     start_watch_changes_timer()
@@ -494,6 +504,8 @@ function M.on_CompleteDone()
   if m == 'i' or m == 's' or m == 'v' then
     log("completedone ", m, "enable signature ?")
   end
+
+  log('Insert leave cleanup', m)
 end
 
 M.deprecated = function(cfg)
