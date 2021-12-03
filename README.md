@@ -197,8 +197,11 @@ fix_pos = function(signatures, lspclient)
    end
    return false
 end
-
 ```
+
+### Sample config with cmp, luasnipet and autopair
+
+[init.lua](https://github.com/ray-x/lsp_signature.nvim/blob/master/tests/init_paq.lua)
 
 ### Q&A:
 

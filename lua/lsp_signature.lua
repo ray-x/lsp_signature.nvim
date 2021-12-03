@@ -467,7 +467,7 @@ function M.on_InsertLeave()
     manager.timer = nil
   end
   log('Insert leave cleanup')
-  helper.cleanup_async(true, 0.3) -- defer close after 0.3s
+  helper.cleanup_async(true, 0.3, true) -- defer close after 0.3s
 end
 
 local start_watch_changes_timer = function()
@@ -572,7 +572,7 @@ local signature_should_close_handler = helper.mk_handler(function(err, result, c
     return
   end
 
-  -- log("sig result", ctx, result, config)
+  log("sig cleanup", result, ctx)
   local client_id = ctx.client_id
   if not (result and result.signatures and result.signatures[1]) then
     -- only close if this client opened the signature

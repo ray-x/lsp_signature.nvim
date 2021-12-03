@@ -8,7 +8,11 @@ helper.log = function(...)
   local arg = {...}
   local log_path = _LSP_SIG_CFG.log_path or nil
   local str = "שׁ "
-  local lineinfo = ''
+
+  local info = debug.getinfo(2, "Sl")
+  lineinfo = info.short_src .. ":" .. info.currentline
+  str = str .. lineinfo
+
   if _LSP_SIG_CFG.verbose == true then
     local info = debug.getinfo(2, "Sl")
     lineinfo = info.short_src .. ":" .. info.currentline
@@ -302,9 +306,15 @@ helper.cleanup = function(close_float_win)
 
 end
 
-helper.cleanup_async = function(close_float_win, delay)
+helper.cleanup_async = function(close_float_win, delay, check)
+  log(debug.traceback())
   vim.validate {delay = {delay, 'number'}}
   vim.defer_fn(function()
+    if vim.fn.mode() == 'i' and check then
+      log('insert leave ignored')
+      -- still in insert mode debounce
+      return
+    end
     helper.cleanup(close_float_win)
   end, delay * 1000)
 end
