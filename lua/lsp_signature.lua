@@ -276,8 +276,9 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     end
 
     -- total lines allowed
-    helper.truncate_doc(lines, num_sigs)
+    lines = helper.truncate_doc(lines, num_sigs)
 
+    -- log(lines)
     if vim.tbl_isempty(lines) then
       log("WARN: signature is empty")
       return

@@ -415,13 +415,14 @@ function helper.cal_woff(line_to_cursor, label)
 end
 
 function helper.truncate_doc(lines, num_sigs)
-  local doc_num = 3 + _LSP_SIG_CFG.doc_lines -- 3: markdown code signature
+  local doc_num = 2 + _LSP_SIG_CFG.doc_lines -- 3: markdown code signature
   local vmode = vim.api.nvim_get_mode().mode
   -- truncate doc if in insert/replace mode
   if vmode == 'i' or vmode == 'ic' or vmode == 'v' or vmode == 's' or vmode == 'S' or vmode == 'R' or vmode == 'Rc'
       or vmode == 'Rx' then
     -- truncate the doc?
-    if #lines > doc_num + num_sigs - 1 then -- for markdown doc start with ```text and end with ```
+    -- log(#lines, doc_num, num_sigs)
+    if #lines > doc_num + num_sigs then -- for markdown doc start with ```text and end with ```
       local last = lines[#lines]
       lines = vim.list_slice(lines, 1, doc_num + num_sigs)
       if last == "```" then
@@ -432,6 +433,9 @@ function helper.truncate_doc(lines, num_sigs)
   end
 
   lines = vim.lsp.util.trim_empty_lines(lines)
+
+  -- log(lines)
+  return lines
 end
 
 function helper.update_config(config)
