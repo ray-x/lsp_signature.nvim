@@ -481,7 +481,7 @@ function helper.check_lsp_cap(clients, line_to_cursor)
   local triggered_chars = {}
   local trigger_position = nil
 
-  local tbl_combine = require"lsp_signature_helper".tbl_combine
+  local tbl_combine = require"lsp_signature.helper".tbl_combine
   for _, value in pairs(clients) do
     if value ~= nil then
       local sig_provider = value.server_capabilities.signatureHelpProvider

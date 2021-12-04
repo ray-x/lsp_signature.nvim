@@ -127,7 +127,7 @@ describe("should show signature ", function()
     nvim_6 = false
   end
 
-  local match_parameter = require('lsp_signature_helper').match_parameter
+  local match_parameter = require('lsp_signature.helper').match_parameter
   it("match should get signature pos", function()
     local result1 = vim.deepcopy(result)
     local _, nextp, s, e = match_parameter(result1, cfg)

@@ -1,7 +1,7 @@
 local vim = _G.vim or vim -- suppress warning, allow complete without lua-dev
 local api = vim.api
 local M = {}
-local helper = require "lsp_signature_helper"
+local helper = require "lsp_signature.helper"
 local match_parameter = helper.match_parameter
 -- local check_closer_char = helper.check_closer_char
 
@@ -455,25 +455,41 @@ end
 
 function M.on_InsertLeave()
   local mode = vim.api.nvim_get_mode().mode
-  if mode == 'niI' then
-    log('mode: ', vim.api.nvim_get_mode().mode)
+  if mode == 'niI' or mode == 'i' then
+    log('mode:  niI ', vim.api.nvim_get_mode().mode)
     return
   end
 
-  manager.insertLeave = true
-  if manager.timer then
-    manager.timer:stop()
-    manager.timer:close()
-    manager.timer = nil
-  end
+  local delay = 0.3 -- 300ms
+  vim.defer_fn(function()
+    if vim.fn.mode() == 'i' then
+      log('insert leave ignored')
+      -- still in insert mode debounce
+      return
+    end
+    log("close timer")
+    manager.insertLeave = true
+    if manager.timer then
+      manager.timer:stop()
+      manager.timer:close()
+      manager.timer = nil
+    end
+
+  end, delay * 1000)
+
   log('Insert leave cleanup')
-  helper.cleanup_async(true, 0.3, true) -- defer close after 0.3s
+  helper.cleanup_async(true, delay, true) -- defer close after 0.3s
 end
 
 local start_watch_changes_timer = function()
   if not manager.timer then
     manager.changedTick = 0
     local interval = _LSP_SIG_CFG.timer_interval or 200
+    if manager.timer then
+      manager.timer:stop()
+      manager.timer:close()
+      manager.timer = nil
+    end
     manager.timer = vim.loop.new_timer()
     manager.timer:start(100, interval, vim.schedule_wrap(function()
       local l_changedTick = api.nvim_buf_get_changedtick(0)
@@ -486,7 +502,7 @@ local start_watch_changes_timer = function()
 end
 
 function M.on_InsertEnter()
-  -- log("insert enter")
+  log("insert enter")
   -- show signature immediately upon entering insert mode
   if manager.insertLeave == true then
     start_watch_changes_timer()
