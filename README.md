@@ -171,7 +171,7 @@ Or:
 }
 
 -- recommanded:
-require'lsp_signature'.setup(cfg) -- no need to specify bufnr if you don't use toggle_key
+require'lsp_signature'.setup({cfg}) -- no need to specify bufnr if you don't use toggle_key
 
 -- You can also do this inside lsp on_attach
 -- note: on_attach deprecated
