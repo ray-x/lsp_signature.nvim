@@ -204,7 +204,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
       -- hack for lua
       local actPar = sig.activeParameter or result.activeParameter or 0
       if actPar > 0 && actPar + 1 > #(sig.parameters or {}) then
-        log("invalid lsp response or no parameters")
+        log("invalid lsp response, active parameter out of boundary")
         -- reset active parameter to last parameter
         sig.activeParameter = #(sig.parameters or {})
       end
