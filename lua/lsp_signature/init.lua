@@ -203,7 +203,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
       local sig = result.signatures[i]
       -- hack for lua
       local actPar = sig.activeParameter or result.activeParameter or 0
-      if actPar + 1 > #(sig.parameters or {}) then
+      if actPar + 1 > math.max(#(sig.parameters or {}), 1) then
         log("hack for lua")
         table.remove(result.signatures, i)
         if i <= activeSignature and activeSignature > 1 then
