@@ -5,7 +5,7 @@ helper.log = function(...)
     return
   end
 
-  local arg = {...}
+  local arg = { ... }
   local log_path = _LSP_SIG_CFG.log_path or nil
   local str = "שׁ "
 
@@ -41,7 +41,7 @@ end
 local log = helper.log
 
 local function findwholeword(input, word)
-  local special_chars = {"%", "*", "[", "]", "^", "$", "(", ")", ".", "+", "-", "?"}
+  local special_chars = { "%", "*", "[", "]", "^", "$", "(", ")", ".", "+", "-", "?" }
   for _, value in pairs(special_chars) do
     local fd = "%" .. value
     local as_loc = word:find(fd)
@@ -50,7 +50,7 @@ local function findwholeword(input, word)
     end
   end
 
-  local l, e = string.find(input, '%(') -- All languages I know, func parameter start with (
+  local l, e = string.find(input, "%(") -- All languages I know, func parameter start with (
   l = l or 1
   l, e = string.find(input, "%f[%a]" .. word .. "%f[%A]", l)
 
@@ -86,7 +86,7 @@ end
 helper.tbl_combine = function(tbl1, tbl2)
   for _, value in pairs(tbl2) do
     if not vim.tbl_contains(tbl1, value) then
-      vim.list_extend(tbl1, {value})
+      vim.list_extend(tbl1, { value })
     end
   end
   return tbl1
@@ -126,7 +126,7 @@ helper.match_parameter = function(result, config)
 
   if activeParameter == nil or activeParameter < 0 then
     log("incorrect signature response?", result, config)
-    activeParameter = helper.fallback(config.triggered_chars or {'(', ','})
+    activeParameter = helper.fallback(config.triggered_chars or { "(", "," })
   end
   if signature.parameters == nil then
     log("incorrect signature response?", result)
@@ -197,11 +197,11 @@ helper.check_trigger_char = function(line_to_cursor, trigger_character)
     -- we're gonna assume in this language that function arg are warpped with ()
     -- 1. find last triggered_chars
     -- TODO: populate this regex with trigger_character
-    local last_trigger_char_index = line_to_cursor:find('[%(,%)][^%(,%)]*$')
+    local last_trigger_char_index = line_to_cursor:find("[%(,%)][^%(,%)]*$")
     if last_trigger_char_index ~= nil then
       -- check if last character is a closing character
       local last_trigger_char = line_to_cursor:sub(last_trigger_char_index, last_trigger_char_index)
-      if last_trigger_char ~= ')' then
+      if last_trigger_char ~= ")" then
         -- when the last character is a closing character, use the full line
         -- for example when the line is: "list(); new_var = " we don't want to trigger on the )
         local line_to_last_trigger = line_to_cursor:sub(1, last_trigger_char_index)
@@ -303,15 +303,14 @@ helper.cleanup = function(close_float_win)
     _LSP_SIG_CFG.bufnr = nil
   end
   -- end)
-
 end
 
 helper.cleanup_async = function(close_float_win, delay, check)
   log(debug.traceback())
-  vim.validate {delay = {delay, 'number'}}
+  vim.validate({ delay = { delay, "number" } })
   vim.defer_fn(function()
-    if vim.fn.mode() == 'i' and check then
-      log('insert leave ignored')
+    if vim.fn.mode() == "i" and check then
+      log("insert leave ignored")
       -- still in insert mode debounce
       return
     end
@@ -324,8 +323,8 @@ local function get_border_height(opts)
   local border = opts.border
   local height = 0
 
-  if type(border) == 'string' then
-    local border_height = {none = 0, single = 2, double = 2, rounded = 2, solid = 2, shadow = 1}
+  if type(border) == "string" then
+    local border_height = { none = 0, single = 2, double = 2, rounded = 2, solid = 2, shadow = 1 }
     height = border_height[border]
   else
     local function border_height(id)
@@ -356,7 +355,7 @@ helper.cal_pos = function(contents, opts)
   local float_option = util.make_floating_popup_options(width, height, opts)
   local off_y = 0
   local lines_above
-  if float_option.anchor == 'NW' or float_option.anchor == 'NE' then
+  if float_option.anchor == "NW" or float_option.anchor == "NE" then
     -- note: the floating widnows will be under current line
     lines_above = vim.fn.winline() - 1
     local border_height = get_border_height(float_option)
@@ -367,7 +366,6 @@ helper.cal_pos = function(contents, opts)
     log(float_option, off_y, lines_above)
   end
   return float_option, off_y
-
 end
 
 local nvim_0_6
@@ -395,7 +393,7 @@ function helper.mk_handler(fn)
       local client_id = select(4, ...)
       local bufnr = select(5, ...)
       local config = select(6, ...)
-      return fn(err, result, {method = method, client_id = client_id, bufnr = bufnr}, config)
+      return fn(err, result, { method = method, client_id = client_id, bufnr = bufnr }, config)
     end
   end
 end
@@ -410,7 +408,7 @@ function helper.cal_woff(line_to_cursor, label)
     if sig_woff2 then
       function_name = label:sub(1, sig_woff2 - 1)
     end
-    local function_on_line = line_to_cursor:match('.*' .. function_name)
+    local function_on_line = line_to_cursor:match(".*" .. function_name)
     if function_on_line then
       woff = #line_to_cursor - #function_on_line + #function_name
     else
@@ -428,8 +426,16 @@ function helper.truncate_doc(lines, num_sigs)
   local doc_num = 2 + _LSP_SIG_CFG.doc_lines -- 3: markdown code signature
   local vmode = vim.api.nvim_get_mode().mode
   -- truncate doc if in insert/replace mode
-  if vmode == 'i' or vmode == 'ic' or vmode == 'v' or vmode == 's' or vmode == 'S' or vmode == 'R' or vmode == 'Rc'
-      or vmode == 'Rx' then
+  if
+    vmode == "i"
+    or vmode == "ic"
+    or vmode == "v"
+    or vmode == "s"
+    or vmode == "S"
+    or vmode == "R"
+    or vmode == "Rc"
+    or vmode == "Rx"
+  then
     -- truncate the doc?
     -- log(#lines, doc_num, num_sigs)
     if #lines > doc_num + num_sigs then -- for markdown doc start with ```text and end with ```
@@ -449,9 +455,8 @@ function helper.truncate_doc(lines, num_sigs)
 end
 
 function helper.update_config(config)
-
-  local double = {"╔", "═", "╗", "║", "╝", "═", "╚", "║"}
-  local rounded = {"╭", "─", "╮", "│", "╯", "─", "╰", "│"}
+  local double = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" }
+  local rounded = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" }
   local rand = math.random(1, 1000)
   local id = string.format("%d", rand)
   config.max_height = math.max(_LSP_SIG_CFG.max_height, 1)
@@ -468,7 +473,6 @@ function helper.update_config(config)
   if config.border == "rounded" then
     config.border = rounded
   end
-
 end
 
 function helper.check_lsp_cap(clients, line_to_cursor)
@@ -481,7 +485,7 @@ function helper.check_lsp_cap(clients, line_to_cursor)
   local triggered_chars = {}
   local trigger_position = nil
 
-  local tbl_combine = require"lsp_signature.helper".tbl_combine
+  local tbl_combine = require("lsp_signature.helper").tbl_combine
   for _, value in pairs(clients) do
     if value ~= nil then
       local sig_provider = value.server_capabilities.signatureHelpProvider
@@ -535,7 +539,7 @@ helper.highlight_parameter = function(s, l)
   -- Not sure why this not working
   -- api.nvim_command("autocmd User SigComplete".." <buffer> ++once lua pcall(vim.api.nvim_win_close, "..winnr..", true)")
 
-  _LSP_SIG_CFG.ns = vim.api.nvim_create_namespace('lsp_signature_hi_parameter')
+  _LSP_SIG_CFG.ns = vim.api.nvim_create_namespace("lsp_signature_hi_parameter")
   local hi = _LSP_SIG_CFG.hi_parameter
   log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding, hi)
   if s and l and s > 0 then
@@ -546,14 +550,17 @@ helper.highlight_parameter = function(s, l)
       l = l + #_LSP_SIG_CFG.padding
     end
     if vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
-
       log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding)
-      _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, s,
-                                                         {end_line = 0, end_col = l, hl_group = hi})
+      _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(
+        _LSP_SIG_CFG.bufnr,
+        _LSP_SIG_CFG.ns,
+        0,
+        s,
+        { end_line = 0, end_col = l, hl_group = hi }
+      )
 
       log("extmark_id", _LSP_SIG_CFG.markid)
     end
-
   else
     log("failed get highlight parameter", s, l)
   end
@@ -570,7 +577,6 @@ helper.remove_doc = function(result)
       end
     end
   end
-
 end
 
 return helper
