@@ -1,7 +1,7 @@
 local vim = _G.vim or vim -- suppress warning, allow complete without lua-dev
 local api = vim.api
 local M = {}
-local helper = require "lsp_signature.helper"
+local helper = require("lsp_signature.helper")
 local match_parameter = helper.match_parameter
 -- local check_closer_char = helper.check_closer_char
 
@@ -10,7 +10,7 @@ local manager = {
   insertLeave = true, -- flag for InsertLeave, prevent every completion if true
   changedTick = 0, -- handle changeTick
   confirmedCompletion = false, -- flag for manual confirmation of completion
-  timer = nil
+  timer = nil,
 }
 
 _LSP_SIG_CFG = {
@@ -32,26 +32,26 @@ _LSP_SIG_CFG = {
   hint_prefix = "🐼 ",
   hint_scheme = "String",
   hi_parameter = "LspSignatureActiveParameter",
-  handler_opts = {border = "rounded"},
-  padding = '', -- character to pad on left and right of signature
+  handler_opts = { border = "rounded" },
+  padding = "", -- character to pad on left and right of signature
   use_lspsaga = false,
   always_trigger = false, -- sometime show signature on new line can be confusing, set it to false for #58
   -- set this to true if you the triggered_chars failed to work
   -- this will allow lsp server decide show signature or not
   auto_close_after = nil, -- autoclose signature after x sec, disabled if nil.
   debug = false,
-  log_path = '', -- log dir when debug is no
+  log_path = "", -- log dir when debug is no
   verbose = false, -- debug show code line number
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- decorator = {"`", "`"} -- set to nil if using guihua.lua
   zindex = 200,
   transparency = nil, -- disabled by default
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
-  shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
+  shadow_guibg = "Black", -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
   timer_interval = 200, -- default timer check interval
   toggle_key = nil, -- toggle signature on and off in insert mode,  e.g. '<M-x>'
   -- set this key also helps if you want see signature in newline
-  check_3rd_handler = nil -- provide you own handler
+  check_3rd_handler = nil, -- provide you own handler
 }
 
 local log = helper.log
@@ -126,15 +126,15 @@ local function virtual_hint(hint, off_y)
   vim.api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
   if r ~= nil then
     vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, show_at, 0, {
-      virt_text = {{pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme}},
+      virt_text = { { pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme } },
       virt_text_pos = "eol",
-      hl_mode = "combine"
+      hl_mode = "combine",
       -- hl_group = _LSP_SIG_CFG.hint_scheme
     })
   end
 end
 
-local close_events = {"CursorMoved", "CursorMovedI", "BufHidden", "InsertCharPre"}
+local close_events = { "CursorMoved", "CursorMovedI", "BufHidden", "InsertCharPre" }
 
 -- ----------------------
 -- --  signature help  --
@@ -168,7 +168,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
 
   if #result.signatures > 1 and (result.activeSignature or 0) > 0 then
     local sig_num = math.min(_LSP_SIG_CFG.max_height, #result.signatures - result.activeSignature)
-    result.signatures = {unpack(result.signatures, result.activeSignature + 1, sig_num)}
+    result.signatures = { unpack(result.signatures, result.activeSignature + 1, sig_num) }
     result.activeSignature = 0 -- reset
   end
 
@@ -185,11 +185,11 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
   local actSig = result.signatures[activeSignature]
 
   if actSig ~= nil then
-    actSig.label = string.gsub(actSig.label, '[\n\r\t]', " ")
+    actSig.label = string.gsub(actSig.label, "[\n\r\t]", " ")
     if actSig.parameters then
       for i = 1, #actSig.parameters do
         if type(actSig.parameters[i].label) == "string" then
-          actSig.parameters[i].label = string.gsub(actSig.parameters[i].label, '[\n\r\t]', " ")
+          actSig.parameters[i].label = string.gsub(actSig.parameters[i].label, "[\n\r\t]", " ")
         end
       end
     end
@@ -254,12 +254,21 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
       label = result.signatures[activeSignature].label
     end
 
-    log("label:", label, result.activeSignature, activeSignature, result.activeParameter,
-        result.signatures[activeSignature])
+    log(
+      "label:",
+      label,
+      result.activeSignature,
+      activeSignature,
+      result.activeParameter,
+      result.signatures[activeSignature]
+    )
 
     -- truncate empty document it
-    if result.signatures[activeSignature].documentation and result.signatures[activeSignature].documentation.kind
-        == "markdown" and result.signatures[activeSignature].documentation.value == "```text\n\n```" then
+    if
+      result.signatures[activeSignature].documentation
+      and result.signatures[activeSignature].documentation.kind == "markdown"
+      and result.signatures[activeSignature].documentation.value == "```text\n\n```"
+    then
       result.signatures[activeSignature].documentation = nil
       lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
 
@@ -271,7 +280,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     local line_to_cursor = line:sub(1, pos[2])
 
     local woff = 1
-    if config.triggered_chars and vim.tbl_contains(config.triggered_chars, '(') then
+    if config.triggered_chars and vim.tbl_contains(config.triggered_chars, "(") then
       woff = helper.cal_woff(line_to_cursor, label)
     end
 
@@ -299,7 +308,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
       _LSP_SIG_CFG._fix_pos = _LSP_SIG_CFG._fix_pos or true
     end
 
-    config.close_events = {'BufHidden'} -- , 'InsertLeavePre'}
+    config.close_events = { "BufHidden" } -- , 'InsertLeavePre'}
     if not _LSP_SIG_CFG._fix_pos then
       config.close_events = close_events
     end
@@ -317,7 +326,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     end
     config.zindex = _LSP_SIG_CFG.zindex
     -- fix pos case
-    log('win config', config)
+    log("win config", config)
     local new_line = helper.is_new_line()
 
     if _LSP_SIG_CFG.padding ~= "" then
@@ -335,8 +344,12 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     config.max_height = display_opts.height
 
     -- try not to overlap with pum autocomplete menu
-    if config.check_pumvisible and vim.fn.pumvisible() ~= 0
-        and ((display_opts.anchor == 'NW' or display_opts.anchor == 'NE') and off_y == 0) and _LSP_SIG_CFG.zindex < 50 then
+    if
+      config.check_pumvisible
+      and vim.fn.pumvisible() ~= 0
+      and ((display_opts.anchor == "NW" or display_opts.anchor == "NE") and off_y == 0)
+      and _LSP_SIG_CFG.zindex < 50
+    then
       log("pumvisible no need to show off_y", off_y)
       return
     end
@@ -366,8 +379,11 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     end
     local sig = result.signatures
     -- if it is last parameter, close windows after cursor moved
-    if sig and sig[activeSignature].parameters == nil or result.activeParameter == nil or result.activeParameter + 1
-        == #sig[activeSignature].parameters then
+    if
+      sig and sig[activeSignature].parameters == nil
+      or result.activeParameter == nil
+      or result.activeParameter + 1 == #sig[activeSignature].parameters
+    then
       -- log("last para", close_events)
       if _LSP_SIG_CFG._fix_pos == false then
         vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
@@ -409,14 +425,18 @@ local signature = function()
     params.position.character = trigger_position
     -- Try using the already binded one, otherwise use it without custom config.
     -- LuaFormatter off
-    vim.lsp.buf_request(0, "textDocument/signatureHelp", params,
-                        vim.lsp.with(signature_handler, {
-                          check_pumvisible = true,
-                          trigger_from_lsp_sig = true,
-                          line_to_cursor = line_to_cursor:sub(1, trigger_position),
-                          border = _LSP_SIG_CFG.handler_opts.border,
-                          triggered_chars = trigger_chars
-                        }))
+    vim.lsp.buf_request(
+      0,
+      "textDocument/signatureHelp",
+      params,
+      vim.lsp.with(signature_handler, {
+        check_pumvisible = true,
+        trigger_from_lsp_sig = true,
+        line_to_cursor = line_to_cursor:sub(1, trigger_position),
+        border = _LSP_SIG_CFG.handler_opts.border,
+        triggered_chars = trigger_chars,
+      })
+    )
     -- LuaFormatter on
   else
     -- check if we should close the signature
@@ -444,7 +464,6 @@ local signature = function()
       _LSP_SIG_CFG.signature_result = nil
     end
   end
-
 end
 
 M.signature = signature
@@ -455,15 +474,15 @@ end
 
 function M.on_InsertLeave()
   local mode = vim.api.nvim_get_mode().mode
-  if mode == 'niI' or mode == 'i' then
-    log('mode:  niI ', vim.api.nvim_get_mode().mode)
+  if mode == "niI" or mode == "i" then
+    log("mode:  niI ", vim.api.nvim_get_mode().mode)
     return
   end
 
   local delay = 0.3 -- 300ms
   vim.defer_fn(function()
-    if vim.fn.mode() == 'i' then
-      log('insert leave ignored')
+    if vim.fn.mode() == "i" then
+      log("insert leave ignored")
       -- still in insert mode debounce
       return
     end
@@ -474,10 +493,9 @@ function M.on_InsertLeave()
       manager.timer:close()
       manager.timer = nil
     end
-
   end, delay * 1000)
 
-  log('Insert leave cleanup')
+  log("Insert leave cleanup")
   helper.cleanup_async(true, delay, true) -- defer close after 0.3s
 end
 
@@ -491,13 +509,17 @@ local start_watch_changes_timer = function()
       manager.timer = nil
     end
     manager.timer = vim.loop.new_timer()
-    manager.timer:start(100, interval, vim.schedule_wrap(function()
-      local l_changedTick = api.nvim_buf_get_changedtick(0)
-      if l_changedTick ~= manager.changedTick then
-        manager.changedTick = l_changedTick
-        signature()
-      end
-    end))
+    manager.timer:start(
+      100,
+      interval,
+      vim.schedule_wrap(function()
+        local l_changedTick = api.nvim_buf_get_changedtick(0)
+        if l_changedTick ~= manager.changedTick then
+          manager.changedTick = l_changedTick
+          signature()
+        end
+      end)
+    )
   end
 end
 
@@ -518,26 +540,26 @@ function M.on_CompleteDone()
   -- cleanup virtual hint
   local m = vim.api.nvim_get_mode().mode
   vim.api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
-  if m == 'i' or m == 's' or m == 'v' then
+  if m == "i" or m == "s" or m == "v" then
     log("completedone ", m, "enable signature ?")
   end
 
-  log('Insert leave cleanup', m)
+  log("Insert leave cleanup", m)
 end
 
 M.deprecated = function(cfg)
   if cfg.trigger_on_new_line ~= nil or cfg.trigger_on_nomatch ~= nil then
-    print('trigger_on_new_line and trigger_on_nomatch deprecated, using always_trigger instead')
+    print("trigger_on_new_line and trigger_on_nomatch deprecated, using always_trigger instead")
   end
 
   if cfg.use_lspsaga or cfg.check_3rd_handler ~= nil then
-    print('lspsaga signature and 3rd handler deprecated')
+    print("lspsaga signature and 3rd handler deprecated")
   end
   if cfg.floating_window_above_first ~= nil then
-    print('use floating_window_above_cur_line instead')
+    print("use floating_window_above_cur_line instead")
   end
   if cfg.decorator then
-    print('decorator deprecated, use hi_parameter instead')
+    print("decorator deprecated, use hi_parameter instead")
   end
 end
 
@@ -564,21 +586,30 @@ M.on_attach = function(cfg, bufnr)
     vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(signature_handler, _LSP_SIG_CFG.handler_opts)
   end
 
-  local shadow_cmd = string.format("hi default FloatShadow blend=%i guibg=%s", _LSP_SIG_CFG.shadow_blend,
-                                   _LSP_SIG_CFG.shadow_guibg)
+  local shadow_cmd = string.format(
+    "hi default FloatShadow blend=%i guibg=%s",
+    _LSP_SIG_CFG.shadow_blend,
+    _LSP_SIG_CFG.shadow_guibg
+  )
   vim.cmd(shadow_cmd)
 
-  shadow_cmd = string.format("hi default FloatShadowThrough blend=%i guibg=%s", _LSP_SIG_CFG.shadow_blend + 20,
-                             _LSP_SIG_CFG.shadow_guibg)
+  shadow_cmd = string.format(
+    "hi default FloatShadowThrough blend=%i guibg=%s",
+    _LSP_SIG_CFG.shadow_blend + 20,
+    _LSP_SIG_CFG.shadow_guibg
+  )
   vim.cmd(shadow_cmd)
 
   if _LSP_SIG_CFG.toggle_key then
-    vim.api.nvim_buf_set_keymap(bufnr, 'i', _LSP_SIG_CFG.toggle_key,
-                                [[<cmd>lua require('lsp_signature').toggle_float_win()<CR>]],
-                                {silent = true, noremap = true})
+    vim.api.nvim_buf_set_keymap(
+      bufnr,
+      "i",
+      _LSP_SIG_CFG.toggle_key,
+      [[<cmd>lua require('lsp_signature').toggle_float_win()<CR>]],
+      { silent = true, noremap = true }
+    )
   end
   _LSP_SIG_VT_NS = api.nvim_create_namespace("lsp_signature_vt")
-
 end
 
 local signature_should_close_handler = helper.mk_handler(function(err, result, ctx, _)
@@ -597,7 +628,6 @@ local signature_should_close_handler = helper.mk_handler(function(err, result, c
     end
     return
   end
-
 end)
 
 M.check_signature_should_close = function()
@@ -608,18 +638,20 @@ M.check_signature_should_close = function()
     local line_to_cursor = line:sub(1, pos[2])
     -- Try using the already binded one, otherwise use it without custom config.
     -- LuaFormatter off
-  vim.lsp.buf_request(0, "textDocument/signatureHelp", params,
-                      vim.lsp.with(signature_should_close_handler, {
-                        check_pumvisible = true,
-                        trigger_from_lsp_sig = true,
-                        line_to_cursor = line_to_cursor,
-                        border = _LSP_SIG_CFG.handler_opts.border,
-                      }))
-
+    vim.lsp.buf_request(
+      0,
+      "textDocument/signatureHelp",
+      params,
+      vim.lsp.with(signature_should_close_handler, {
+        check_pumvisible = true,
+        trigger_from_lsp_sig = true,
+        line_to_cursor = line_to_cursor,
+        border = _LSP_SIG_CFG.handler_opts.border,
+      })
+    )
   end
 
   -- LuaFormatter on
-
 end
 
 M.toggle_float_win = function()
@@ -639,15 +671,18 @@ M.toggle_float_win = function()
   local line_to_cursor = line:sub(1, pos[2])
   -- Try using the already binded one, otherwise use it without custom config.
   -- LuaFormatter off
-  vim.lsp.buf_request(0, "textDocument/signatureHelp", params,
-                      vim.lsp.with(signature_handler, {
-                        check_pumvisible = true,
-                        trigger_from_lsp_sig = true,
-                        line_to_cursor = line_to_cursor,
-                        border = _LSP_SIG_CFG.handler_opts.border,
-                      }))
+  vim.lsp.buf_request(
+    0,
+    "textDocument/signatureHelp",
+    params,
+    vim.lsp.with(signature_handler, {
+      check_pumvisible = true,
+      trigger_from_lsp_sig = true,
+      line_to_cursor = line_to_cursor,
+      border = _LSP_SIG_CFG.handler_opts.border,
+    })
+  )
   -- LuaFormatter on
-
 end
 
 M.signature_handler = signature_handler
