@@ -514,6 +514,11 @@ local start_watch_changes_timer = function()
       interval,
       vim.schedule_wrap(function()
         local l_changedTick = api.nvim_buf_get_changedtick(0)
+        local m = vim.api.nvim_get_mode().mode
+        if m == "n" or m == "v" then
+          M.on_InsertLeave()
+          return
+        end
         if l_changedTick ~= manager.changedTick then
           manager.changedTick = l_changedTick
           signature()
