@@ -1,0 +1,234 @@
+lsp_signature.txt
+
+================================================================================
+CONTENTS                                                  *lsp_signature-contents*
+
+1. lsp_signature.nvim...........................|lsp_signature-lsp_signature.nvim|
+                1.1. Golang with markdown.....|lsp_signature-golang_with_markdown|
+                1.2. Lua.......................................|lsp_signature-lua|
+            1.1. The plugin also re-write the builtin lsp signature allow the parameter highlight.|lsp_signature-the_plugin_also_re-write_the_builtin_lsp_signature_allow_the_parameter_highlight|
+            1.2. Using virtual text to show the next parameter.|lsp_signature-using_virtual_text_to_show_the_next_parameter|
+            1.3. Virtual text only mode.....|lsp_signature-virtual_text_only_mode|
+            1.4. Multiple signatures...........|lsp_signature-multiple_signatures|
+2. Install:...............................................|lsp_signature-install:|
+3. Attach the plugin.............................|lsp_signature-attach_the_plugin|
+    3.1. Configure.......................................|lsp_signature-configure|
+        3.1.1. Floating window borders.....|lsp_signature-floating_window_borders|
+        3.1.2. Full configuration (with default values).|lsp_signature-full_configuration_(with_default_values)|
+        3.1.3. Should signature floating windows fixed.|lsp_signature-should_signature_floating_windows_fixed|
+        3.1.4. Sample config with cmp, luasnipet and autopair.|lsp_signature-sample_config_with_cmp,_luasnipet_and_autopair|
+        3.1.5. Q&A:...........................................|lsp_signature-q&a:|
+
+================================================================================
+LSP_SIGNATURE.NVIM                              *lsp_signature-lsp_signature.nvim*
+
+Show function signature when you type
+
+*   This nvim plugin is made for completion plugins that do not support signature help.
+    Need neovim-0.5+ and enable nvim-lsp.
+*   Part of the code was ported from completion-nvim (https://github.com/nvim-lua/completion-nvim), which does have lots of cool features.
+*   Fully asynchronous lsp buf request.
+*   Virtual text available
+
+GOLANG WITH MARKDOWN                          *lsp_signature-golang_with_markdown*
+
+Highlight with "Search"
+
+https://user-images.githubusercontent.com/1681295/122633027-a7879400-d119-11eb-95ff-d06e6aeeb0b2.mov
+
+LUA                                                            *lsp_signature-lua*
+
+
+
+THE PLUGIN ALSO RE-WRITE THE BUILTIN LSP SIGNATURE ALLOW THE PARAMETER HIGHLIGHT *lsp_signature-the_plugin_also_re-write_the_builtin_lsp_signature_allow_the_parameter_highlight*
+
+
+
+USING VIRTUAL TEXT TO SHOW THE NEXT PARAMETER *lsp_signature-using_virtual_text_to_show_the_next_parameter*
+
+
+
+VIRTUAL TEXT ONLY MODE                      *lsp_signature-virtual_text_only_mode*
+
+(from @fdioguardi)
+
+
+
+MULTIPLE SIGNATURES                            *lsp_signature-multiple_signatures*
+
+In case some of the languages allow function overload, the plugin will show all available signatures
+
+
+
+
+================================================================================
+INSTALL:                                                  *lsp_signature-install:*
+>
+    " dein
+    dein#add('ray-x/lsp_signature.nvim')
+    " plug
+    Plug 'ray-x/lsp_signature.nvim'
+    " Packer
+    use {
+      "ray-x/lsp_signature.nvim",
+    }
+<
+
+================================================================================
+ATTACH THE PLUGIN                                *lsp_signature-attach_the_plugin*
+
+In your init.lua
+
+Call on_attach() when the LSP client attaches to a buffer
+
+e.g. gopls:
+>
+    local golang_setup = {
+      on_attach = function(client, bufnr)
+        ...
+        require "lsp_signature".on_attach()  -- Note: add in lsp client on-attach
+        ...
+      end,
+      ...
+    }
+    require'lspconfig'.gopls.setup(golang_setup)
+<
+
+Alternatively, use setup function
+>
+    require "lsp_signature".setup()
+<
+
+--------------------------------------------------------------------------------
+CONFIGURE                                                *lsp_signature-configure*
+
+FLOATING WINDOW BORDERS                    *lsp_signature-floating_window_borders*
+
+If you have a recent enough build of Neovim, you can configure borders in the signature help
+floating window(Thanks @Gabriel Sanches (https://github.com/gbrlsnchs) for the PR):
+>
+    local example_setup = {
+      on_attach = function(client, bufnr)
+        ...
+        require "lsp_signature".on_attach({
+          bind = true, -- This is mandatory, otherwise border config won't get registered.
+          handler_opts = {
+            border = "rounded"
+          }
+        }, bufnr)
+        ...
+      end,
+      ...
+    }
+<
+
+Or:
+>
+      require'lspconfig'.gopls.setup()
+      require "lsp_signature".setup({
+        bind = true, -- This is mandatory, otherwise border config won't get registered.
+        handler_opts = {
+          border = "rounded"
+        }
+      })
+<
+
+FULL CONFIGURATION (WITH DEFAULT VALUES) *lsp_signature-full_configuration_(with_default_values)*
+>
+     cfg = {
+      debug = false, -- set to true to enable debug logging
+      log_path = "debug_log_file_path", -- debug log path
+      verbose = false, -- show debug line number
+      bind = true, -- This is mandatory, otherwise border config won't get registered.
+                   -- If you want to hook lspsaga or other signature handler, pls set to false
+      doc_lines = 10, -- will show two lines of comment/doc(if there are more than two lines in doc, will be truncated);
+                     -- set to 0 if you DO NOT want any API comments be shown
+                     -- This setting only take effect in insert mode, it does not affect signature help in normal
+                     -- mode, 10 by default
+      floating_window = true, -- show hint in a floating window, set to false for virtual text only mode
+      floating_window_above_cur_line = true, -- try to place the floating above the current line when possible Note:
+      -- will set to true when fully tested, set to false will use whichever side has more space
+      -- this setting will be helpful if you do not want the PUM and floating win overlap
+      fix_pos = false,  -- set to true, the floating window will not auto-close until finish all parameters
+      hint_enable = true, -- virtual hint enable
+      hint_prefix = "🐼 ",  -- Panda for parameter
+      hint_scheme = "String",
+      use_lspsaga = false,  -- set to true if you want to use lspsaga popup
+      hi_parameter = "LspSignatureActiveParameter", -- how your parameter will be highlight
+      max_height = 12, -- max height of signature floating_window, if content is more than max_height, you can scroll down
+                       -- to view the hiding contents
+      max_width = 120, -- max_width of signature floating_window, line will be wrapped if exceed max_width
+      handler_opts = {
+        border = "rounded"   -- double, rounded, single, shadow, none
+      },
+      always_trigger = false, -- sometime show signature on new line or in middle of parameter can be confusing, set it to false for #58
+      auto_close_after = nil, -- autoclose signature float win after x sec, disabled if nil.
+      extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
+      zindex = 200, -- by default it will be on top of all floating windows, set to <= 50 send it to bottom
+      padding = '', -- character to pad on left and right of signature can be ' ', or '|'  etc
+      transparency = nil, -- disabled by default, allow floating win transparent value 1~100
+      shadow_blend = 36, -- if you using shadow as border use this set the opacity
+      shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
+      timer_interval = 200, -- default timer check interval set to lower value if you want to reduce latency
+      toggle_key = nil -- toggle signature on and off in insert mode,  e.g. toggle_key = '<M-x>'
+    }
+    -- recommanded:
+    require'lsp_signature'.setup(cfg) -- no need to specify bufnr if you don't use toggle_key
+    -- You can also do this inside lsp on_attach
+    -- note: on_attach deprecated
+    require'lsp_signature'.on_attach(cfg, bufnr) -- no need to specify bufnr if you don't use toggle_key
+<
+
+SHOULD SIGNATURE FLOATING WINDOWS FIXED *lsp_signature-should_signature_floating_windows_fixed*
+
+fix_pos can be a function, it took two element, first is the signature result for your signature, second is lsp
+client.
+
+You can provide a function.
+
+e.g.
+>
+    fix_pos = function(signatures, lspclient)
+       if signatures[1].activeParameter >= 0 and #signatures[1].parameters == 1 then
+         return false
+       end
+       if lspclient.name == 'sumneko_lua' then
+         return true
+       end
+       return false
+    end
+<
+
+SAMPLE CONFIG WITH CMP, LUASNIPET AND AUTOPAIR *lsp_signature-sample_config_with_cmp,_luasnipet_and_autopair*
+
+init.lua (https://github.com/ray-x/lsp_signature.nvim/blob/master/tests/init_paq.lua)
+
+Q&A:                                                          *lsp_signature-q&a:*
+
+Q: What is the default colorscheme in screenshot:
+
+A: aurora (https://github.com/ray-x/aurora)
+
+Q: I can not see border after enable border = "single"/"rounded"
+
+A: Try another colorscheme (e.g. colorscheme aurora, or colorscheme luna). If issue persists, please submit an issue
+
+Q: It is not working 😡
+
+A: Here is some trouble shooting: https://github.com/ray-x/lsp_signature.nvim/issues/1
+
+If you are using JDTLS, please read this: issue #97 (https://github.com/ray-x/lsp_signature.nvim/issues/97)
+
+Q:I do not like the pop window background highlight, how to change it?
+
+A: Redefine your `NormalFloat` and `FloatBorder`, esp if your colorscheme dose not define it.
+
+Q: How to change parameter highlight
+
+A: By default, the highlight is using "LspSignatureActiveParameter" defined in your colorscheme, you can either override "LspSignatureActiveParameter" or
+define, e.g. use `IncSearch` setup({ hi_parameter = "IncSearch"})
+
+Q: I can not see 🐼 in virtual text
+
+A: It is emoji, not nerdfont. Please check how to enable emoji for your terminal.
+
