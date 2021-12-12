@@ -4,12 +4,6 @@ lsp_signature.txt
 CONTENTS                                                  *lsp_signature-contents*
 
 1. lsp_signature.nvim...........................|lsp_signature-lsp_signature.nvim|
-                1.1. Golang with markdown.....|lsp_signature-golang_with_markdown|
-                1.2. Lua.......................................|lsp_signature-lua|
-            1.1. The plugin also re-write the builtin lsp signature allow the parameter highlight.|lsp_signature-the_plugin_also_re-write_the_builtin_lsp_signature_allow_the_parameter_highlight|
-            1.2. Using virtual text to show the next parameter.|lsp_signature-using_virtual_text_to_show_the_next_parameter|
-            1.3. Virtual text only mode.....|lsp_signature-virtual_text_only_mode|
-            1.4. Multiple signatures...........|lsp_signature-multiple_signatures|
 2. Install:...............................................|lsp_signature-install:|
 3. Attach the plugin.............................|lsp_signature-attach_the_plugin|
     3.1. Configure.......................................|lsp_signature-configure|
@@ -29,36 +23,6 @@ Show function signature when you type
 *   Part of the code was ported from completion-nvim (https://github.com/nvim-lua/completion-nvim), which does have lots of cool features.
 *   Fully asynchronous lsp buf request.
 *   Virtual text available
-
-GOLANG WITH MARKDOWN                          *lsp_signature-golang_with_markdown*
-
-Highlight with "Search"
-
-https://user-images.githubusercontent.com/1681295/122633027-a7879400-d119-11eb-95ff-d06e6aeeb0b2.mov
-
-LUA                                                            *lsp_signature-lua*
-
-
-
-THE PLUGIN ALSO RE-WRITE THE BUILTIN LSP SIGNATURE ALLOW THE PARAMETER HIGHLIGHT *lsp_signature-the_plugin_also_re-write_the_builtin_lsp_signature_allow_the_parameter_highlight*
-
-
-
-USING VIRTUAL TEXT TO SHOW THE NEXT PARAMETER *lsp_signature-using_virtual_text_to_show_the_next_parameter*
-
-
-
-VIRTUAL TEXT ONLY MODE                      *lsp_signature-virtual_text_only_mode*
-
-(from @fdioguardi)
-
-
-
-MULTIPLE SIGNATURES                            *lsp_signature-multiple_signatures*
-
-In case some of the languages allow function overload, the plugin will show all available signatures
-
-
 
 
 ================================================================================
@@ -231,4 +195,3 @@ define, e.g. use `IncSearch` setup({ hi_parameter = "IncSearch"})
 Q: I can not see 🐼 in virtual text
 
 A: It is emoji, not nerdfont. Please check how to enable emoji for your terminal.
-
