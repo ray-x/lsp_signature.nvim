@@ -178,6 +178,36 @@ require'lsp_signature'.setup(cfg) -- no need to specify bufnr if you don't use t
 require'lsp_signature'.on_attach(cfg, bufnr) -- no need to specify bufnr if you don't use toggle_key
 ```
 
+### Signature in status line
+
+Sample config
+
+API
+
+```lua
+require("lsp_signature").status_line(max_width)
+```
+
+return a table
+
+```lua
+{
+  label = 'func fun_name(arg1, arg2...)'
+  hint = 'arg2'
+}
+
+```
+
+```lua
+local current_signature = function(width)
+  if not packer_plugins["lsp_signature.nvim"] or packer_plugins["lsp_signature.nvim"].loaded == false then
+    return ""
+  end
+  local sig = require("lsp_signature").status_line(width)
+  return sig.label .. "🐼" .. sig.hint
+end
+```
+
 ### Should signature floating windows fixed
 
 fix_pos can be a function, it took two element, first is the signature result for your signature, second is lsp

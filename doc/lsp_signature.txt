@@ -9,9 +9,10 @@ CONTENTS                                                  *lsp_signature-content
     3.1. Configure.......................................|lsp_signature-configure|
         3.1.1. Floating window borders.....|lsp_signature-floating_window_borders|
         3.1.2. Full configuration (with default values).|lsp_signature-full_configuration_(with_default_values)|
-        3.1.3. Should signature floating windows fixed.|lsp_signature-should_signature_floating_windows_fixed|
-        3.1.4. Sample config with cmp, luasnipet and autopair.|lsp_signature-sample_config_with_cmp,_luasnipet_and_autopair|
-        3.1.5. Q&A:...........................................|lsp_signature-q&a:|
+        3.1.3. Signature in status line.................|signature in status line|
+        3.1.4. Should signature floating windows fixed.|lsp_signature-should_signature_floating_windows_fixed|
+        3.1.5. Sample config with cmp, luasnipet and autopair.|lsp_signature-sample_config_with_cmp,_luasnipet_and_autopair|
+        3.1.6. Q&A:...........................................|lsp_signature-q&a:|
 
 ================================================================================
 LSP_SIGNATURE.NVIM                              *lsp_signature-lsp_signature.nvim*
@@ -141,6 +142,20 @@ FULL CONFIGURATION (WITH DEFAULT VALUES) *lsp_signature-full_configuration_(with
     -- You can also do this inside lsp on_attach
     -- note: on_attach deprecated
     require'lsp_signature'.on_attach(cfg, bufnr) -- no need to specify bufnr if you don't use toggle_key
+<
+
+Signature in status line  *signature in status line*
+
+Sample config
+>
+
+local current_signature = function(width)
+  if not packer_plugins["lsp_signature.nvim"] or packer_plugins["lsp_signature.nvim"].loaded == false then
+    return ""
+  end
+  local sig = require("lsp_signature").status_line(width)
+  return sig.label .. "🐼" .. sig.hint
+end
 <
 
 SHOULD SIGNATURE FLOATING WINDOWS FIXED *lsp_signature-should_signature_floating_windows_fixed*

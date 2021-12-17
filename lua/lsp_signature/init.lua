@@ -5,6 +5,7 @@ local helper = require("lsp_signature.helper")
 local match_parameter = helper.match_parameter
 -- local check_closer_char = helper.check_closer_char
 
+local status_line = { hint = "", label = "" }
 local manager = {
   insertChar = false, -- flag for InsertCharPre event, turn off imediately when performing completion
   insertLeave = true, -- flag for InsertLeave, prevent every completion if true
@@ -141,6 +142,7 @@ local close_events = { "CursorMoved", "CursorMovedI", "BufHidden", "InsertCharPr
 -- ----------------------
 -- Note: nvim 0.5.1/0.6.x   - signature_help(err, {result}, {ctx}, {config})
 local signature_handler = helper.mk_handler(function(err, result, ctx, config)
+  log("signature handler")
   if err ~= nil then
     print(err)
     return
@@ -159,6 +161,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     -- only close if this client opened the signature
     if _LSP_SIG_CFG.client_id == client_id then
       helper.cleanup_async(true, 0.1)
+      status_line = { hint = "", label = "" }
 
       -- need to close floating window and virtual text (if they are active)
     end
@@ -212,6 +215,11 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
       end
     end
   end
+
+  -- status_line.signature = actSig
+  status_line.hint = hint or ""
+  status_line.label = actSig.label or ""
+  status_line.range = { start = s or 0, ["end"] = l or 0 }
 
   -- trim the doc
   if _LSP_SIG_CFG.doc_lines == 0 then -- doc disabled
@@ -368,6 +376,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
   if _LSP_SIG_CFG._fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
     if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and _LSP_SIG_CFG.label == label and not new_line then
       helper.cleanup(false) -- cleanup extmark
+      status_line = { hint = "", label = "" }
     else
       -- vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
       _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax, config)
@@ -402,6 +411,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     end
     if _LSP_SIG_CFG.auto_close_after then
       helper.cleanup_async(true, _LSP_SIG_CFG.auto_close_after)
+      status_line = { hint = "", label = "" }
     end
   end
   helper.highlight_parameter(s, l)
@@ -503,6 +513,7 @@ function M.on_InsertLeave()
 
   log("Insert leave cleanup")
   helper.cleanup_async(true, delay, true) -- defer close after 0.3s
+  status_line = { hint = "", label = "" }
 end
 
 local start_watch_changes_timer = function()
@@ -527,6 +538,7 @@ local start_watch_changes_timer = function()
         end
         if l_changedTick ~= manager.changedTick then
           manager.changedTick = l_changedTick
+          log("changed")
           signature()
         end
       end)
@@ -627,6 +639,7 @@ local signature_should_close_handler = helper.mk_handler(function(err, result, c
   if err ~= nil then
     print(err)
     helper.cleanup_async(true, 0.01)
+    status_line = { hint = "", label = "" }
     return
   end
 
@@ -636,6 +649,7 @@ local signature_should_close_handler = helper.mk_handler(function(err, result, c
     -- only close if this client opened the signature
     if _LSP_SIG_CFG.client_id == client_id then
       helper.cleanup_async(true, 0.01)
+      status_line = { hint = "", label = "" }
     end
     return
   end
@@ -665,8 +679,20 @@ M.check_signature_should_close = function()
   -- LuaFormatter on
 end
 
+M.status_line = function(size)
+  size = size or 300
+  if #status_line.label + #status_line.hint > size then
+    local labelsize = size - #status_line.hint
+    local hintsize = #status_line.hint
+    if labelsize < 10 then
+      labelsize = 10
+    end
+    return { hint = status_line.hint, label = status_line.label:sub(1, labelsize) .. [[]] }
+  end
+  return { hint = status_line.hint, label = status_line.label }
+end
+
 M.toggle_float_win = function()
-  log('toggle')
   if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0 and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
     vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
     _LSP_SIG_CFG.winnr = nil
