@@ -208,6 +208,8 @@ local current_signature = function(width)
 end
 ```
 
+![signature in status line](https://i.redd.it/b842vy1dm6681.png)
+
 ### Should signature floating windows fixed
 
 fix_pos can be a function, it took two element, first is the signature result for your signature, second is lsp
