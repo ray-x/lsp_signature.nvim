@@ -172,6 +172,9 @@ helper.match_parameter = function(result, config)
       log("incorrect label type", type(nextParameter.label))
     end
   end
+  if nextParameter.documentation and #nextParameter.documentation > 0 then
+    nexp = nexp .. ": " .. nextParameter.documentation
+  end
 
   -- test markdown hl
   -- signature.label = "```lua\n"..signature.label.."\n```"
