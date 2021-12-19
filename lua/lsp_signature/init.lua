@@ -157,8 +157,9 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
   -- end
   local client_id = ctx.client_id
   local bufnr = ctx.bufnr
-  if not (result and result.signatures and result.signatures[1]) then
+  if result == nil or result.signatures == nil or result.signatures[1] == nil then
     -- only close if this client opened the signature
+    log("no valid signatures", result)
     if _LSP_SIG_CFG.client_id == client_id then
       helper.cleanup_async(true, 0.1)
       status_line = { hint = "", label = "" }
@@ -186,15 +187,18 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
   end
 
   local actSig = result.signatures[activeSignature]
+  if actSig == nil then
+    log("no valid signature, or invalid response", result)
+    print("no valid signature or incorrect lsp reponse ", vim.inspect(result))
+    return
+  end
 
   -- label format and trim
-  if actSig ~= nil then
-    actSig.label = string.gsub(actSig.label, "[\n\r\t]", " ")
-    if actSig.parameters then
-      for i = 1, #actSig.parameters do
-        if type(actSig.parameters[i].label) == "string" then
-          actSig.parameters[i].label = string.gsub(actSig.parameters[i].label, "[\n\r\t]", " ")
-        end
+  actSig.label = string.gsub(actSig.label, "[\n\r\t]", " ")
+  if actSig.parameters then
+    for i = 1, #actSig.parameters do
+      if type(actSig.parameters[i].label) == "string" then
+        actSig.parameters[i].label = string.gsub(actSig.parameters[i].label, "[\n\r\t]", " ")
       end
     end
   end
