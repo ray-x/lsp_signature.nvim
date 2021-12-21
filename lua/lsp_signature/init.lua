@@ -13,6 +13,11 @@ local manager = {
   confirmedCompletion = false, -- flag for manual confirmation of completion
   timer = nil,
 }
+local path_sep = vim.loop.os_uname().sysname == "Windows" and "\\" or "/"
+
+local function path_join(...)
+  return table.concat(vim.tbl_flatten({ ... }), path_sep)
+end
 
 _LSP_SIG_CFG = {
   bind = true, -- This is mandatory, otherwise border config won't get registered.
@@ -41,7 +46,7 @@ _LSP_SIG_CFG = {
   -- this will allow lsp server decide show signature or not
   auto_close_after = nil, -- autoclose signature after x sec, disabled if nil.
   debug = false,
-  log_path = "", -- log dir when debug is no
+  log_path = path_join(vim.fn.stdpath("cache"), 'lsp_signature.log'), -- log dir when debug is no
   verbose = false, -- debug show code line number
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- decorator = {"`", "`"} -- set to nil if using guihua.lua
