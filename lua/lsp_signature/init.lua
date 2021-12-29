@@ -433,7 +433,7 @@ local signature = function()
   local line = api.nvim_get_current_line()
   local line_to_cursor = line:sub(1, pos[2])
   local clients = vim.lsp.buf_get_clients(0)
-  if clients == nil or clients == {} then
+  if clients == nil or next(clients) == nil then
     return
   end
 
