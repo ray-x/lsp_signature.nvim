@@ -46,7 +46,7 @@ _LSP_SIG_CFG = {
   -- this will allow lsp server decide show signature or not
   auto_close_after = nil, -- autoclose signature after x sec, disabled if nil.
   debug = false,
-  log_path = path_join(vim.fn.stdpath("cache"), 'lsp_signature.log'), -- log dir when debug is no
+  log_path = path_join(vim.fn.stdpath("cache"), "lsp_signature.log"), -- log dir when debug is no
   verbose = false, -- debug show code line number
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   -- decorator = {"`", "`"} -- set to nil if using guihua.lua
@@ -433,7 +433,7 @@ local signature = function()
   local line = api.nvim_get_current_line()
   local line_to_cursor = line:sub(1, pos[2])
   local clients = vim.lsp.buf_get_clients(0)
-  if clients == nil or clients == {} then
+  if clients == nil or next(clients) == nil then
     return
   end
 
@@ -499,14 +499,18 @@ end
 
 function M.on_InsertLeave()
   local mode = vim.api.nvim_get_mode().mode
-  if mode == "niI" or mode == "i" then
+
+  log("mode:   ", mode)
+  if mode == "niI" or mode == "i" or mode == "s" then
     log("mode:  niI ", vim.api.nvim_get_mode().mode)
     return
   end
 
   local delay = 0.3 -- 300ms
   vim.defer_fn(function()
-    if vim.fn.mode() == "i" then
+    local mode = vim.api.nvim_get_mode().mode
+    log("mode:   ", mode)
+    if mode == "i" or mode == "s" then
       log("insert leave ignored")
       -- still in insert mode debounce
       return
@@ -541,6 +545,7 @@ local start_watch_changes_timer = function()
       vim.schedule_wrap(function()
         local l_changedTick = api.nvim_buf_get_changedtick(0)
         local m = vim.api.nvim_get_mode().mode
+        -- log(m)
         if m == "n" or m == "v" then
           M.on_InsertLeave()
           return
