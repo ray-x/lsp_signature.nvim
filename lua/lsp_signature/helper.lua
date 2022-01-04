@@ -510,7 +510,7 @@ function helper.check_lsp_cap(clients, line_to_cursor)
           if sig_provider.retriggerCharacters ~= nil then
             vim.list_extend(triggered_chars, sig_provider.retriggerCharacters)
             table.sort(triggered_chars)
-            triggered_chars = vim.fn.unique(triggered_chars)
+            triggered_chars = vim.fn.uniq(triggered_chars)
           end
           if _LSP_SIG_CFG.extra_trigger_chars ~= nil then
             triggered_chars = tbl_combine(triggered_chars, _LSP_SIG_CFG.extra_trigger_chars)
