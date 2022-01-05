@@ -21,14 +21,12 @@ helper.log = function(...)
   local str = "שׁ "
 
   local info = debug.getinfo(2, "Sl")
-  lineinfo = info.short_src .. ":" .. info.currentline
-  str = str .. lineinfo
 
   if _LSP_SIG_CFG.verbose == true then
     local info = debug.getinfo(2, "Sl")
     lineinfo = info.short_src .. ":" .. info.currentline
+    str = str .. lineinfo
   end
-  str = str .. lineinfo
 
   for i, v in ipairs(arg) do
     if type(v) == "table" then
@@ -312,10 +310,11 @@ helper.cleanup_async = function(close_float_win, delay, check)
   vim.defer_fn(function()
     local mode = vim.api.nvim_get_mode().mode
     if mode == "i" or mode == "s" and check then
-      log("insert leave ignored")
+      log("async cleanup insert leave ignored")
       -- still in insert mode debounce
       return
     end
+    log("async cleanup: ", mode)
     helper.cleanup(close_float_win)
   end, delay * 1000)
 end

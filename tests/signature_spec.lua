@@ -181,7 +181,7 @@ describe("should show signature ", function()
     eq(93, e)
   end)
   it("should show signature Date golang", function()
-    local ctx = { method = "textDocument/signatureHelp", client_id = 1, buffnr = 0 }
+    local ctx = { method = "textDocument/signatureHelp", client_id = 1, bufnr = 0 }
     -- local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
     local lines, s, l
 
@@ -200,7 +200,7 @@ describe("should show signature ", function()
   end)
 
   it("should show multi signature csharp", function()
-    local ctx = { method = "textDocument/signatureHelp", client_id = 1, buffnr = 0 }
+    local ctx = { method = "textDocument/signatureHelp", client_id = 1, bufnr = 0 }
     -- local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
     local lines, s, l
 
@@ -217,7 +217,7 @@ describe("should show signature ", function()
   end)
 
   it("should show signature Date golang", function()
-    local ctx = { method = "textDocument/signatureHelp", client_id = 1, buffnr = 0 }
+    local ctx = { method = "textDocument/signatureHelp", client_id = 1, bufnr = 0 }
     -- local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
     local lines, s, l
 
@@ -257,7 +257,7 @@ describe("should show signature ", function()
       triggered_chars = { "(", "," },
     }
 
-    local ctx = { method = "textDocument/signatureHelp", client_id = 1, buffnr = 0 }
+    local ctx = { method = "textDocument/signatureHelp", client_id = 1, bufnr = 0 }
 
     local lines, s, l
     if nvim_6 then
@@ -298,7 +298,7 @@ describe("should show signature ", function()
       triggered_chars = { "(", "," },
     }
 
-    local ctx = { method = "textDocument/signatureHelp", client_id = 1, buffnr = 0 }
+    local ctx = { method = "textDocument/signatureHelp", client_id = 1, bufnr = 0 }
     local lines, s, l
     if nvim_6 then
       lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
