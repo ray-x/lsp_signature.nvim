@@ -235,11 +235,12 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     helper.remove_doc(result)
   end
 
-  -- I dnot need a floating win
-  if not (_LSP_SIG_CFG.floating_window == true or not config.trigger_from_lsp_sig or config.toggle == true) then
-    if _LSP_SIG_CFG.hint_enable == true and config.trigger_from_lsp_sig then
-      virtual_hint(hint, 0)
-    end
+  if _LSP_SIG_CFG.hint_enable == true then
+    virtual_hint(hint, 0)
+  end
+
+  -- I do not need a floating win
+  if _LSP_SIG_CFG.floating_window == false and config.toggle ~= true and config.trigger_from_lsp_sig then
     return {}, s, l
   end
 
