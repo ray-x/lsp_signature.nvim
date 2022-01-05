@@ -243,7 +243,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     virtual_hint(hint, 0)
   end
   -- I do not need a floating win
-  if _LSP_SIG_CFG.floating_window == false and config.toggle ~= true and config.trigger_from_lsp_sig == true then
+  if _LSP_SIG_CFG.floating_window == false and config.toggle ~= true and config.trigger_from_lsp_sig then
     return {}, s, l
   end
 
