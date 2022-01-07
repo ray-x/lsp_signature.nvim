@@ -662,13 +662,34 @@ local signature_should_close_handler = helper.mk_handler(function(err, result, c
 
   log("sig cleanup", result, ctx)
   local client_id = ctx.client_id
-  if not (result and result.signatures and result.signatures[1]) then
+  local valid_result = result and result.signatures and result.signatures[1]
+  local rlabel = nil
+  if not valid_result then
     -- only close if this client opened the signature
     if _LSP_SIG_CFG.client_id == client_id then
       helper.cleanup_async(true, 0.01)
       status_line = { hint = "", label = "" }
+      return
     end
-    return
+  end
+
+  -- corner case, result is not same
+  if valid_result then
+    rlabel = result.signatures[1].label
+  end
+  result = _LSP_SIG_CFG.signature_result
+  local last_valid_result = result and result.signatures and result.signatures[1]
+  local llabel = nil
+  if last_valid_result then
+    llabel = result.signatures[1].label
+  end
+
+  log(rlabel, llabel)
+
+  if rlabel and rlabel ~= llabel then
+    helper.cleanup(true)
+    status_line = { hint = "", label = "" }
+    signature()
   end
 end)
 
