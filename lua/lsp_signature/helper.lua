@@ -217,6 +217,10 @@ helper.check_trigger_char = function(line_to_cursor, trigger_characters)
     end
   end
 
+  if vim.tbl_contains(trigger_characters, "(") then
+    excludes = excludes .. "%)"
+  end
+
   local pat = string.format("[%s][%s]*$", includes, excludes)
   log(pat, includes, excludes)
 
@@ -231,6 +235,7 @@ helper.check_trigger_char = function(line_to_cursor, trigger_characters)
   if last_trigger_char_index ~= nil then
     -- check if last character is a closing character
     local last_trigger_char = line_to_cursor:sub(last_trigger_char_index, last_trigger_char_index)
+    log("last trigger char", last_trigger_char)
     if last_trigger_char ~= ")" then
       -- when the last character is a closing character, use the full line
       -- for example when the line is: "list(); new_var = " we don't want to trigger on the )
@@ -304,12 +309,12 @@ helper.cleanup = function(close_float_win)
   -- end)
 end
 
-helper.cleanup_async = function(close_float_win, delay, check)
+helper.cleanup_async = function(close_float_win, delay, force)
   log(debug.traceback())
   vim.validate({ delay = { delay, "number" } })
   vim.defer_fn(function()
     local mode = vim.api.nvim_get_mode().mode
-    if mode == "i" or mode == "s" and check then
+    if not force and (mode == "i" or mode == "s") then
       log("async cleanup insert leave ignored")
       -- still in insert mode debounce
       return
@@ -486,7 +491,7 @@ function helper.check_lsp_cap(clients, line_to_cursor)
   local triggered_chars = {}
   local trigger_position = nil
 
-  local tbl_combine = require("lsp_signature.helper").tbl_combine
+  local tbl_combine = helper.tbl_combine
   for _, value in pairs(clients) do
     if value ~= nil then
       local sig_provider = value.server_capabilities.signatureHelpProvider

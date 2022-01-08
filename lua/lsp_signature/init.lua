@@ -170,7 +170,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     -- only close if this client opened the signature
     log("no valid signatures", result)
     if _LSP_SIG_CFG.client_id == client_id then
-      helper.cleanup_async(true, 0.1)
+      helper.cleanup_async(true, 0.1, true)
       status_line = { hint = "", label = "" }
 
       -- need to close floating window and virtual text (if they are active)
@@ -509,12 +509,12 @@ function M.on_InsertLeave()
     return
   end
 
-  local delay = 0.3 -- 300ms
+  local delay = 0.2 -- 200ms
   vim.defer_fn(function()
     local mode = vim.api.nvim_get_mode().mode
     log("mode:   ", mode)
     if mode == "i" or mode == "s" then
-      log("insert leave ignored")
+      signature()
       -- still in insert mode debounce
       return
     end
@@ -533,34 +533,35 @@ function M.on_InsertLeave()
 end
 
 local start_watch_changes_timer = function()
-  if not manager.timer then
-    manager.changedTick = 0
-    local interval = _LSP_SIG_CFG.timer_interval or 200
-    if manager.timer then
-      manager.timer:stop()
-      manager.timer:close()
-      manager.timer = nil
-    end
-    manager.timer = vim.loop.new_timer()
-    manager.timer:start(
-      100,
-      interval,
-      vim.schedule_wrap(function()
-        local l_changedTick = api.nvim_buf_get_changedtick(0)
-        local m = vim.api.nvim_get_mode().mode
-        -- log(m)
-        if m == "n" or m == "v" then
-          M.on_InsertLeave()
-          return
-        end
-        if l_changedTick ~= manager.changedTick then
-          manager.changedTick = l_changedTick
-          log("changed")
-          signature()
-        end
-      end)
-    )
+  if manager.timer then
+    return
   end
+  manager.changedTick = 0
+  local interval = _LSP_SIG_CFG.timer_interval or 200
+  if manager.timer then
+    manager.timer:stop()
+    manager.timer:close()
+    manager.timer = nil
+  end
+  manager.timer = vim.loop.new_timer()
+  manager.timer:start(
+    100,
+    interval,
+    vim.schedule_wrap(function()
+      local l_changedTick = api.nvim_buf_get_changedtick(0)
+      local m = vim.api.nvim_get_mode().mode
+      -- log(m)
+      if m == "n" or m == "v" then
+        M.on_InsertLeave()
+        return
+      end
+      if l_changedTick ~= manager.changedTick then
+        manager.changedTick = l_changedTick
+        log("changed")
+        signature()
+      end
+    end)
+  )
 end
 
 function M.on_InsertEnter()
@@ -655,7 +656,7 @@ end
 local signature_should_close_handler = helper.mk_handler(function(err, result, ctx, _)
   if err ~= nil then
     print(err)
-    helper.cleanup_async(true, 0.01)
+    helper.cleanup_async(true, 0.01, true)
     status_line = { hint = "", label = "" }
     return
   end
@@ -667,7 +668,7 @@ local signature_should_close_handler = helper.mk_handler(function(err, result, c
   if not valid_result then
     -- only close if this client opened the signature
     if _LSP_SIG_CFG.client_id == client_id then
-      helper.cleanup_async(true, 0.01)
+      helper.cleanup_async(true, 0.01, true)
       status_line = { hint = "", label = "" }
       return
     end
