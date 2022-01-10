@@ -57,11 +57,16 @@ use {
 }
 ```
 
-# Attach the plugin
+# Setup / Attach the plugin
 
-In your init.lua
+In your init.lua, call setup()
 
-Call on_attach() when the LSP client attaches to a buffer
+```lua
+cfg = {...}  -- add you config here
+require "lsp_signature".setup(cfg)
+```
+
+Alternatively, call on_attach() when the LSP client attaches to a buffer
 
 e.g. gopls:
 
@@ -77,12 +82,6 @@ local golang_setup = {
 
 require'lspconfig'.gopls.setup(golang_setup)
 
-```
-
-Alternatively, use setup function
-
-```vim
-require "lsp_signature".setup()
 ```
 
 ## Configure
