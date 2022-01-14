@@ -24,11 +24,13 @@ _LSP_SIG_CFG = {
   -- if you want to use lspsaga, please set it to false
   doc_lines = 10, -- how many lines to show in doc, set to 0 if you only want the signature
   max_height = 12, -- max height of signature floating_window
-  max_width = 120, -- max_width of signature floating_window
+  max_width = 80, -- max_width of signature floating_window
 
   floating_window = true, -- show hint in a floating window
   floating_window_above_cur_line = true, -- try to place the floating above the current line
-  floating_window_off_y = 1, -- adjust float windows y position. allow the pum to show a few lines
+
+  floating_window_off_x = 1, -- adjust float windows x position.
+  floating_window_off_y = 1, -- adjust float windows y position.
   close_timeout = 4000, -- close floating window after ms when laster parameter is entered
   fix_pos = function(signatures, _) -- second argument is the client
     return true -- can be expression like : return signatures[1].activeParameter >= 0 and signatures[1].parameters > 1
@@ -40,7 +42,6 @@ _LSP_SIG_CFG = {
   hi_parameter = "LspSignatureActiveParameter",
   handler_opts = { border = "rounded" },
   padding = "", -- character to pad on left and right of signature
-  use_lspsaga = false,
   always_trigger = false, -- sometime show signature on new line can be confusing, set it to false for #58
   -- set this to true if you the triggered_chars failed to work
   -- this will allow lsp server decide show signature or not
@@ -235,7 +236,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
   status_line.range = { start = s or 0, ["end"] = l or 0 }
 
   -- trim the doc
-  if _LSP_SIG_CFG.doc_lines == 0 then -- doc disabled
+  if _LSP_SIG_CFG.doc_lines == 0 and config.trigger_from_lsp_sig then -- doc disabled
     helper.remove_doc(result)
   end
 
@@ -313,8 +314,14 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     woff = helper.cal_woff(line_to_cursor, label)
   end
 
+  if _LSP_SIG_CFG.floating_window_off_x > 0 then
+    woff = woff + _LSP_SIG_CFG.floating_window_off_x
+  end
+
   -- total lines allowed
-  lines = helper.truncate_doc(lines, num_sigs)
+  if config.trigger_from_lsp_sig then
+    lines = helper.truncate_doc(lines, num_sigs)
+  end
 
   -- log(lines)
   if vim.tbl_isempty(lines) then
@@ -330,11 +337,11 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
   helper.update_config(config)
   config.offset_x = woff
 
-  if type(_LSP_SIG_CFG._fix_pos) == "function" then
+  if type(_LSP_SIG_CFG.fix_pos) == "function" then
     local client = vim.lsp.get_client_by_id(client_id)
-    _LSP_SIG_CFG._fix_pos = _LSP_SIG_CFG._fix_pos(result, client)
+    _LSP_SIG_CFG._fix_pos = _LSP_SIG_CFG.fix_pos(result, client)
   else
-    _LSP_SIG_CFG._fix_pos = _LSP_SIG_CFG._fix_pos or true
+    _LSP_SIG_CFG._fix_pos = _LSP_SIG_CFG.fix_pos or true
   end
 
   -- when should the floating close
@@ -385,7 +392,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
     return
   end
 
-  -- log("floating opt", config, display_opts)
+  log("floating opt", config, display_opts)
   if _LSP_SIG_CFG._fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
     if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and _LSP_SIG_CFG.label == label and not new_line then
       status_line = { hint = "", label = "" }
@@ -468,7 +475,6 @@ local signature = function()
     -- LuaFormatter on
   else
     -- check if we should close the signature
-    -- print('should close')
     if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0 then
       -- if check_closer_char(line_to_cursor, triggered_chars) then
       if vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
