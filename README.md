@@ -267,3 +267,7 @@ define, e.g. use `IncSearch` setup({ hi_parameter = "IncSearch"})
 Q: I can not see 🐼 in virtual text
 
 A: It is emoji, not nerdfont. Please check how to enable emoji for your terminal.
+
+Q: Working with cmp/coq. The floating windows block cmp/coq
+
+A: A few options here, z-index, floating_window_above_cur_line, floating_window_off_x/y, toggle_key. You can find the best setup for your workflow.
