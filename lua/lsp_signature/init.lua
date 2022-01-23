@@ -242,6 +242,10 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
 
   if _LSP_SIG_CFG.hint_enable == true then
     virtual_hint(hint, 0)
+  else
+    _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace("lsp_signature_vt")
+
+    helper.cleanup(false) -- cleanup extmark
   end
   -- I do not need a floating win
   if _LSP_SIG_CFG.floating_window == false and config.toggle ~= true and config.trigger_from_lsp_sig then
