@@ -21,7 +21,6 @@ end
 
 _LSP_SIG_CFG = {
   bind = true, -- This is mandatory, otherwise border config won't get registered.
-  -- if you want to use lspsaga, please set it to false
   doc_lines = 10, -- how many lines to show in doc, set to 0 if you only want the signature
   max_height = 12, -- max height of signature floating_window
   max_width = 80, -- max_width of signature floating_window
