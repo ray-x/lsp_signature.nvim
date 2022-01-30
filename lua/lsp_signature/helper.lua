@@ -103,6 +103,21 @@ helper.tbl_combine = function(tbl1, tbl2)
   return tbl1
 end
 
+helper.ft2md = function(ft)
+  local m = {
+    javascriptreact = "javascript",
+    typescriptreact = "typescript",
+    ["javascript.jsx"] = "javascript",
+    ["typescript.tsx"] = "typescript",
+  }
+  local f = m[ft]
+  if f ~= nil then
+    return f
+  else
+    return ft
+  end
+end
+
 --  location of active parameter
 helper.match_parameter = function(result, config)
   -- log("match para ", result, config)

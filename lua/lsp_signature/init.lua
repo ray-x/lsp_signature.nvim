@@ -254,6 +254,8 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
   local lines = {}
   local off_y = 0
   local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
+  ft = helper.ft2md(ft)
+
   lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
 
   if lines == nil or type(lines) ~= "table" then
