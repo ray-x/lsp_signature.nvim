@@ -633,7 +633,6 @@ M.on_attach = function(cfg, bufnr)
     log(_LSP_SIG_CFG)
   end
 
-  vim.cmd([[hi default FloatBorder guifg = #777777]])
   if _LSP_SIG_CFG.bind then
     vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(signature_handler, _LSP_SIG_CFG.handler_opts)
   end
