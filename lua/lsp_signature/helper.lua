@@ -37,6 +37,11 @@ helper.log = function(...)
   end
   if #str > 2 then
     if log_path ~= nil and #log_path > 3 then
+      local lfs = require("lfs")
+      local size = lfs.attributes(log_path, "size")
+      if size > 1234567 then
+        os.remove(log_path)
+      end
       local f = io.open(log_path, "a+")
       if f == nil then
         return
