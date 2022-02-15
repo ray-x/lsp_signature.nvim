@@ -614,6 +614,17 @@ M.deprecated = function(cfg)
     print("decorator deprecated, use hi_parameter instead")
   end
 end
+local function cleanup_logs(cfg)
+  local log_path = cfg.log_path or _LSP_SIG_CFG.log_path or nil
+  local fp = io.open(log_path, "r")
+  if fp then
+    local size = fp:seek("end")
+    fp:close()
+    if size > 1234567 then
+      os.remove(log_path)
+    end
+  end
+end
 
 M.on_attach = function(cfg, bufnr)
   bufnr = bufnr or 0
@@ -630,6 +641,7 @@ M.on_attach = function(cfg, bufnr)
 
   if type(cfg) == "table" then
     _LSP_SIG_CFG = vim.tbl_extend("keep", cfg, _LSP_SIG_CFG)
+    cleanup_logs(cfg)
     log(_LSP_SIG_CFG)
   end
 
