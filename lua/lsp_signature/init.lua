@@ -45,6 +45,7 @@ _LSP_SIG_CFG = {
   -- set this to true if you the triggered_chars failed to work
   -- this will allow lsp server decide show signature or not
   auto_close_after = nil, -- autoclose signature after x sec, disabled if nil.
+  auto_display = true, -- display lsp signature automatically
   debug = false,
   log_path = path_join(vim.fn.stdpath("cache"), "lsp_signature.log"), -- log dir when debug is no
   verbose = false, -- debug show code line number
@@ -466,7 +467,7 @@ local signature = function()
     return
   end
 
-  if triggered then
+  if triggered and _LSP_SIG_CFG.auto_display then
     -- overwrite signature help here to disable "no signature help" message
     local params = vim.lsp.util.make_position_params()
     params.position.character = trigger_position
