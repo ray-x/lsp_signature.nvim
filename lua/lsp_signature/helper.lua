@@ -575,7 +575,7 @@ helper.highlight_parameter = function(s, l)
       s = s - 1 + #_LSP_SIG_CFG.padding
       l = l + #_LSP_SIG_CFG.padding
     end
-    if vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
+    if _LSP_SIG_CFG.bufnr == nil or vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
       log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding)
       _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(
         _LSP_SIG_CFG.bufnr,
