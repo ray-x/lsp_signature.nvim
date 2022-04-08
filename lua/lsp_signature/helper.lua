@@ -605,4 +605,13 @@ helper.remove_doc = function(result)
   end
 end
 
+helper.completion_visible = function()
+  local hascmp, cmp = pcall(require, 'cmp')
+  if hascmp then
+    return cmp.visible()
+  end
+
+  return vim.fn.pumvisible() ~= 0
+end
+
 return helper

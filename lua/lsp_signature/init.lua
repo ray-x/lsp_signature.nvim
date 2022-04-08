@@ -45,6 +45,7 @@ _LSP_SIG_CFG = {
   -- set this to true if you the triggered_chars failed to work
   -- this will allow lsp server decide show signature or not
   auto_close_after = nil, -- autoclose signature after x sec, disabled if nil.
+  check_completion_visible = true, -- adjust position of signature window relative to completion popup
   debug = false,
   log_path = path_join(vim.fn.stdpath("cache"), "lsp_signature.log"), -- log dir when debug is no
   verbose = false, -- debug show code line number
@@ -82,9 +83,9 @@ local function virtual_hint(hint, off_y)
     show_at = cur_line + 1 -- same line
   end
   local pl
-  local puvis = vim.fn.pumvisible() ~= 0
+  local completion_visible = helper.completion_visible()
   if off_y ~= nil and off_y < 0 then -- floating win above first
-    if puvis then
+    if completion_visible then
       show_at = cur_line -- pum, show at current line
     else
       show_at = cur_line + 1 -- show at below line
@@ -100,7 +101,7 @@ local function virtual_hint(hint, off_y)
     if prev_line and vim.fn.strdisplaywidth(prev_line) < r[2] then
       show_at = cur_line - 1
       pl = prev_line
-    elseif next_line and vim.fn.strdisplaywidth(next_line) < r[2] + 2 and not puvis then
+    elseif next_line and vim.fn.strdisplaywidth(next_line) < r[2] + 2 and not completion_visible then
       show_at = cur_line + 1
       pl = next_line
     else
@@ -395,12 +396,12 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
 
   -- try not to overlap with pum autocomplete menu
   if
-    config.check_pumvisible
-    and vim.fn.pumvisible() ~= 0
+    config.check_completion_visible
+    and helper.completion_visible()
     and ((display_opts.anchor == "NW" or display_opts.anchor == "NE") and off_y == 0)
     and _LSP_SIG_CFG.zindex < 50
   then
-    log("pumvisible no need to show off_y", off_y)
+    log("completion is visible, no need to show off_y", off_y)
     return
   end
 
@@ -477,7 +478,7 @@ local signature = function()
       "textDocument/signatureHelp",
       params,
       vim.lsp.with(signature_handler, {
-        check_pumvisible = true,
+        check_completion_visible = true,
         trigger_from_lsp_sig = true,
         line_to_cursor = line_to_cursor:sub(1, trigger_position),
         border = _LSP_SIG_CFG.handler_opts.border,
@@ -736,7 +737,7 @@ M.check_signature_should_close = function()
       "textDocument/signatureHelp",
       params,
       vim.lsp.with(signature_should_close_handler, {
-        check_pumvisible = true,
+        check_completion_visible = true,
         trigger_from_lsp_sig = true,
         line_to_cursor = line_to_cursor,
         border = _LSP_SIG_CFG.handler_opts.border,
@@ -782,7 +783,7 @@ M.toggle_float_win = function()
     "textDocument/signatureHelp",
     params,
     vim.lsp.with(signature_handler, {
-      check_pumvisible = true,
+      check_completion_visible = true,
       trigger_from_lsp_sig = true,
       toggle = true,
       line_to_cursor = line_to_cursor,
