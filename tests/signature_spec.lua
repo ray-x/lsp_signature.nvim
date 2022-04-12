@@ -126,7 +126,7 @@ describe("should show signature ", function()
   }
 
   local cfg = {
-    check_pumvisible = true,
+    check_completion_visible = true,
     check_client_handlers = true,
     trigger_from_lsp_sig = true,
     line_to_cursor = "\ttime.Date(2020, ",
@@ -250,7 +250,7 @@ describe("should show signature ", function()
     }
 
     cfg = {
-      check_pumvisible = true,
+      check_completion_visible = true,
       check_client_handlers = true,
       trigger_from_lsp_sig = true,
       line_to_cursor = "    add(1, ",
@@ -291,7 +291,7 @@ describe("should show signature ", function()
     }
 
     cfg = {
-      check_pumvisible = true,
+      check_completion_visible = true,
       check_client_handlers = true,
       trigger_from_lsp_sig = true,
       line_to_cursor = [[\t HandleFunc(" / ", ]],
