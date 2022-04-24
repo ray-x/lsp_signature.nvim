@@ -52,14 +52,20 @@ end
 
 local log = helper.log
 
-local function findwholeword(input, word)
+local function replace_special(word)
   for _, value in pairs(special_chars) do
     local fd = "%" .. value
     local as_loc = word:find(fd)
-    if as_loc then
+    while as_loc do
       word = word:sub(1, as_loc - 1) .. "%" .. value .. word:sub(as_loc + 1, -1)
+      as_loc = word:find(fd, as_loc + 2)
     end
   end
+  return word
+end
+
+local function findwholeword(input, word)
+  word = replace_special(word)
 
   local l, e = string.find(input, "%(") -- All languages I know, func parameter start with (
   l = l or 1
@@ -185,10 +191,7 @@ helper.match_parameter = function(result, config)
     if type(nextParameter.label) == "string" then -- label = 'par1 int'
       -- log("range str ", label, nextParameter.label)
       local i, j = findwholeword(label, nextParameter.label)
-      -- local i, j = label:find(nextParameter.label, 1, true)
       if i ~= nil then
-        -- label = label:sub(1, i - 1) .. dec_pre .. label:sub(i, j) .. dec_after
-        --             .. label:sub(j + 1, #label + 1)
         signature.label = label
       end
       nexp = nextParameter.label
@@ -427,12 +430,15 @@ function helper.cal_woff(line_to_cursor, label)
   local sig_woff = label:find("%([^%(]*$")
   if woff and sig_woff then
     local function_name = label:sub(1, sig_woff - 1)
+
     -- run this again for some language have multiple `()`
     local sig_woff2 = function_name:find("%([^%(]*$")
     if sig_woff2 then
       function_name = label:sub(1, sig_woff2 - 1)
     end
-    local function_on_line = line_to_cursor:match(".*" .. function_name)
+    local f = function_name
+    f = ".*" .. replace_special(f)
+    local function_on_line = line_to_cursor:match(f)
     if function_on_line then
       woff = #line_to_cursor - #function_on_line + #function_name
     else
@@ -606,7 +612,7 @@ helper.remove_doc = function(result)
 end
 
 helper.completion_visible = function()
-  local hascmp, cmp = pcall(require, 'cmp')
+  local hascmp, cmp = pcall(require, "cmp")
   if hascmp then
     return cmp.visible()
   end
