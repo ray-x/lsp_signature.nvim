@@ -261,7 +261,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
   -- find the first file type and substring until the .
   local dot_index = string.find(ft, "%.")
   if dot_index ~= nil then
-      ft = string.sub(ft, 0, dot_index-1)
+    ft = string.sub(ft, 0, dot_index - 1)
   end
 
   lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
@@ -393,6 +393,7 @@ local signature_handler = helper.mk_handler(function(err, result, ctx, config)
   config.offset_y = off_y
   config.focusable = true -- allow focus
   config.max_height = display_opts.height
+  config.noautocmd = true
 
   -- try not to overlap with pum autocomplete menu
   if
