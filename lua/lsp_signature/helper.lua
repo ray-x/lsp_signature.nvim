@@ -514,17 +514,24 @@ function helper.check_lsp_cap(clients, line_to_cursor)
 
   local triggered_chars = {}
   local trigger_position = nil
+  local vim_version = vim.version()
 
   local tbl_combine = helper.tbl_combine
   for _, value in pairs(clients) do
     if value ~= nil then
       local sig_provider = value.server_capabilities.signatureHelpProvider
-      local rslv_cap = value.resolved_capabilities
+      local rslv_cap = value.server_capabilities
+      if vim_version.minor < 8 then
+        rslv_cap = value.resolved_capabilities
+      end
       if rslv_cap.signature_help == true or sig_provider ~= nil then
         signature_cap = true
         total_lsp = total_lsp + 1
 
-        local h = rslv_cap.hover
+        local h = rslv_cap.hoverProvider
+        if vim_version.minor < 8 then
+          h = rslv_cap.hover
+        end
 
         if h == true or (h ~= nil and h ~= {}) then
           hover_cap = true
