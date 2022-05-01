@@ -514,17 +514,25 @@ function helper.check_lsp_cap(clients, line_to_cursor)
 
   local triggered_chars = {}
   local trigger_position = nil
+  local vim_version = vim.version().minor * 10 + vim.version().patch
 
   local tbl_combine = helper.tbl_combine
   for _, value in pairs(clients) do
     if value ~= nil then
       local sig_provider = value.server_capabilities.signatureHelpProvider
-      local rslv_cap = value.resolved_capabilities
+      local rslv_cap = value.server_capabilities
+      if vim_version < 61 then
+        vim.notify("LSP: lsp-signature requires neovim 0.6.1 or later", vim.log.levels.WARN)
+        return
+      end
       if rslv_cap.signature_help == true or sig_provider ~= nil then
         signature_cap = true
         total_lsp = total_lsp + 1
 
-        local h = rslv_cap.hover
+        local h = rslv_cap.hoverProvider
+        if vim_version <= 70 then
+          h = rslv_cap.hover
+        end
 
         if h == true or (h ~= nil and h ~= {}) then
           hover_cap = true
