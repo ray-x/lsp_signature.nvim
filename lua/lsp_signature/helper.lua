@@ -166,7 +166,7 @@ helper.match_parameter = function(result, config)
     return result, "", 0, 0
   end
 
-  if activeParameter == nil or activeParameter + 1 > signature.parameters then
+  if activeParameter == nil or activeParameter + 1 > #signature.parameters then
     log("incorrect signature response, failed to detect activeParameter", result)
     return result, "", 0, 0
   end
