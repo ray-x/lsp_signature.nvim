@@ -160,8 +160,14 @@ helper.match_parameter = function(result, config)
     log("incorrect signature response?", result, config)
     activeParameter = helper.fallback(config.triggered_chars or { "(", "," })
   end
+  
   if signature.parameters == nil then
-    log("incorrect signature response?", result)
+    log("incorrect signature response, missing signature.parameters", result)
+    return result, "", 0, 0
+  end
+
+  if activeParameter == nil or activeParameter + 1 > #signature.parameters then
+    log("incorrect signature response, failed to detect activeParameter", result)
     return result, "", 0, 0
   end
 
@@ -171,8 +177,7 @@ helper.match_parameter = function(result, config)
     log("no next param")
     return result, "", 0, 0
   end
-  -- local dec_pre = _LSP_SIG_CFG.decorator[1]
-  -- local dec_after = _LSP_SIG_CFG.decorator[2]
+
   local label = signature.label
   local nexp = ""
   local s, e
@@ -181,8 +186,6 @@ helper.match_parameter = function(result, config)
   if type(nextParameter.label) == "table" then -- label = {2, 4} c style
     local range = nextParameter.label
     nexp = label:sub(range[1] + 1, range[2])
-    -- label = label:sub(1, range[1]) .. dec_pre .. label:sub(range[1] + 1, range[2]) .. dec_after
-    --             .. label:sub(range[2] + 1, #label + 1)
     s = range[1] + 1
     e = range[2]
     signature.label = label
