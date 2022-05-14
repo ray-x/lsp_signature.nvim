@@ -7,6 +7,8 @@ local special_chars = { "%", "*", "[", "]", "^", "$", "(", ")", ".", "+", "-", "
 local contains = vim.tbl_contains
 local lsp_trigger_chars = {}
 
+local vim_version = vim_version or vim.version().major * 100 + vim.version().minor * 10 + vim.version().patch
+
 local function is_special(ch)
   return contains(special_chars, ch)
 end
@@ -517,7 +519,6 @@ function helper.check_lsp_cap(clients, line_to_cursor)
 
   local triggered_chars = {}
   local trigger_position = nil
-  local vim_version = vim.version().minor * 10 + vim.version().patch
 
   local tbl_combine = helper.tbl_combine
   for _, value in pairs(clients) do
@@ -554,10 +555,11 @@ function helper.check_lsp_cap(clients, line_to_cursor)
           if _LSP_SIG_CFG.extra_trigger_chars ~= nil then
             triggered_chars = tbl_combine(triggered_chars, _LSP_SIG_CFG.extra_trigger_chars)
           end
-        elseif rslv_cap ~= nil and rslv_cap.signature_help_trigger_characters ~= nil then
-          triggered_chars = tbl_combine(triggered_chars, value.server_capabilities.signature_help_trigger_characters)
-        elseif rslv_cap and rslv_cap.signatureHelpProvider and rslv_cap.signatureHelpProvider.triggerCharacters then
-          triggered_chars = tbl_combine(triggered_chars, rslv_cap.signatureHelpProvider.triggerCharacters)
+        end
+        if sig_provider == nil and vim_version <= 70 then -- TODO: deprecated
+          if rslv_cap ~= nil and rslv_cap.signature_help_trigger_characters ~= nil then
+            triggered_chars = tbl_combine(triggered_chars, value.server_capabilities.signature_help_trigger_characters)
+          end
         end
 
         if triggered == false then
