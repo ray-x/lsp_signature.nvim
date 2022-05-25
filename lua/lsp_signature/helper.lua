@@ -162,7 +162,7 @@ helper.match_parameter = function(result, config)
     log("incorrect signature response?", result, config)
     activeParameter = helper.fallback(config.triggered_chars or { "(", "," })
   end
-  
+
   if signature.parameters == nil then
     log("incorrect signature response, missing signature.parameters", result)
     return result, "", 0, 0
@@ -583,7 +583,6 @@ end
 helper.highlight_parameter = function(s, l)
   -- Not sure why this not working
   -- api.nvim_command("autocmd User SigComplete".." <buffer> ++once lua pcall(vim.api.nvim_win_close, "..winnr..", true)")
-
   _LSP_SIG_CFG.ns = vim.api.nvim_create_namespace("lsp_signature_hi_parameter")
   local hi = _LSP_SIG_CFG.hi_parameter
   log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding, hi)
