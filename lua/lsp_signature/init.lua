@@ -264,6 +264,7 @@ local signature_handler = function(err, result, ctx, config)
   status_line.hint = hint or ""
   status_line.label = actSig.label or ""
   status_line.range = { start = s or 0, ["end"] = l or 0 }
+  status_line.doc = helper.get_doc(result)
 
   if config.trigger_from_cursor_hold then
     -- this feature will be removed
@@ -444,7 +445,7 @@ local signature_handler = function(err, result, ctx, config)
   log("floating opt", config, display_opts)
   if _LSP_SIG_CFG._fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
     if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and _LSP_SIG_CFG.label == label and not new_line then
-      status_line = { hint = "", label = "" }
+      status_line = { hint = "", label = "", range = nil }
     else
       -- vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
       _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax, config)
@@ -479,7 +480,7 @@ local signature_handler = function(err, result, ctx, config)
     end
     if _LSP_SIG_CFG.auto_close_after then
       helper.cleanup_async(true, _LSP_SIG_CFG.auto_close_after)
-      status_line = { hint = "", label = "" }
+      status_line = { hint = "", label = "", range = nil }
     end
   end
   helper.highlight_parameter(s, l)
@@ -858,9 +859,13 @@ M.status_line = function(size)
     if labelsize < 10 then
       labelsize = 10
     end
-    return { hint = status_line.hint, label = status_line.label:sub(1, labelsize) .. [[]] }
+    return {
+      hint = status_line.hint,
+      label = status_line.label:sub(1, labelsize) .. [[]],
+      range = status_line.range,
+    }
   end
-  return { hint = status_line.hint, label = status_line.label }
+  return { hint = status_line.hint, label = status_line.label, range = status_line.range, doc = status_line.doc }
 end
 
 M.toggle_float_win = function()

@@ -623,6 +623,18 @@ helper.remove_doc = function(result)
   end
 end
 
+helper.get_doc = function(result)
+  for i = 1, #result.signatures do
+    if result.signatures[i] and result.signatures[i].documentation then
+      if result.signatures[i].documentation.value then
+        return result.signatures[i].documentation.value
+      else
+        return result.signatures[i].documentation
+      end
+    end
+  end
+end
+
 helper.completion_visible = function()
   local hascmp, cmp = pcall(require, "cmp")
   if hascmp then
