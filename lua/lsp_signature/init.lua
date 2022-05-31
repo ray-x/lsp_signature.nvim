@@ -488,6 +488,7 @@ local signature_handler = function(err, result, ctx, config)
   return lines, s, l
 end
 
+local line_to_cursor_old
 local signature = function(opts)
   local pos = api.nvim_win_get_cursor(0)
   local line = api.nvim_get_current_line()
@@ -496,8 +497,38 @@ local signature = function(opts)
   if clients == nil or next(clients) == nil then
     return
   end
+  local delta
+  if line_to_cursor_old == nil then
+    delta = line_to_cursor
+  elseif #line_to_cursor_old > #line_to_cursor then
+    delta = line_to_cursor_old:sub(#line_to_cursor)
+  elseif #line_to_cursor_old < #line_to_cursor then
+    delta = line_to_cursor:sub(#line_to_cursor_old)
+  else
+    delta = ""
+    line_to_cursor_old = line_to_cursor
+    return
+  end
+  log("delta", delta, line_to_cursor, line_to_cursor_old)
+  line_to_cursor_old = line_to_cursor
 
   local signature_cap, triggered, trigger_position, trigger_chars = helper.check_lsp_cap(clients, line_to_cursor)
+  local should_trigger = false
+  for _, c in ipairs(trigger_chars) do
+    c = helper.replace_special(c)
+    if delta:find(c) then
+      should_trigger = true
+    end
+  end
+  if not should_trigger then
+    local mode = vim.api.nvim_get_mode().mode
+    log("mode:   ", mode)
+    if mode == "niI" or mode == "i" then
+      -- line_to_cursor_old = ""
+      log("should not trigger")
+      return
+    end
+  end
   opts = opts or {}
   if signature_cap == false then
     log("signature capabilities not enabled")
@@ -604,6 +635,7 @@ function M.on_InsertCharPre()
 end
 
 function M.on_InsertLeave()
+  line_to_cursor_old = ""
   local mode = vim.api.nvim_get_mode().mode
 
   log("mode:   ", mode)
@@ -669,6 +701,8 @@ end
 
 function M.on_InsertEnter()
   log("insert enter")
+  line_to_cursor_old = ""
+
   -- show signature immediately upon entering insert mode
   if manager.insertLeave == true then
     start_watch_changes_timer()

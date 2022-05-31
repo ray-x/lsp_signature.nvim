@@ -66,6 +66,8 @@ local function replace_special(word)
   return word
 end
 
+helper.replace_special = replace_special
+
 local function findwholeword(input, word)
   word = replace_special(word)
 
@@ -146,7 +148,7 @@ helper.match_parameter = function(result, config)
   end
 
   local activeParameter = result.activeParameter or signature.active_parameter
-  log("sig", signature, activeParameter)
+  log("sig actPar", activeParameter, signature.label)
 
   if result.activeParameter ~= nil and result.activeParameter < #signature.parameters then
     activeParameter = result.activeParameter
