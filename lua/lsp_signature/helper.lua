@@ -409,6 +409,9 @@ helper.cal_pos = function(contents, opts)
       log(float_option, off_y, lines_above)
     end
   end
+  if not float_option.height or float_option.height < 1 then
+    float_option.height = 1
+  end
   return float_option, off_y, lines
 end
 
