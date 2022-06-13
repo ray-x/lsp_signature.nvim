@@ -129,6 +129,7 @@ helper.ft2md = function(ft)
 end
 
 --  location of active parameter
+-- return result, next parameter, start of next parameter, end of next parameter
 helper.match_parameter = function(result, config)
   -- log("match para ", result, config)
   local signatures = result.signatures

@@ -180,6 +180,7 @@ describe("should show signature ", function()
     eq(74, s)
     eq(93, e)
   end)
+
   it("should show signature Date golang", function()
     local ctx = { method = "textDocument/signatureHelp", client_id = 1, bufnr = 0 }
     -- local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
@@ -210,7 +211,7 @@ describe("should show signature ", function()
     else
       lines, s, l = signature.signature_handler(nil, "", result, 1, 1, cfg)
     end
-    print("lines", vim.inspect(lines))
+    print("csharp lines", vim.inspect(lines))
     eq("bool EditorGUI.PropertyField(Rect position, SerializedProperty property, bool includeChildren)", lines[2])
     eq(74, s) -- match `year int`
     eq(93, l)

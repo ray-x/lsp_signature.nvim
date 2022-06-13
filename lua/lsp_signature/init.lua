@@ -153,7 +153,6 @@ local close_events = { "CursorMoved", "CursorMovedI", "BufHidden", "InsertCharPr
 -- --  signature help  --
 -- ----------------------
 -- Note: nvim 0.5.1/0.6.x   - signature_help(err, {result}, {ctx}, {config})
--- local signature_handler = helper.mk_handler(function(err, result, ctx, config)
 local signature_handler = function(err, result, ctx, config)
   log("signature handler")
   if err ~= nil then
