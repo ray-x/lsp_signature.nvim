@@ -467,12 +467,14 @@ local signature_handler = function(err, result, ctx, config)
   end
   local sig = result.signatures
   -- if it is last parameter, close windows after cursor moved
+
+  local actPar = sig.activeParameter or result.activeParameter or 0
   if
     sig and sig[activeSignature].parameters == nil
-    or result.activeParameter == nil
-    or result.activeParameter + 1 == #sig[activeSignature].parameters
+    or actPar == nil
+    or actPar + 1 == #sig[activeSignature].parameters
   then
-    -- log("last para", close_events)
+    log("last para", close_events)
     if _LSP_SIG_CFG._fix_pos == false then
       vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
       -- elseif _LSP_SIG_CFG._fix_pos then

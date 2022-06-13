@@ -148,7 +148,7 @@ helper.match_parameter = function(result, config)
     return result, "", 0, 0
   end
 
-  local activeParameter = result.activeParameter or signature.active_parameter
+  local activeParameter = signature.activeParameter or result.activeParameter
   log("sig actPar", activeParameter, signature.label)
 
   if activeParameter == nil or activeParameter < 0 then
@@ -161,7 +161,7 @@ helper.match_parameter = function(result, config)
     return result, "", 0, 0
   end
 
-  if activeParameter == nil or activeParameter + 1 > #signature.parameters then
+  if activeParameter == nil then
     log("incorrect signature response, failed to detect activeParameter", result)
     return result, "", 0, 0
   end
@@ -378,7 +378,7 @@ local function get_border_height(opts)
 end
 
 helper.cal_pos = function(contents, opts)
-  local lnum = vim.fn.line(".") - vim.fn.line('w0') + 1
+  local lnum = vim.fn.line(".") - vim.fn.line("w0") + 1
   if not _LSP_SIG_CFG.floating_window_above_cur_line or lnum < 2 then
     return {}, 0
   end
@@ -387,7 +387,7 @@ helper.cal_pos = function(contents, opts)
   if lnum < 5 then
     opts.border = nil
     border_height = 0
-    lines = vim.list_slice(contents, 1, lnum )
+    lines = vim.list_slice(contents, 1, lnum)
     contents = vim.fn.copy(lines)
   end
   local util = vim.lsp.util

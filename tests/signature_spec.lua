@@ -118,6 +118,41 @@ local result_csharp = {
   },
 }
 
+local result_pyright = {
+  activeParameter = 5,
+  activeSignature = 0,
+  cfgActiveSignature = 0,
+  signatures = { {
+      activeParameter = 0,
+      label = "(*values: object, sep: str | None = ..., end: str | None = ..., file: SupportsWrite[str] | None = ..., flush: Literal[False] = ...) -> None",
+      parameters = { {
+          label = { 1, 16 }
+        }, {
+          label = { 18, 39 }
+        }, {
+          label = { 41, 62 }
+        }, {
+          label = { 64, 101 }
+        }, {
+          label = { 103, 130 }
+        } }
+    }, {
+      activeParameter = 0,
+      label = "(*values: object, sep: str | None = ..., end: str | None = ..., file: _SupportsWriteAndFlush[str] | None = ..., flush: bool) -> None",
+      parameters = { {
+          label = { 1, 16 }
+        }, {
+          label = { 18, 39 }
+        }, {
+          label = { 41, 62 }
+        }, {
+          label = { 64, 110 }
+        }, {
+          label = { 112, 123 }
+        } }
+    } }
+}
+
 describe("busted should run ", function()
   it(" should start test", function()
     vim.cmd([[packadd lsp_signature.nvim]])
@@ -184,6 +219,25 @@ describe("should show signature ", function()
     eq("int b", nextp)
     eq(13, s)
     eq(17, e)
+  end)
+
+  it("match should get signature for pyright multi parameters with doc ", function()
+    local busted = require("plenary/busted")
+    local signature = require("lsp_signature")
+    signature.setup({ debug = true, verbose = true })
+    _LSP_SIG_CFG.debug = true
+    _LSP_SIG_CFG.verbose = true
+    _LSP_SIG_CFG.floating_window = true
+    --_LSP_SIG_CFG.log_path = "" -- set so the debug info will out put to console
+
+    local result1 = vim.deepcopy(result_pyright)
+    local lines, label, s, e = match_parameter(result1, cfg)
+    print("lines", vim.inspect(lines))
+    eq("*values: object",
+      label
+    )
+    eq(2, s)
+    eq(16, e)
   end)
 
   it("match should get signature for csharp multi parameters with doc ", function()
