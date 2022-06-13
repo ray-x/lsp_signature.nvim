@@ -186,24 +186,24 @@ local signature_handler = function(err, result, ctx, config)
     log("trigger from next sig", config.activeSignature)
   end
 
-  if #result.signatures > 1 and (result.activeSignature or 0) > 0 or config.trigger_from_next_sig then
-    local sig_num = math.min(_LSP_SIG_CFG.max_height, #result.signatures - result.activeSignature)
-    if config.trigger_from_next_sig then
-      local cnt = math.abs(config.activeSignature - result.activeSignature)
-      for _ = 1, cnt do
-        local m = result.signatures[1]
-        table.insert(result.signatures, #result.signatures + 1, m)
-        table.remove(result.signatures, 1)
+  if config.trigger_from_next_sig then
+    if #result.signatures > 1 then
+      local sig_num = math.min(_LSP_SIG_CFG.max_height, #result.signatures - result.activeSignature)
+      if config.trigger_from_next_sig then
+        local cnt = math.abs(config.activeSignature - result.activeSignature)
+        for _ = 1, cnt do
+          local m = result.signatures[1]
+          table.insert(result.signatures, #result.signatures + 1, m)
+          table.remove(result.signatures, 1)
+        end
+        result.cfgActiveSignature = config.activeSignature
+      else
+        result.signatures = { unpack(result.signatures, result.activeSignature + 1, sig_num) }
       end
-      result.cfgActiveSignature = config.activeSignature
-    else
-      result.signatures = { unpack(result.signatures, result.activeSignature + 1, sig_num) }
     end
-    if not config.trigger_from_next_sig then
-      result.cfgActiveSignature = 0 -- reset
-    end
+  else
+    result.cfgActiveSignature = 0 -- reset
   end
-
   log("sig result", ctx, result, config)
   _LSP_SIG_CFG.signature_result = result
 

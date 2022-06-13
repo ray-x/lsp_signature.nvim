@@ -151,16 +151,6 @@ helper.match_parameter = function(result, config)
   local activeParameter = result.activeParameter or signature.active_parameter
   log("sig actPar", activeParameter, signature.label)
 
-  if result.activeParameter ~= nil and result.activeParameter < #signature.parameters then
-    activeParameter = result.activeParameter
-  else
-    activeParameter = 0
-  end
-
-  if signature.activeParameter ~= nil then
-    activeParameter = signature.activeParameter
-  end
-
   if activeParameter == nil or activeParameter < 0 then
     log("incorrect signature response?", result, config)
     activeParameter = helper.fallback(config.triggered_chars or { "(", "," })
@@ -176,7 +166,12 @@ helper.match_parameter = function(result, config)
     return result, "", 0, 0
   end
 
+  if activeParameter > #signature.parameters then
+    activeParameter = 0
+  end
+
   local nextParameter = signature.parameters[activeParameter + 1]
+  log("nextpara:", nextParameter)
 
   if nextParameter == nil then
     log("no next param")
@@ -603,6 +598,8 @@ helper.highlight_parameter = function(s, l)
   _LSP_SIG_CFG.ns = vim.api.nvim_create_namespace("lsp_signature_hi_parameter")
   local hi = _LSP_SIG_CFG.hi_parameter
   log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding, hi)
+  local line = vim.api.nvim_buf_get_lines(_LSP_SIG_CFG.bufnr, 0, 5, false)
+  log("info", line, #line)
   if s and l and s > 0 then
     if _LSP_SIG_CFG.padding == "" then
       s = s - 1
@@ -610,6 +607,7 @@ helper.highlight_parameter = function(s, l)
       s = s - 1 + #_LSP_SIG_CFG.padding
       l = l + #_LSP_SIG_CFG.padding
     end
+
     if _LSP_SIG_CFG.bufnr and vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
       log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding)
       _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(
