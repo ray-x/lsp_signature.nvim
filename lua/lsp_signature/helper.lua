@@ -378,16 +378,16 @@ local function get_border_height(opts)
 end
 
 helper.cal_pos = function(contents, opts)
-  local lnum = vim.fn.line(".") + 1
+  local lnum = vim.fn.line(".") - vim.fn.line('w0') + 1
   if not _LSP_SIG_CFG.floating_window_above_cur_line or lnum < 2 then
     return {}, 0
   end
   local lines
   local border_height
-  if lnum < 10 then
+  if lnum < 5 then
     opts.border = nil
     border_height = 0
-    lines = vim.list_slice(contents, 1, 3)
+    lines = vim.list_slice(contents, 1, lnum )
     contents = vim.fn.copy(lines)
   end
   local util = vim.lsp.util
@@ -598,8 +598,7 @@ helper.highlight_parameter = function(s, l)
   _LSP_SIG_CFG.ns = vim.api.nvim_create_namespace("lsp_signature_hi_parameter")
   local hi = _LSP_SIG_CFG.hi_parameter
   log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding, hi)
-  local line = vim.api.nvim_buf_get_lines(_LSP_SIG_CFG.bufnr, 0, 5, false)
-  log("info", line, #line)
+  log("info", vim.api.nvim_buf_get_lines(_LSP_SIG_CFG.bufnr, 0, 5, false))
   if s and l and s > 0 then
     if _LSP_SIG_CFG.padding == "" then
       s = s - 1
