@@ -42,6 +42,7 @@ In case some of the languages allow function overload, the plugin will show all 
 <img width="600" alt="multiple_signature" src="https://user-images.githubusercontent.com/1681295/120487194-17e3a500-c3f9-11eb-9561-82b3854694c5.png">
 <img width="600" alt="signature2" src="https://user-images.githubusercontent.com/1681295/120487380-43ff2600-c3f9-11eb-9684-f6e7a1f8e170.png">
 
+
 # Install:
 
 ```vim
@@ -119,6 +120,14 @@ Or:
   })
 
 ```
+
+### Keybinds
+No default keybinds are provided.
+There are two keybinds available:
+1. toggle_key: Toggle the signature help window.
+2. select_signature_key: Select the current signature when mulitple signature is avalible.
+
+
 
 ### Full configuration (with default values)
 
