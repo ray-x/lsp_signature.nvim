@@ -1,4 +1,3 @@
-local vim = _G.vim or vim -- suppress warning, allow complete without lua-dev
 local api = vim.api
 local M = {}
 local helper = require("lsp_signature.helper")
@@ -29,9 +28,9 @@ _LSP_SIG_CFG = {
   floating_window_above_cur_line = true, -- try to place the floating above the current line
 
   floating_window_off_x = 1, -- adjust float windows x position.
-  floating_window_off_y = 1, -- adjust float windows y position.
+  floating_window_off_y = 0, -- adjust float windows y position.
   close_timeout = 4000, -- close floating window after ms when laster parameter is entered
-  fix_pos = function(signatures, _) -- second argument is the client
+  fix_pos = function(signatures, client) -- first arg: second argument is the client
     return true -- can be expression like : return signatures[1].activeParameter >= 0 and signatures[1].parameters > 1
   end,
   -- also can be bool value fix floating_window position
@@ -58,7 +57,7 @@ _LSP_SIG_CFG = {
   timer_interval = 200, -- default timer check interval
   toggle_key = nil, -- toggle signature on and off in insert mode,  e.g. '<M-x>'
   -- set this key also helps if you want see signature in newline
-  -- select_signature_key = "<c-k>", -- cycle to next signature, e.g. '<c-k>' function overloading
+  select_signature_key = nil, -- cycle to next signature, e.g. '<M-n>' function overloading
   check_3rd_handler = nil, -- provide you own handler
 
   -- internal vars, init here to suppress linter warings
@@ -185,40 +184,31 @@ local signature_handler = function(err, result, ctx, config)
   end
 
   if config.trigger_from_next_sig then
-    result.activeSignature = config.activeSignature
     log("trigger from next sig", config.activeSignature)
   end
 
   if #result.signatures > 1 and (result.activeSignature or 0) > 0 or config.trigger_from_next_sig then
     local sig_num = math.min(_LSP_SIG_CFG.max_height, #result.signatures - result.activeSignature)
     if config.trigger_from_next_sig then
-      local cnt = config.activeSignature + 1
-      if cnt == #result.signatures then
-        cnt = 1
-      end
+      local cnt = math.abs(config.activeSignature - result.activeSignature)
       for _ = 1, cnt do
         local m = result.signatures[1]
+        table.insert(result.signatures, #result.signatures + 1, m)
         table.remove(result.signatures, 1)
-        table.insert(result.signatures, #result.signatures, m)
-        log(result.signatures)
       end
+      result.cfgActiveSignature = config.activeSignature
     else
       result.signatures = { unpack(result.signatures, result.activeSignature + 1, sig_num) }
     end
     if not config.trigger_from_next_sig then
-      result.activeSignature = 0 -- reset
+      result.cfgActiveSignature = 0 -- reset
     end
-  end
-
-  -- multi sig and loop to next
-  if #result.signatures > 1 and (result.activeSignature or 0) > 0 and config.trigger_from_next_sig then
-    result.activeSignature = config.activeSignature -- reset
   end
 
   log("sig result", ctx, result, config)
   _LSP_SIG_CFG.signature_result = result
 
-  local activeSignature = config.activeSignature or result.activeSignature or 0
+  local activeSignature = result.activeSignature or 0
   activeSignature = activeSignature + 1
   if activeSignature > #result.signatures then
     -- this is a upstream bug of metals
@@ -363,8 +353,12 @@ local signature_handler = function(err, result, ctx, config)
     woff = helper.cal_woff(line_to_cursor, label)
   end
 
-  if _LSP_SIG_CFG.floating_window_off_x > 0 then
+  if _LSP_SIG_CFG.floating_window_off_x ~= nil then
     woff = woff + _LSP_SIG_CFG.floating_window_off_x
+  end
+
+  if _LSP_SIG_CFG.floating_window_off_y ~= nil then
+    config.offset_y = _LSP_SIG_CFG.floating_window_off_y
   end
 
   -- total lines allowed
@@ -424,9 +418,13 @@ local signature_handler = function(err, result, ctx, config)
   end
 
   local display_opts = {}
-  display_opts, off_y = helper.cal_pos(lines, config)
+  local cnts
+  display_opts, off_y, cnts = helper.cal_pos(lines, config)
+  if cnts then
+    lines = cnts
+  end
 
-  config.offset_y = off_y
+  config.offset_y = off_y + config.offset_y
   config.focusable = true -- allow focus
   config.max_height = display_opts.height
   config.noautocmd = true
@@ -442,7 +440,7 @@ local signature_handler = function(err, result, ctx, config)
     return
   end
 
-  log("floating opt", config, display_opts)
+  log("floating opt", config, display_opts, off_y, cnts)
   if _LSP_SIG_CFG._fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
     if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and _LSP_SIG_CFG.label == label and not new_line then
       status_line = { hint = "", label = "", range = nil }
@@ -490,6 +488,7 @@ end
 
 local line_to_cursor_old
 local signature = function(opts)
+  opts = opts or {}
   local pos = api.nvim_win_get_cursor(0)
   local line = api.nvim_get_current_line()
   local line_to_cursor = line:sub(1, pos[2])
@@ -497,19 +496,19 @@ local signature = function(opts)
   if clients == nil or next(clients) == nil then
     return
   end
-  local delta
+  local delta = line_to_cursor
   if line_to_cursor_old == nil then
     delta = line_to_cursor
   elseif #line_to_cursor_old > #line_to_cursor then
     delta = line_to_cursor_old:sub(#line_to_cursor)
   elseif #line_to_cursor_old < #line_to_cursor then
     delta = line_to_cursor:sub(#line_to_cursor_old)
-  else
+  elseif not opts.trigger then
     delta = ""
     line_to_cursor_old = line_to_cursor
     return
   end
-  log("delta", delta, line_to_cursor, line_to_cursor_old)
+  log("delta", delta, line_to_cursor, line_to_cursor_old, opts)
   line_to_cursor_old = line_to_cursor
 
   local signature_cap, triggered, trigger_position, trigger_chars = helper.check_lsp_cap(clients, line_to_cursor)
@@ -529,7 +528,6 @@ local signature = function(opts)
       return
     end
   end
-  opts = opts or {}
   if signature_cap == false then
     log("signature capabilities not enabled")
     return
@@ -551,15 +549,14 @@ local signature = function(opts)
     )
   end
 
-  if opts.nextSig == true then
+  if opts.trigger == "NextSignature" then
     if _LSP_SIG_CFG.signature_result == nil or #_LSP_SIG_CFG.signature_result.signatures < 2 then
       return
     end
-    log(_LSP_SIG_CFG.signature_result)
+    log(_LSP_SIG_CFG.signature_result.activeSignature, _LSP_SIG_CFG.signature_result.cfgActiveSignature)
     local sig = _LSP_SIG_CFG.signature_result.signatures
-    local actSig = (_LSP_SIG_CFG.signature_result.activeSignature or 0) + 1
-    local actPar = _LSP_SIG_CFG.signature_result.activeParameter
-    if actSig + 1 > #sig then
+    local actSig = (_LSP_SIG_CFG.signature_result.cfgActiveSignature or 0) + 1
+    if actSig > #sig then
       actSig = 1
     end
 
@@ -646,7 +643,7 @@ function M.on_InsertLeave()
 
   local delay = 0.2 -- 200ms
   vim.defer_fn(function()
-    local mode = vim.api.nvim_get_mode().mode
+    mode = vim.api.nvim_get_mode().mode
     log("mode:   ", mode)
     if mode == "i" or mode == "s" then
       signature()
@@ -813,7 +810,7 @@ M.on_attach = function(cfg, bufnr)
       bufnr,
       "i",
       _LSP_SIG_CFG.select_signature_key,
-      [[<cmd>lua require('lsp_signature').signature(true)<CR>]],
+      [[<cmd>lua require('lsp_signature').signature({trigger="NextSignature"})<CR>]],
       { silent = true, noremap = true }
     )
   end
@@ -889,7 +886,7 @@ M.status_line = function(size)
   size = size or 300
   if #status_line.label + #status_line.hint > size then
     local labelsize = size - #status_line.hint
-    local hintsize = #status_line.hint
+    -- local hintsize = #status_line.hint
     if labelsize < 10 then
       labelsize = 10
     end
@@ -946,7 +943,8 @@ M.setup = function(cfg)
   _LSP_SIG_VT_NS = api.nvim_create_namespace("lsp_signature_vt")
   vim.lsp.start_client = function(lsp_config)
     if lsp_config.on_attach == nil then
-      lsp_config.on_attach = function(client, bufnr)
+      -- lsp_config.on_attach = function(client, bufnr)
+      lsp_config.on_attach = function(_, bufnr)
         M.on_attach(cfg, bufnr)
       end
     else

@@ -1,13 +1,13 @@
 local helper = {}
 
-local lua_magic = [[^$()%.[]*+-?]]
+-- local lua_magic = [[^$()%.[]*+-?]]
 
 local special_chars = { "%", "*", "[", "]", "^", "$", "(", ")", ".", "+", "-", "?" }
 
 local contains = vim.tbl_contains
-local lsp_trigger_chars = {}
+-- local lsp_trigger_chars = {}
 
-local vim_version = vim_version or vim.version().major * 100 + vim.version().minor * 10 + vim.version().patch
+local vim_version = vim.version().major * 100 + vim.version().minor * 10 + vim.version().patch
 
 local function is_special(ch)
   return contains(special_chars, ch)
@@ -22,7 +22,7 @@ helper.log = function(...)
   local log_path = _LSP_SIG_CFG.log_path or nil
   local str = "שׁ "
 
-  local info = debug.getinfo(2, "Sl")
+  -- local info = debug.getinfo(2, "Sl")
 
   if _LSP_SIG_CFG.verbose == true then
     local info = debug.getinfo(2, "Sl")
@@ -356,6 +356,9 @@ end
 local function get_border_height(opts)
   local border = opts.border
   local height = 0
+  if border == nil then
+    return
+  end
 
   if type(border) == "string" then
     local border_height = { none = 0, single = 2, double = 2, rounded = 2, solid = 2, shadow = 1 }
@@ -379,27 +382,38 @@ local function get_border_height(opts)
 end
 
 helper.cal_pos = function(contents, opts)
-  if not _LSP_SIG_CFG.floating_window_above_cur_line then
+  local lnum = vim.fn.line(".") + 1
+  if not _LSP_SIG_CFG.floating_window_above_cur_line or lnum < 2 then
     return {}, 0
+  end
+  local lines
+  local border_height
+  if lnum < 10 then
+    opts.border = nil
+    border_height = 0
+    lines = vim.list_slice(contents, 1, 3)
+    contents = vim.fn.copy(lines)
   end
   local util = vim.lsp.util
   contents = util._trim(contents, opts)
+  util.try_trim_markdown_code_blocks(contents)
+  log(vim.inspect(contents))
 
   local width, height = util._make_floating_popup_size(contents, opts)
+  log("popup size:", width, height)
   local float_option = util.make_floating_popup_options(width, height, opts)
   local off_y = 0
-  local lines_above
+  local lines_above = lnum - 1
+  border_height = border_height or get_border_height(float_option)
   if float_option.anchor == "NW" or float_option.anchor == "NE" then
     -- note: the floating widnows will be under current line
-    lines_above = vim.fn.winline() - 1
-    local border_height = get_border_height(float_option)
     -- local lines_below = vim.fn.winheight(0) - lines_above
-    if lines_above >= float_option.height + border_height + 1 then -- border
+    if lines_above >= float_option.height + border_height + 1 then
       off_y = -(float_option.height + border_height + 1)
+      log(float_option, off_y, lines_above)
     end
-    log(float_option, off_y, lines_above)
   end
-  return float_option, off_y
+  return float_option, off_y, lines
 end
 
 local nvim_0_6
