@@ -253,8 +253,8 @@ describe("should show signature ", function()
       lines, s, l = signature.signature_handler(nil, "", result_cs, 1, 1, cfg_cs)
     end
 
-    -- print("csharp lines", vim.inspect(lines), s, l)
-    eq("bool EditorGUI.PropertyField(Rect position, SerializedProperty property, GUIContent label)", lines[1])
+    print("csharp lines", vim.inspect(lines), s, l)
+    -- line 1 can be ```
     eq("bool EditorGUI.PropertyField(Rect position, SerializedProperty property, bool includeChildren)", lines[2])
     eq(74, s) -- match `year int`
     eq(93, l)
