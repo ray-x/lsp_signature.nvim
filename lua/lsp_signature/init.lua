@@ -255,8 +255,11 @@ local signature_handler = function(err, result, ctx, config)
   status_line.range = { start = s or 0, ["end"] = l or 0 }
   status_line.doc = helper.get_doc(result)
 
-  if config.trigger_from_cursor_hold then
-    -- this feature will be removed
+  local mode = vim.api.nvim_get_mode().mode
+  local insert_mode = (mode == "niI" or mode == "i")
+  local floating_window_on = (_LSP_SIG_CFG.winnr and api.nvim_win_is_valid(_LSP_SIG_CFG.winnr))
+  if config.trigger_from_cursor_hold and not floating_window_on and not insert_mode then
+    log("trigger from cursor hold, no need to update floating window")
     return
   end
 
@@ -517,6 +520,11 @@ local signature = function(opts)
     if delta:find(c) then
       should_trigger = true
     end
+  end
+
+  -- no signature is shown
+  if not _LSP_SIG_CFG.winnr or not vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
+    should_trigger = true
   end
   if not should_trigger then
     local mode = vim.api.nvim_get_mode().mode
