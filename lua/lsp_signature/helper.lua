@@ -544,7 +544,7 @@ function helper.check_lsp_cap(clients, line_to_cursor)
         vim.notify("LSP: lsp-signature requires neovim 0.6.1 or later", vim.log.levels.WARN)
         return
       end
-      if rslv_cap.signature_help == true or sig_provider ~= nil then
+      if vim.fn.empty(sig_provider) == 0 then
         signature_cap = true
         total_lsp = total_lsp + 1
 
