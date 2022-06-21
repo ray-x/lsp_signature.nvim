@@ -39,6 +39,7 @@ _LSP_SIG_CFG = {
   hint_scheme = "String",
   hi_parameter = "LspSignatureActiveParameter",
   handler_opts = { border = "rounded" },
+  cursorhold_update = true, -- if cursorhold slows down the completion, set to false to disable it
   padding = "", -- character to pad on left and right of signature
   always_trigger = false, -- sometime show signature on new line can be confusing, set it to false for #58
   -- set this to true if you the triggered_chars failed to work
@@ -777,11 +778,16 @@ M.on_attach = function(cfg, bufnr)
   api.nvim_command("autocmd! * <buffer>")
   api.nvim_command("autocmd InsertEnter <buffer> lua require'lsp_signature'.on_InsertEnter()")
   api.nvim_command("autocmd InsertLeave <buffer> lua require'lsp_signature'.on_InsertLeave()")
-  api.nvim_command("autocmd CursorHoldI,CursorHold <buffer> lua require'lsp_signature'.on_UpdateSignature()")
   api.nvim_command("autocmd InsertCharPre <buffer> lua require'lsp_signature'.on_InsertCharPre()")
   api.nvim_command("autocmd CompleteDone <buffer> lua require'lsp_signature'.on_CompleteDone()")
 
-  api.nvim_command("autocmd CursorHold,CursorHoldI <buffer> lua require'lsp_signature'.check_signature_should_close()")
+  if _LSP_SIG_CFG.cursorhold_update then
+    api.nvim_command("autocmd CursorHoldI,CursorHold <buffer> lua require'lsp_signature'.on_UpdateSignature()")
+    api.nvim_command(
+      "autocmd CursorHold,CursorHoldI <buffer> lua require'lsp_signature'.check_signature_should_close()"
+    )
+  end
+
   api.nvim_command("augroup end")
 
   if type(cfg) == "table" then
