@@ -17,7 +17,6 @@ local path_sep = vim.loop.os_uname().sysname == "Windows" and "\\" or "/"
 local function path_join(...)
   return table.concat(vim.tbl_flatten({ ... }), path_sep)
 end
-
 _LSP_SIG_CFG = {
   bind = true, -- This is mandatory, otherwise border config won't get registered.
   doc_lines = 10, -- how many lines to show in doc, set to 0 if you only want the signature
@@ -28,7 +27,7 @@ _LSP_SIG_CFG = {
   floating_window_above_cur_line = true, -- try to place the floating above the current line
 
   floating_window_off_x = 1, -- adjust float windows x position.
-  floating_window_off_y = 0, -- adjust float windows y position.
+  floating_window_off_y = 0, -- adjust float windows y position. e.g. set to -2 can make floating window move up 2 lines
   close_timeout = 4000, -- close floating window after ms when laster parameter is entered
   fix_pos = function(signatures, client) -- first arg: second argument is the client
     return true -- can be expression like : return signatures[1].activeParameter >= 0 and signatures[1].parameters > 1
