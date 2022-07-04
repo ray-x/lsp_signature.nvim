@@ -276,13 +276,14 @@ local signature_handler = function(err, result, ctx, config)
     helper.cleanup(false) -- cleanup extmark
   end
   -- I do not need a floating win
-  if
-    _LSP_SIG_CFG.floating_window == false and config.toggle ~= true and config.trigger_from_lsp_sig
-    or config.trigger_from_cursor_hold
-  then
+  if _LSP_SIG_CFG.floating_window == false and config.toggle ~= true and config.trigger_from_lsp_sig
+ then
     return {}, s, l
   end
 
+  if _LSP_SIG_CFG.floating_window == false and config.trigger_from_cursor_hold then
+    return {}, s, l
+  end
   local lines = {}
   local off_y = 0
   local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
