@@ -42,6 +42,8 @@ In case some of the languages allow function overload, the plugin will show all 
 <img width="600" alt="multiple_signature" src="https://user-images.githubusercontent.com/1681295/120487194-17e3a500-c3f9-11eb-9561-82b3854694c5.png">
 <img width="600" alt="signature2" src="https://user-images.githubusercontent.com/1681295/120487380-43ff2600-c3f9-11eb-9684-f6e7a1f8e170.png">
 
+To switch between the signatures, use `select_signature_key`
+
 
 # Install:
 
@@ -180,6 +182,8 @@ There are two keybinds available:
   shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
   timer_interval = 200, -- default timer check interval set to lower value if you want to reduce latency
   toggle_key = nil -- toggle signature on and off in insert mode,  e.g. toggle_key = '<M-x>'
+
+  select_signature_key = nil, -- cycle to next signature, e.g. '<M-n>' function overloading
 }
 
 -- recommended:

@@ -58,8 +58,6 @@ _LSP_SIG_CFG = {
   toggle_key = nil, -- toggle signature on and off in insert mode,  e.g. '<M-x>'
   -- set this key also helps if you want see signature in newline
   select_signature_key = nil, -- cycle to next signature, e.g. '<M-n>' function overloading
-  check_3rd_handler = nil, -- provide you own handler
-
   -- internal vars, init here to suppress linter warings
 }
 
@@ -276,8 +274,7 @@ local signature_handler = function(err, result, ctx, config)
     helper.cleanup(false) -- cleanup extmark
   end
   -- I do not need a floating win
-  if _LSP_SIG_CFG.floating_window == false and config.toggle ~= true and config.trigger_from_lsp_sig
- then
+  if _LSP_SIG_CFG.floating_window == false and config.toggle ~= true and config.trigger_from_lsp_sig then
     return {}, s, l
   end
 
