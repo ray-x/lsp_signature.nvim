@@ -379,7 +379,7 @@ end
 
 helper.cal_pos = function(contents, opts)
   local lnum = vim.fn.line(".") - vim.fn.line("w0") + 1
-  if not _LSP_SIG_CFG.floating_window_above_cur_line or lnum < 2 then
+  if not _LSP_SIG_CFG.floating_window_above_cur_line or lnum <= 2 then
     return {}, 0
   end
   local lines
