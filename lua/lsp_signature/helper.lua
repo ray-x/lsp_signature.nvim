@@ -1,4 +1,5 @@
 local helper = {}
+local api = vim.api
 
 -- local lua_magic = [[^$()%.[]*+-?]]
 
@@ -83,8 +84,8 @@ local function findwholeword(input, word)
 end
 
 helper.fallback = function(trigger_chars)
-  local r = vim.api.nvim_win_get_cursor(0)
-  local line = vim.api.nvim_get_current_line()
+  local r = api.nvim_win_get_cursor(0)
+  local line = api.nvim_get_current_line()
   line = line:sub(1, r[2])
   local activeParameter = 0
   if not vim.tbl_contains(trigger_chars, "(") then
@@ -291,8 +292,8 @@ helper.check_closer_char = function(line_to_cursor, trigger_chars)
 end
 
 helper.is_new_line = function()
-  local line = vim.api.nvim_get_current_line()
-  local r = vim.api.nvim_win_get_cursor(0)
+  local line = api.nvim_get_current_line()
+  local r = api.nvim_win_get_cursor(0)
   local line_to_cursor = line:sub(1, r[2])
   line_to_cursor = string.gsub(line_to_cursor, "%s+", "")
   if #line_to_cursor < 1 then
@@ -304,9 +305,9 @@ end
 
 helper.close_float_win = function(close_float_win)
   close_float_win = close_float_win or false
-  if _LSP_SIG_CFG.winnr and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and close_float_win then
+  if _LSP_SIG_CFG.winnr and api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and close_float_win then
     log("closing winnr", _LSP_SIG_CFG.winnr)
-    vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
+    api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
     _LSP_SIG_CFG.winnr = nil
   end
 end
@@ -315,18 +316,18 @@ helper.cleanup = function(close_float_win)
   -- vim.schedule(function()
 
   log("cleanup vt", _LSP_SIG_VT_NS)
-  vim.api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
+  api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
   close_float_win = close_float_win or false
-  if _LSP_SIG_CFG.ns and _LSP_SIG_CFG.bufnr and vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
+  if _LSP_SIG_CFG.ns and _LSP_SIG_CFG.bufnr and api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
     log("bufnr, ns", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns)
-    vim.api.nvim_buf_clear_namespace(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, -1)
+    api.nvim_buf_clear_namespace(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, -1)
   end
   _LSP_SIG_CFG.markid = nil
   _LSP_SIG_CFG.ns = nil
-
-  if _LSP_SIG_CFG.winnr and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and close_float_win then
+  local winnr = _LSP_SIG_CFG.winnr
+  if winnr and winnr ~= 0 and api.nvim_win_is_valid(winnr) and close_float_win then
     log("closing winnr", _LSP_SIG_CFG.winnr)
-    vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
+    api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
     _LSP_SIG_CFG.winnr = nil
     _LSP_SIG_CFG.bufnr = nil
   end
@@ -337,7 +338,7 @@ helper.cleanup_async = function(close_float_win, delay, force)
   log(debug.traceback())
   vim.validate({ delay = { delay, "number" } })
   vim.defer_fn(function()
-    local mode = vim.api.nvim_get_mode().mode
+    local mode = api.nvim_get_mode().mode
     if not force and (mode == "i" or mode == "s") then
       log("async cleanup insert leave ignored")
       -- still in insert mode debounce
@@ -474,7 +475,7 @@ end
 
 function helper.truncate_doc(lines, num_sigs)
   local doc_num = 2 + _LSP_SIG_CFG.doc_lines -- 3: markdown code signature
-  local vmode = vim.api.nvim_get_mode().mode
+  local vmode = api.nvim_get_mode().mode
   -- truncate doc if in insert/replace mode
   if
     vmode == "i"
@@ -597,11 +598,11 @@ end
 
 helper.highlight_parameter = function(s, l)
   -- Not sure why this not working
-  -- api.nvim_command("autocmd User SigComplete".." <buffer> ++once lua pcall(vim.api.nvim_win_close, "..winnr..", true)")
-  _LSP_SIG_CFG.ns = vim.api.nvim_create_namespace("lsp_signature_hi_parameter")
+  -- api.nvim_command("autocmd User SigComplete".." <buffer> ++once lua pcall(api.nvim_win_close, "..winnr..", true)")
+  _LSP_SIG_CFG.ns = api.nvim_create_namespace("lsp_signature_hi_parameter")
   local hi = _LSP_SIG_CFG.hi_parameter
   log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding, hi)
-  log("info", vim.api.nvim_buf_get_lines(_LSP_SIG_CFG.bufnr, 0, 5, false))
+  log("info", api.nvim_buf_get_lines(_LSP_SIG_CFG.bufnr, 0, 5, false))
   if s and l and s > 0 then
     if _LSP_SIG_CFG.padding == "" then
       s = s - 1
@@ -610,9 +611,9 @@ helper.highlight_parameter = function(s, l)
       l = l + #_LSP_SIG_CFG.padding
     end
 
-    if _LSP_SIG_CFG.bufnr and vim.api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
+    if _LSP_SIG_CFG.bufnr and api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
       log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding)
-      _LSP_SIG_CFG.markid = vim.api.nvim_buf_set_extmark(
+      _LSP_SIG_CFG.markid = api.nvim_buf_set_extmark(
         _LSP_SIG_CFG.bufnr,
         _LSP_SIG_CFG.ns,
         0,
@@ -659,6 +660,28 @@ helper.completion_visible = function()
   end
 
   return vim.fn.pumvisible() ~= 0
+end
+
+local function jump_to_win(wr)
+  if wr and api.nvim_win_is_valid(wr) then
+    return api.nvim_set_current_win(wr)
+  end
+end
+
+helper.change_focus = function()
+  helper.log("move focus", _LSP_SIG_CFG.winnr, _LSP_SIG_CFG.mainwin)
+  local winnr = api.nvim_get_current_win()
+  if winnr == _LSP_SIG_CFG.winnr then --need to change back to main
+    return jump_to_win(_LSP_SIG_CFG.mainwin)
+  else -- jump to floating
+    _LSP_SIG_CFG.mainwin = winnr --need to change back to main
+    winnr = _LSP_SIG_CFG.winnr
+    if winnr and winnr ~= 0 and api.nvim_win_is_valid(winnr) then
+      return jump_to_win(winnr)
+    end
+  end
+
+  -- vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(_LSP_SIG_CFG.move_cursor_key, true, true, true), "i", true)
 end
 
 return helper

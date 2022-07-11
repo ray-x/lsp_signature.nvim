@@ -59,6 +59,12 @@ _LSP_SIG_CFG = {
   -- set this key also helps if you want see signature in newline
   select_signature_key = nil, -- cycle to next signature, e.g. '<M-n>' function overloading
   -- internal vars, init here to suppress linter warings
+  move_cursor_key = nil, -- use nvim_set_current_win
+
+  --- private vars
+  winnr = 0,
+  bufnr = 0,
+  mainwin = 0,
 }
 
 local log = helper.log
@@ -797,11 +803,8 @@ M.on_attach = function(cfg, bufnr)
     vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(signature_handler, _LSP_SIG_CFG.handler_opts)
   end
 
-  local shadow_cmd = string.format(
-    "hi default FloatShadow blend=%i guibg=%s",
-    _LSP_SIG_CFG.shadow_blend,
-    _LSP_SIG_CFG.shadow_guibg
-  )
+  local shadow_cmd =
+    string.format("hi default FloatShadow blend=%i guibg=%s", _LSP_SIG_CFG.shadow_blend, _LSP_SIG_CFG.shadow_guibg)
   vim.cmd(shadow_cmd)
 
   shadow_cmd = string.format(
@@ -817,7 +820,7 @@ M.on_attach = function(cfg, bufnr)
       "i",
       _LSP_SIG_CFG.toggle_key,
       [[<cmd>lua require('lsp_signature').toggle_float_win()<CR>]],
-      { silent = true, noremap = true }
+      { silent = true, noremap = true, desc = "toggle signature" }
     )
   end
   if _LSP_SIG_CFG.select_signature_key then
@@ -826,7 +829,15 @@ M.on_attach = function(cfg, bufnr)
       "i",
       _LSP_SIG_CFG.select_signature_key,
       [[<cmd>lua require('lsp_signature').signature({trigger="NextSignature"})<CR>]],
-      { silent = true, noremap = true }
+      { silent = true, noremap = true, desc = "select signature" }
+    )
+  end
+  if _LSP_SIG_CFG.move_cursor_key then
+    vim.api.nvim_set_keymap(
+      "i",
+      _LSP_SIG_CFG.move_cursor_key,
+      [[<cmd>lua require('lsp_signature.helper').change_focus()<CR>]],
+      { silent = true, noremap = true, desc = "change cursor focus" }
     )
   end
   _LSP_SIG_VT_NS = api.nvim_create_namespace("lsp_signature_vt")
