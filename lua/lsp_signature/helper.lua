@@ -524,6 +524,11 @@ function helper.update_config(config)
   if config.border == "rounded" then
     config.border = rounded
   end
+  if _LSP_SIG_CFG.wrap then
+    config.wrap_at = config.max_width
+    config.wrap = true
+  end
+  return config
 end
 
 function helper.check_lsp_cap(clients, line_to_cursor)
