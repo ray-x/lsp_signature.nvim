@@ -22,6 +22,7 @@ _LSP_SIG_CFG = {
   doc_lines = 10, -- how many lines to show in doc, set to 0 if you only want the signature
   max_height = 12, -- max height of signature floating_window
   max_width = 80, -- max_width of signature floating_window
+  wrap = false, -- allow doc/signature wrap inside floating_window, useful if your lsp doc/sig is too long
 
   floating_window = true, -- show hint in a floating window
   floating_window_above_cur_line = true, -- try to place the floating above the current line
@@ -49,7 +50,6 @@ _LSP_SIG_CFG = {
   log_path = path_join(vim.fn.stdpath("cache"), "lsp_signature.log"), -- log dir when debug is no
   verbose = false, -- debug show code line number
   extra_trigger_chars = {}, -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
-  -- decorator = {"`", "`"} -- set to nil if using guihua.lua
   zindex = 200,
   transparency = nil, -- disabled by default
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
@@ -428,6 +428,7 @@ local signature_handler = function(err, result, ctx, config)
 
   local display_opts = {}
   local cnts
+
   display_opts, off_y, cnts = helper.cal_pos(lines, config)
   if cnts then
     lines = cnts
