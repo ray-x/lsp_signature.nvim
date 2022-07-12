@@ -62,7 +62,7 @@ _LSP_SIG_CFG = {
   move_cursor_key = nil, -- use nvim_set_current_win
 
   --- private vars
-  winnr = 0,
+  winnr = nil,
   bufnr = 0,
   mainwin = 0,
 }
@@ -261,7 +261,11 @@ local signature_handler = function(err, result, ctx, config)
 
   local mode = vim.api.nvim_get_mode().mode
   local insert_mode = (mode == "niI" or mode == "i")
-  local floating_window_on = (_LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr ~= 0 and api.nvim_win_is_valid(_LSP_SIG_CFG.winnr))
+  local floating_window_on = (
+    _LSP_SIG_CFG.winnr ~= nil
+    and _LSP_SIG_CFG.winnr ~= 0
+    and api.nvim_win_is_valid(_LSP_SIG_CFG.winnr)
+  )
   if config.trigger_from_cursor_hold and not floating_window_on and not insert_mode then
     log("trigger from cursor hold, no need to update floating window")
     return

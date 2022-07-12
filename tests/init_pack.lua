@@ -9,8 +9,12 @@ local function load_plugins()
   require("packer").startup({
     function(use)
       use({ "wbthomason/packer.nvim" })
-      use({ "neovim/nvim-lspconfig" })
-      use({ "neovim/nvim-lspconfig" })
+      use({
+        "neovim/nvim-lspconfig",
+        config = function()
+          require("lspconfig").gopls.setup({})
+        end,
+      })
       use({ "ray-x/lsp_signature.nvim" })
     end,
     config = {
