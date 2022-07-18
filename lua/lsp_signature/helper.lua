@@ -1,5 +1,6 @@
 local helper = {}
 local api = vim.api
+local fn = vim.fn
 
 -- local lua_magic = [[^$()%.[]*+-?]]
 
@@ -379,18 +380,16 @@ local function get_border_height(opts)
 end
 
 helper.cal_pos = function(contents, opts)
-  local lnum = vim.fn.line(".") - vim.fn.line("w0") + 1
+  local lnum = fn.line(".") - fn.line("w0") + 1
+
+  local lines_above = fn.winline() - 1
+  local lines_below = fn.winheight(0) - fn.winline() -- not counting current
+  -- wont fit if move floating above current line
   if not _LSP_SIG_CFG.floating_window_above_cur_line or lnum <= 2 then
     return {}, 0
   end
   local lines
   local border_height
-  if lnum < 5 then
-    opts.border = nil
-    border_height = 0
-    lines = vim.list_slice(contents, 1, lnum)
-    contents = vim.fn.copy(lines)
-  end
   local util = vim.lsp.util
   contents = util._trim(contents, opts)
   util.try_trim_markdown_code_blocks(contents)
@@ -401,9 +400,7 @@ helper.cal_pos = function(contents, opts)
 
   log("popup size:", width, height, float_option)
   local off_y = 0
-  local lines_above = lnum - 1
   local max_height = float_option.height or _LSP_SIG_CFG.max_height
-  local lines_below = vim.fn.winheight(0) - lines_above
   border_height = border_height or get_border_height(float_option)
   -- shift win above current line
   if float_option.anchor == "NW" or float_option.anchor == "NE" then
@@ -413,11 +410,11 @@ helper.cal_pos = function(contents, opts)
       max_height = math.min(max_height, math.max(lines_above - border_height - 1, border_height + 1))
     else
       -- below
-      max_height = math.min(max_height, lines_below - border_height - 1)
+      max_height = math.min(max_height, math.max(lines_below - border_height - 1, border_height + 1))
     end
   else
     -- above
-    max_height = math.min(max_height, lines_above - border_height - 1)
+    max_height = math.min(max_height, math.max(lines_above - border_height - 1, border_height + 1))
   end
 
   log(float_option, off_y, lines_above, max_height)
@@ -425,7 +422,7 @@ helper.cal_pos = function(contents, opts)
     float_option.height = 1
   end
   float_option.max_height = max_height
-  return float_option, off_y, lines
+  return float_option, off_y, lines, max_height
 end
 
 local nvim_0_6
@@ -562,7 +559,7 @@ function helper.check_lsp_cap(clients, line_to_cursor)
         vim.notify("LSP: lsp-signature requires neovim 0.6.1 or later", vim.log.levels.WARN)
         return
       end
-      if vim.fn.empty(sig_provider) == 0 then
+      if fn.empty(sig_provider) == 0 then
         signature_cap = true
         total_lsp = total_lsp + 1
 
@@ -583,7 +580,7 @@ function helper.check_lsp_cap(clients, line_to_cursor)
           if sig_provider.retriggerCharacters ~= nil then
             vim.list_extend(triggered_chars, sig_provider.retriggerCharacters)
             table.sort(triggered_chars)
-            triggered_chars = vim.fn.uniq(triggered_chars)
+            triggered_chars = fn.uniq(triggered_chars)
           end
           if _LSP_SIG_CFG.extra_trigger_chars ~= nil then
             triggered_chars = tbl_combine(triggered_chars, _LSP_SIG_CFG.extra_trigger_chars)
@@ -676,7 +673,7 @@ helper.completion_visible = function()
     return cmp.visible()
   end
 
-  return vim.fn.pumvisible() ~= 0
+  return fn.pumvisible() ~= 0
 end
 
 local function jump_to_win(wr)
