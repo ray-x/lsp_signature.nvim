@@ -430,9 +430,11 @@ function helper.nvim_0_6()
   if nvim_0_6 ~= nil then
     return nvim_0_6
   end
-  if debug.getinfo(vim.lsp.handlers.signature_help).nparams == 4 then
+  -- if debug.getinfo(vim.lsp.handlers.signature_help).nparams == 4 then
+  if vim.fn.has('nvim-0.6.1') == 1 then
     nvim_0_6 = true
   else
+    vim.notify('nvim-0.6.1 is required for this plugin', { timeout = 5000 })
     nvim_0_6 = false
   end
   return nvim_0_6
