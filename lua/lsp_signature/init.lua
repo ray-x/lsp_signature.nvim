@@ -22,7 +22,7 @@ _LSP_SIG_CFG = {
   doc_lines = 10, -- how many lines to show in doc, set to 0 if you only want the signature
   max_height = 12, -- max height of signature floating_window
   max_width = 80, -- max_width of signature floating_window
-  wrap = false, -- allow doc/signature wrap inside floating_window, useful if your lsp doc/sig is too long
+  wrap = true, -- allow doc/signature wrap inside floating_window, useful if your lsp doc/sig is too long
 
   floating_window = true, -- show hint in a floating window
   floating_window_above_cur_line = true, -- try to place the floating above the current line
@@ -440,7 +440,7 @@ local signature_handler = function(err, result, ctx, config)
 
   config.offset_y = off_y + config.offset_y
   config.focusable = true -- allow focus
-  config.max_height = display_opts.height
+  config.max_height = display_opts.max_height
   config.noautocmd = true
 
   -- try not to overlap with pum autocomplete menu

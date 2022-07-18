@@ -397,22 +397,34 @@ helper.cal_pos = function(contents, opts)
   log(vim.inspect(contents))
 
   local width, height = util._make_floating_popup_size(contents, opts)
-  log("popup size:", width, height)
   local float_option = util.make_floating_popup_options(width, height, opts)
+
+  log("popup size:", width, height, float_option)
   local off_y = 0
   local lines_above = lnum - 1
+  local max_height = float_option.height or _LSP_SIG_CFG.max_height
+  local lines_below = vim.fn.winheight(0) - lines_above
   border_height = border_height or get_border_height(float_option)
+  -- shift win above current line
   if float_option.anchor == "NW" or float_option.anchor == "NE" then
     -- note: the floating widnows will be under current line
-    -- local lines_below = vim.fn.winheight(0) - lines_above
     if lines_above >= float_option.height + border_height + 1 then
       off_y = -(float_option.height + border_height + 1)
-      log(float_option, off_y, lines_above)
+      max_height = math.min(max_height, math.max(lines_above - border_height - 1, border_height + 1))
+    else
+      -- below
+      max_height = math.min(max_height, lines_below - border_height - 1)
     end
+  else
+    -- above
+    max_height = math.min(max_height, lines_above - border_height - 1)
   end
+
+  log(float_option, off_y, lines_above, max_height)
   if not float_option.height or float_option.height < 1 then
     float_option.height = 1
   end
+  float_option.max_height = max_height
   return float_option, off_y, lines
 end
 
