@@ -564,6 +564,7 @@ local signature = function(opts)
       params,
       vim.lsp.with(signature_handler, {
         trigger_from_cursor_hold = true,
+        border = _LSP_SIG_CFG.handler_opts.border,
         line_to_cursor = line_to_cursor:sub(1, trigger_position),
         triggered_chars = trigger_chars,
       })
