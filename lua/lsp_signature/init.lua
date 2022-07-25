@@ -932,6 +932,8 @@ M.status_line = function(size)
 end
 
 M.toggle_float_win = function()
+  _LSP_SIG_CFG.floating_window = not _LSP_SIG_CFG.floating_window
+
   if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0 and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
     vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
     _LSP_SIG_CFG.winnr = nil

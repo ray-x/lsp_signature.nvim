@@ -126,7 +126,7 @@ Or:
 ### Keybinds
 No default keybinds are provided.
 There are two keybinds available:
-1. toggle_key: Toggle the signature help window.
+1. toggle_key: Toggle the signature help window. It manual toggle config.floating_windows on/off
 2. select_signature_key: Select the current signature when mulitple signature is avalible.
 
 
