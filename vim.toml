@@ -9,8 +9,8 @@ any = true
 property = true
 writable = "new-fields"
 
-[ _LSP_SIG_CFG]
-property = true
+[_LSP_SIG_CFG]
+any = true
 
 [debug]
 property = true

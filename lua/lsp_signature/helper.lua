@@ -316,6 +316,7 @@ end
 helper.cleanup = function(close_float_win)
   -- vim.schedule(function()
 
+  _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace("lsp_signature_vt")
   log("cleanup vt", _LSP_SIG_VT_NS)
   api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
   close_float_win = close_float_win or false
@@ -431,10 +432,10 @@ function helper.nvim_0_6()
     return nvim_0_6
   end
   -- if debug.getinfo(vim.lsp.handlers.signature_help).nparams == 4 then
-  if vim.fn.has('nvim-0.6.1') == 1 then
+  if vim.fn.has("nvim-0.6.1") == 1 then
     nvim_0_6 = true
   else
-    vim.notify('nvim-0.6.1 is required for this plugin', { timeout = 5000 })
+    vim.notify("nvim-0.6.1 is required for this plugin", { timeout = 5000 })
     nvim_0_6 = false
   end
   return nvim_0_6
