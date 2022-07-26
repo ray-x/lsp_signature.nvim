@@ -31,6 +31,7 @@ _LSP_SIG_CFG = {
   floating_window_off_y = 0, -- adjust float windows y position. e.g. set to -2 can make floating window move up 2 lines
   close_timeout = 4000, -- close floating window after ms when laster parameter is entered
   fix_pos = function(signatures, client) -- first arg: second argument is the client
+    _, _ = signatures, client
     return true -- can be expression like : return signatures[1].activeParameter >= 0 and signatures[1].parameters > 1
   end,
   -- also can be bool value fix floating_window position

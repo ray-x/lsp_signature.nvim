@@ -28,7 +28,7 @@ helper.log = function(...)
 
   if _LSP_SIG_CFG.verbose == true then
     local info = debug.getinfo(2, "Sl")
-    lineinfo = info.short_src .. ":" .. info.currentline
+    local lineinfo = info.short_src .. ":" .. info.currentline
     str = str .. lineinfo
   end
 
@@ -441,11 +441,11 @@ function helper.nvim_0_6()
   return nvim_0_6
 end
 
-function helper.mk_handler(fn)
+function helper.mk_handler(func)
   return function(...)
     local is_new = helper.nvim_0_6()
     if is_new then
-      return fn(...)
+      return func(...)
     else
       local err = select(1, ...)
       local method = select(2, ...)
