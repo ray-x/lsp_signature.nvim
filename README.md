@@ -65,22 +65,22 @@ use {
 In your init.lua, call setup()
 
 ```lua
-cfg = {...}  -- add you config here
+cfg = {…}  -- add you config here
 require "lsp_signature".setup(cfg)
 ```
 
-Alternatively, call on_attach() when the LSP client attaches to a buffer
+Alternatively, call on_attach(cfg, bufnr) when the LSP client attaches to a buffer
 
 e.g. gopls:
 
 ```lua
 local golang_setup = {
   on_attach = function(client, bufnr)
-    ...
-    require "lsp_signature".on_attach()  -- Note: add in lsp client on-attach
-    ...
+    …
+    require "lsp_signature".on_attach(signature_setup, bufnr)  -- Note: add in lsp client on-attach
+    …
   end,
-  ...
+  …
 }
 
 require'lspconfig'.gopls.setup(golang_setup)
@@ -97,16 +97,16 @@ floating window(Thanks [@Gabriel Sanches](https://github.com/gbrlsnchs) for the 
 ```lua
 local example_setup = {
   on_attach = function(client, bufnr)
-    ...
+    …
     require "lsp_signature".on_attach({
       bind = true, -- This is mandatory, otherwise border config won't get registered.
       handler_opts = {
         border = "rounded"
       }
     }, bufnr)
-    ...
+    …
   end,
-  ...
+  …
 }
 ```
 
@@ -211,10 +211,10 @@ return a table
 
 ```lua
 {
-  label = 'func fun_name(arg1, arg2...)'
+  label = 'func fun_name(arg1, arg2…)'
   hint = 'arg1',
   range = {start = 13, ['end'] = 17 }
-  doc = 'func_name return arg1 + arg2 ...'
+  doc = 'func_name return arg1 + arg2 …'
 }
 
 ```
