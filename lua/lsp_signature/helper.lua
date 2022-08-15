@@ -619,7 +619,6 @@ helper.highlight_parameter = function(s, l)
   _LSP_SIG_CFG.ns = api.nvim_create_namespace("lsp_signature_hi_parameter")
   local hi = _LSP_SIG_CFG.hi_parameter
   log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding, hi)
-  log("info", api.nvim_buf_get_lines(_LSP_SIG_CFG.bufnr, 0, 5, false))
   if s and l and s > 0 then
     if _LSP_SIG_CFG.padding == "" then
       s = s - 1
