@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
-      - uses: NTBBloodbath/selene-action@v1.0.0
+      - uses: Kampfkarren/selenology
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --config selene.toml --color always ./lua
