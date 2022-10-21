@@ -4,7 +4,7 @@ local fn = vim.fn
 
 -- local lua_magic = [[^$()%.[]*+-?]]
 
-local special_chars = { "%", "*", "[", "]", "^", "$", "(", ")", ".", "+", "-", "?" }
+local special_chars = { "%", "*", "[", "]", "^", "$", "(", ")", ".", "+", "-", "?", '"' }
 
 local contains = vim.tbl_contains
 -- local lsp_trigger_chars = {}
@@ -351,7 +351,6 @@ helper.cleanup_async = function(close_float_win, delay, force)
   end, delay * 1000)
 end
 
--- modified from https://github.com/neovim/neovim/blob/b3b02eb52943fdc8ba74af3b485e9d11655bc9c9/runtime/lua/vim/lsp/util.lua#L40-L86
 local function get_border_height(opts)
   local border = opts.border
   local height = 0
@@ -390,7 +389,6 @@ helper.cal_pos = function(contents, opts)
     return {}, 0
   end
   local lines
-  local border_height
   local util = vim.lsp.util
   contents = util._trim(contents, opts)
   util.try_trim_markdown_code_blocks(contents)
@@ -402,7 +400,7 @@ helper.cal_pos = function(contents, opts)
   log("popup size:", width, height, float_option)
   local off_y = 0
   local max_height = float_option.height or _LSP_SIG_CFG.max_height
-  border_height = border_height or get_border_height(float_option)
+  local border_height = get_border_height(float_option)
   -- shift win above current line
   if float_option.anchor == "NW" or float_option.anchor == "NE" then
     -- note: the floating widnows will be under current line

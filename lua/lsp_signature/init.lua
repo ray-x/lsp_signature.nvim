@@ -292,8 +292,7 @@ local signature_handler = function(err, result, ctx, config)
   if _LSP_SIG_CFG.floating_window == false and config.trigger_from_cursor_hold then
     return {}, s, l
   end
-  local lines = {}
-  local off_y = 0
+  local off_y
   local ft = vim.api.nvim_buf_get_option(bufnr, "ft")
 
   ft = helper.ft2md(ft)
@@ -304,7 +303,7 @@ local signature_handler = function(err, result, ctx, config)
     ft = string.sub(ft, 0, dot_index - 1)
   end
 
-  lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
+  local lines = vim.lsp.util.convert_signature_help_to_markdown_lines(result, ft)
 
   if lines == nil or type(lines) ~= "table" then
     log("incorrect result", result)
@@ -431,7 +430,7 @@ local signature_handler = function(err, result, ctx, config)
     config.offset_x = config.offset_x - #_LSP_SIG_CFG.padding
   end
 
-  local display_opts = {}
+  local display_opts
   local cnts
 
   display_opts, off_y, cnts = helper.cal_pos(lines, config)
@@ -526,7 +525,6 @@ local signature = function(opts)
   elseif #line_to_cursor_old < #line_to_cursor then
     delta = line_to_cursor:sub(#line_to_cursor_old)
   elseif not opts.trigger then
-    delta = ""
     line_to_cursor_old = line_to_cursor
     return
   end
