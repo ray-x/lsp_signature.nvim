@@ -165,7 +165,7 @@ local signature_handler = function(err, result, ctx, config)
     return
   end
 
-  -- log("sig result", ctx, result, config)
+  log("sig result", ctx, result, config)
   -- if config.check_client_handlers then
   --   -- this feature will be removed
   --   if helper.client_handler(err, result, ctx, config) then
@@ -463,6 +463,9 @@ local signature_handler = function(err, result, ctx, config)
       -- vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
       _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr = vim.lsp.util.open_floating_preview(lines, syntax, config)
 
+      print("ft:", vim.api.nvim_buf_get_option(_LSP_SIG_CFG.bufnr, "filetype"))
+
+      -- vim.api.nvim_buf_set_option(_LSP_SIG_CFG.bufnr, "filetype", "")
       log("sig_cfg bufnr, winnr not valid recreate", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr)
       _LSP_SIG_CFG.label = label
       _LSP_SIG_CFG.client_id = client_id
@@ -473,6 +476,8 @@ local signature_handler = function(err, result, ctx, config)
     _LSP_SIG_CFG.client_id = client_id
 
     log("sig_cfg new bufnr, winnr ", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr)
+
+    -- vim.api.nvim_buf_set_option(_LSP_SIG_CFG.bufnr, "filetype", "lsp_signature")
   end
 
   if _LSP_SIG_CFG.transparency and _LSP_SIG_CFG.transparency > 1 and _LSP_SIG_CFG.transparency < 100 then
