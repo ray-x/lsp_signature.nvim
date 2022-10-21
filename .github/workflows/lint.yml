@@ -10,12 +10,81 @@ on:
       - master
 
 jobs:
-  selene:
-    name: Lint
-    runs-on: ubuntu-22.04
+  luacheck:
+    name: Luacheck
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - uses: Kampfkarren/selenology@main
+
+      - name: Prepare
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y luarocks
+          sudo luarocks install luacheck
+      - name: Lint
+        run: sudo make lint
+
+  stylua:
+    name: stylua
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: JohnnyMorganz/stylua-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --config selene.toml --color always ./lua
+          # CLI arguments
+          args: --color always --check lua/
+  selenology:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get PR info
+        uses: octokit/graphql-action@v2.x
+        id: get_pr_info
+        with:
+          query: |
+            query getPullRequestInfo($owner:String!,$repo:String!,$number:Int!) {
+              repository(owner: $owner, name: $repo) {
+                pullRequest(number:$number) {
+                  headRepository {
+                    url
+                  }
+                  headRefOid
+                }
+              }
+            }
+          owner: ${{ github.event.repository.owner.login }}
+          repo: ${{ github.event.repository.name }}
+          number: ${{ github.event.inputs.prId }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run selenology
+        id: selenology
+        uses: Kampfkarren/selenology@main
+        with:
+          new_selene_checkout: ${{ fromJSON(steps.get_pr_info.outputs.data).repository.pullRequest.headRefOid }}
+          new_selene_repository: ${{ fromJSON(steps.get_pr_info.outputs.data).repository.pullRequest.headRepository.url }}
+      - uses: actions/checkout@v2
+        with:
+          ref: selenology-outputs
+          path: selenology-outputs
+      - name: Upload output
+        id: upload
+        run: |
+          cd $GITHUB_WORKSPACE/selenology-outputs
+          FILENAME=selenology-outputs/output-$(date +%s).html
+          mkdir -p selenology-outputs
+          cat <<'EOF' >>$FILENAME
+          ${{ steps.selenology.outputs.output }}
+          EOF
+          git config user.name "Selenology"
+          git config user.email "<>"
+          git add selenology-outputs/
+          git commit -m "Add selenology outputs."
+          git push origin selenology-outputs
+          echo "::set-output name=filename::$FILENAME"
+      - name: Post comment
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ github.event.inputs.prId }}
+          body: |
+            Selenology report was created, and can be viewed [at this link](https://htmlpreview.github.io/?https://github.com/${{ github.event.repository.owner.login }}/${{ github.event.repository.name }}/blob/selenology-outputs/${{ steps.upload.outputs.filename }}).
