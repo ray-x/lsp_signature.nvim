@@ -37,26 +37,6 @@ jobs:
   selenology:
     runs-on: ubuntu-latest
     steps:
-      - name: Get PR info
-        uses: octokit/graphql-action@v2.x
-        id: get_pr_info
-        with:
-          query: |
-            query getPullRequestInfo($owner:String!,$repo:String!,$number:Int!) {
-              repository(owner: $owner, name: $repo) {
-                pullRequest(number:$number) {
-                  headRepository {
-                    url
-                  }
-                  headRefOid
-                }
-              }
-            }
-          owner: ${{ github.event.repository.owner.login }}
-          repo: ${{ github.event.repository.name }}
-          number: ${{ github.event.inputs.prId }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run selenology
         id: selenology
         uses: Kampfkarren/selenology@main
