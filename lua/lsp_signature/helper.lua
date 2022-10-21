@@ -73,7 +73,8 @@ helper.replace_special = replace_special
 local function findwholeword(input, word)
   word = replace_special(word)
 
-  local l, e = string.find(input, "%(") -- All languages I know, func parameter start with (
+  local e
+  local l, _ = string.find(input, "%(") -- All languages I know, func parameter start with (
   l = l or 1
   l, e = string.find(input, "%f[%a]" .. word .. "%f[%A]", l)
 
@@ -388,7 +389,6 @@ helper.cal_pos = function(contents, opts)
   if not _LSP_SIG_CFG.floating_window_above_cur_line or lnum <= 2 then
     return {}, 0
   end
-  local lines
   local util = vim.lsp.util
   contents = util._trim(contents, opts)
   util.try_trim_markdown_code_blocks(contents)
@@ -421,7 +421,7 @@ helper.cal_pos = function(contents, opts)
     float_option.height = 1
   end
   float_option.max_height = max_height
-  return float_option, off_y, lines, max_height
+  return float_option, off_y, contents, max_height
 end
 
 local nvim_0_6
