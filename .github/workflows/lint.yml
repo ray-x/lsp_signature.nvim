@@ -34,37 +34,3 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           # CLI arguments
           args: --color always --check lua/
-  selenology:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run selenology
-        id: selenology
-        uses: Kampfkarren/selenology@main
-        with:
-          new_selene_checkout: ${{ fromJSON(steps.get_pr_info.outputs.data).repository.pullRequest.headRefOid }}
-          new_selene_repository: ${{ fromJSON(steps.get_pr_info.outputs.data).repository.pullRequest.headRepository.url }}
-      - uses: actions/checkout@v2
-        with:
-          ref: selenology-outputs
-          path: selenology-outputs
-      - name: Upload output
-        id: upload
-        run: |
-          cd $GITHUB_WORKSPACE/selenology-outputs
-          FILENAME=selenology-outputs/output-$(date +%s).html
-          mkdir -p selenology-outputs
-          cat <<'EOF' >>$FILENAME
-          ${{ steps.selenology.outputs.output }}
-          EOF
-          git config user.name "Selenology"
-          git config user.email "<>"
-          git add selenology-outputs/
-          git commit -m "Add selenology outputs."
-          git push origin selenology-outputs
-          echo "::set-output name=filename::$FILENAME"
-      - name: Post comment
-        uses: peter-evans/create-or-update-comment@v1
-        with:
-          issue-number: ${{ github.event.inputs.prId }}
-          body: |
-            Selenology report was created, and can be viewed [at this link](https://htmlpreview.github.io/?https://github.com/${{ github.event.repository.owner.login }}/${{ github.event.repository.name }}/blob/selenology-outputs/${{ steps.upload.outputs.filename }}).
