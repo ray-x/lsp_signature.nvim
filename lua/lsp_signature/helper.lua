@@ -624,15 +624,19 @@ helper.highlight_parameter = function(s, l)
       s = s - 1 + #_LSP_SIG_CFG.padding
       l = l + #_LSP_SIG_CFG.padding
     end
+    local line = 0
 
+    if _LSP_SIG_CFG.noice then
+      line = 1
+    end
     if _LSP_SIG_CFG.bufnr and api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
       log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding)
       _LSP_SIG_CFG.markid = api.nvim_buf_set_extmark(
         _LSP_SIG_CFG.bufnr,
         _LSP_SIG_CFG.ns,
-        0,
+        line,
         s,
-        { end_line = 0, end_col = l, hl_group = hi }
+        { end_line = line, end_col = l, hl_group = hi }
       )
 
       log("extmark_id", _LSP_SIG_CFG.markid)
