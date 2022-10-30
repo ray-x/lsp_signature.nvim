@@ -772,6 +772,7 @@ M.deprecated = function(cfg)
     print("decorator deprecated, use hi_parameter instead")
   end
 end
+
 local function cleanup_logs(cfg)
   local log_path = cfg.log_path or _LSP_SIG_CFG.log_path or nil
   local fp = io.open(log_path, "r")
@@ -825,30 +826,19 @@ M.on_attach = function(cfg, bufnr)
   vim.cmd(shadow_cmd)
 
   if _LSP_SIG_CFG.toggle_key then
-    vim.api.nvim_buf_set_keymap(
-      bufnr,
-      "i",
-      _LSP_SIG_CFG.toggle_key,
-      [[<cmd>lua require('lsp_signature').toggle_float_win()<CR>]],
-      { silent = true, noremap = true, desc = "toggle signature" }
-    )
+    vim.keymap.set({ "i", "v", "s" }, _LSP_SIG_CFG.toggle_key, function()
+      require("lsp_signature").toggle_float_win()
+    end, { silent = true, noremap = true, buffer = bufnr, desc = "toggle signature" })
   end
   if _LSP_SIG_CFG.select_signature_key then
-    vim.api.nvim_buf_set_keymap(
-      bufnr,
-      "i",
-      _LSP_SIG_CFG.select_signature_key,
-      [[<cmd>lua require('lsp_signature').signature({trigger="NextSignature"})<CR>]],
-      { silent = true, noremap = true, desc = "select signature" }
-    )
+    vim.keymap.set("i", _LSP_SIG_CFG.select_signature_key, function()
+      require("lsp_signature").signature({ trigger = "NextSignature" })
+    end, { silent = true, noremap = true, buffer = bufnr, desc = "select signature" })
   end
   if _LSP_SIG_CFG.move_cursor_key then
-    vim.api.nvim_set_keymap(
-      "i",
-      _LSP_SIG_CFG.move_cursor_key,
-      [[<cmd>lua require('lsp_signature.helper').change_focus()<CR>]],
-      { silent = true, noremap = true, desc = "change cursor focus" }
-    )
+    vim.keymap.set("i", _LSP_SIG_CFG.move_cursor_key, function()
+      require("lsp_signature.helper").change_focus()
+    end, { silent = true, noremap = true, desc = "change cursor focus" })
   end
   _LSP_SIG_VT_NS = api.nvim_create_namespace("lsp_signature_vt")
 end
