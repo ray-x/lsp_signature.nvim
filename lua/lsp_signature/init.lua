@@ -186,6 +186,10 @@ local signature_handler = function(err, result, ctx, config)
 
     return
   end
+  if api.nvim_get_current_buf() ~= bufnr then
+    log("ignore outdated signature result")
+    return
+  end
 
   if config.trigger_from_next_sig then
     log("trigger from next sig", config.activeSignature)
