@@ -261,7 +261,7 @@ describe("should show signature ", function()
   end)
 
   it("should show signature Date golang", function()
-    local ctx = { method = "textDocument/signatureHelp", client_id = 1, bufnr = 0 }
+    local ctx = { method = "textDocument/signatureHelp", client_id = 1, bufnr = vim.api.nvim_get_current_buf() }
     -- local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
     local lines, s, l
 
@@ -287,6 +287,26 @@ describe("should show signature ", function()
     eq(13, l)
   end)
 
+  it("should ignore signature for other buffers", function()
+    local ctx = { method = "textDocument/signatureHelp", client_id = 1, bufnr = vim.api.nvim_get_current_buf() + 1 }
+    local handler_result
+
+    local cfg1 = {
+      check_completion_visible = true,
+      check_client_handlers = true,
+      trigger_from_lsp_sig = true,
+      line_to_cursor = "\ttime.Date(1999, 12, 31",
+      triggered_chars = { "(", "," },
+    }
+    _LSP_SIG_CFG.log_path = "" -- set so the debug info will out put to console
+    if nvim_6 then
+      handler_result = signature.signature_handler(nil, result, ctx, cfg1)
+    else
+      handler_result = signature.signature_handler(nil, "", result, 1, 1, cfg1)
+    end
+    eq(nil, handler_result)
+  end)
+
   it("should show multi signature csharp", function()
     local cfg_cs = {
       check_completion_visible = true,
@@ -295,7 +315,7 @@ describe("should show signature ", function()
       line_to_cursor = "\tEditorGUI.PropertyField(Rect, Seri",
       triggered_chars = { "(", "," },
     }
-    local ctx = { method = "textDocument/signatureHelp", client_id = 1, bufnr = 0 }
+    local ctx = { method = "textDocument/signatureHelp", client_id = 1, bufnr = vim.api.nvim_get_current_buf() }
     -- local lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
     local lines, s, l
 
@@ -337,7 +357,7 @@ describe("should show signature ", function()
       triggered_chars = { "(", "," },
     }
 
-    local ctx = { method = "textDocument/signatureHelp", client_id = 1, bufnr = 0 }
+    local ctx = { method = "textDocument/signatureHelp", client_id = 1, bufnr = vim.api.nvim_get_current_buf() }
 
     local lines, s, l
     if nvim_6 then
@@ -378,7 +398,7 @@ describe("should show signature ", function()
       triggered_chars = { "(", "," },
     }
 
-    local ctx = { method = "textDocument/signatureHelp", client_id = 1, bufnr = 0 }
+    local ctx = { method = "textDocument/signatureHelp", client_id = 1, bufnr = vim.api.nvim_get_current_buf() }
     local lines, s, l
     if nvim_6 then
       lines, s, l = signature.signature_handler(nil, result, ctx, cfg)
