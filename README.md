@@ -169,7 +169,7 @@ There are two keybinds available:
   hint_scheme = "String",
   hi_parameter = "LspSignatureActiveParameter", -- how your parameter will be highlight
   handler_opts = {
-    border = "rounded"   -- double, rounded, single, shadow, none
+    border = "rounded"   -- double, rounded, single, shadow, none, or a table of borders
   },
 
   always_trigger = false, -- sometime show signature on new line or in middle of parameter can be confusing, set it to false for #58

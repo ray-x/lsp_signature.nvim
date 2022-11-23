@@ -353,6 +353,7 @@ helper.cleanup_async = function(close_float_win, delay, force)
 end
 
 local function get_border_height(opts)
+  local border_height = { none = 0, single = 2, double = 2, rounded = 2, solid = 2, shadow = 1 }
   local border = opts.border
   local height = 0
   if border == nil then
@@ -360,10 +361,9 @@ local function get_border_height(opts)
   end
 
   if type(border) == "string" then
-    local border_height = { none = 0, single = 2, double = 2, rounded = 2, solid = 2, shadow = 1 }
     height = border_height[border]
   else
-    local function border_height(id)
+    local function _border_height(id)
       id = (id - 1) % #border + 1
       if type(border[id]) == "table" then
         -- border specified as a table of <character, highlight group>
@@ -373,8 +373,8 @@ local function get_border_height(opts)
         return #border[id] > 0 and 1 or 0
       end
     end
-    height = height + border_height(2) -- top
-    height = height + border_height(6) -- bottom
+    height = height + _border_height(2) -- top
+    height = height + _border_height(6) -- bottom
   end
 
   return height

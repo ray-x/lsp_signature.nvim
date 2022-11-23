@@ -5,6 +5,13 @@ vim.cmd([[set packpath=/tmp/nvim/site]])
 local package_root = "/tmp/nvim/site/pack"
 local install_path = package_root .. "/packer/start/packer.nvim"
 
+local Plugin_folder
+local host = os.getenv("HOST_NAME")
+if host and (host:find("Ray") or host:find("ray")) then
+  Plugin_folder = [[~/github/ray-x/]] -- vim.fn.expand("$HOME") .. '/github/'
+else
+  Plugin_folder = [[ray-x/]]
+end
 local function load_plugins()
   require("packer").startup({
     function(use)
@@ -15,7 +22,7 @@ local function load_plugins()
           require("lspconfig").gopls.setup({})
         end,
       })
-      use({ "ray-x/lsp_signature.nvim" })
+      use({ Plugin_folder .. "lsp_signature.nvim" })
     end,
     config = {
       package_root = package_root,
@@ -41,4 +48,5 @@ vim.cmd("colorscheme murphy")
 
 vim.cmd("syntax on")
 require("lspconfig").tsserver.setup({})
+require("lspconfig").sumneko_lua.setup({})
 require("lsp_signature").setup({})
