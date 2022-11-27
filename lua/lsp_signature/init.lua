@@ -197,18 +197,13 @@ local signature_handler = function(err, result, ctx, config)
 
   if config.trigger_from_next_sig then
     if #result.signatures > 1 then
-      local sig_num = math.min(_LSP_SIG_CFG.max_height, #result.signatures - result.activeSignature)
-      if config.trigger_from_next_sig then
-        local cnt = math.abs(config.activeSignature - result.activeSignature)
-        for _ = 1, cnt do
-          local m = result.signatures[1]
-          table.insert(result.signatures, #result.signatures + 1, m)
-          table.remove(result.signatures, 1)
-        end
-        result.cfgActiveSignature = config.activeSignature
-      else
-        result.signatures = { unpack(result.signatures, result.activeSignature + 1, sig_num) }
+      local cnt = math.abs(config.activeSignature - result.activeSignature)
+      for _ = 1, cnt do
+        local m = result.signatures[1]
+        table.insert(result.signatures, #result.signatures + 1, m)
+        table.remove(result.signatures, 1)
       end
+      result.cfgActiveSignature = config.activeSignature
     end
   else
     result.cfgActiveSignature = 0 -- reset
