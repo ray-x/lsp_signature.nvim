@@ -95,9 +95,17 @@ local function virtual_hint(hint, off_y)
     if completion_visible then
       show_at = cur_line -- pum, show at current line
     else
-      show_at = cur_line + 1 -- show at below line
+      show_at = cur_line - 1 -- show at below line
     end
   end
+
+  if off_y ~= nil and off_y > 0 then
+    if completion_visible then
+      show_at = cur_line -- pum, show at current line
+    else
+      show_at = cur_line + 1 -- show at below line
+    end
+  ends
 
   if _LSP_SIG_CFG.floating_window == false then
     local prev_line, next_line
@@ -277,7 +285,9 @@ local signature_handler = function(err, result, ctx, config)
   end
 
   if _LSP_SIG_CFG.hint_enable == true then
-    virtual_hint(hint, 0)
+    if _LSP_SIG_CFG.floating_window == false then
+      virtual_hint(hint, 0)
+    end
   else
     _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace("lsp_signature_vt")
 
@@ -437,6 +447,13 @@ local signature_handler = function(err, result, ctx, config)
     lines = cnts
   end
 
+  if _LSP_SIG_CFG.hint_enable == true then
+    local v_offy = off_y
+    if v_offy < 0 then
+      v_offy = 1 -- put virtual text below current line
+    end
+    virtual_hint(hint, v_offy)
+  end
   config.offset_y = off_y + config.offset_y
   config.focusable = true -- allow focus
   config.max_height = display_opts.max_height
