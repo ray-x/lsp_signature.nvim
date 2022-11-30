@@ -399,14 +399,13 @@ helper.cal_pos = function(contents, opts)
   log(vim.inspect(contents))
 
   local width, height = util._make_floating_popup_size(contents, opts)
-  local float_option = util.make_floating_popup_options(width, height, opts)
-
   -- if the filetype returned is "markdown", and contents contains code fences, the height should minus 2,
   -- because the code fences won't be display
   local code_block_flag = contents[1]:match("^```")
   if filetype == "markdown" and code_block_flag ~= nil then
     height = height - 2
   end
+  local float_option = util.make_floating_popup_options(width, height, opts)
 
   log("popup size:", width, height, float_option)
   local off_y = 0
