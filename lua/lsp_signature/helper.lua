@@ -407,7 +407,7 @@ helper.cal_pos = function(contents, opts)
   if filetype == "markdown" and code_block_flag ~= nil then
     height = height - 2
   end
-  
+
   log("popup size:", width, height, float_option)
   local off_y = 0
   local max_height = float_option.height or _LSP_SIG_CFG.max_height
