@@ -128,8 +128,8 @@ local function virtual_hint(hint, off_y)
     log("virtual text only :", prev_line, next_line, r, show_at, pl)
   end
 
-  if cur_line == 0 then
-    show_at = 0
+  if lines_above == 0 then
+    show_at = cur_line
   end
   -- get show at line
   if not pl then
