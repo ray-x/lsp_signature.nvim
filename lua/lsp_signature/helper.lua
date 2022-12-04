@@ -39,7 +39,7 @@ helper.log = function(...)
       str = str .. " |" .. tostring(i) .. ": " .. tostring(v)
     end
   end
-  if #str > 2 then
+  if #str > 4 then
     if log_path ~= nil and #log_path > 3 then
       local f = io.open(log_path, "a+")
       if f == nil then
