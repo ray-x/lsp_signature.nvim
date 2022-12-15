@@ -2,6 +2,7 @@ local api = vim.api
 local fn = vim.fn
 local M = {}
 local helper = require("lsp_signature.helper")
+local log = helper.log
 local match_parameter = helper.match_parameter
 -- local check_closer_char = helper.check_closer_char
 
@@ -28,8 +29,24 @@ _LSP_SIG_CFG = {
   floating_window = true, -- show hint in a floating window
   floating_window_above_cur_line = true, -- try to place the floating above the current line
 
-  floating_window_off_x = 1, -- adjust float windows x position.
-  floating_window_off_y = 0, -- adjust float windows y position. e.g. set to -2 can make floating window move up 2 lines
+  floating_window_off_x = 1, -- adjust float windows x position. or a function return the x offset
+  floating_window_off_y = function() -- adjust float windows y position. e.g. set to -2 can make floating window move up 2 lines
+    -- local linenr = vim.api.nvim_win_get_cursor(0)[1] -- buf line number
+    -- local pumheight = vim.o.pumheight
+    -- local winline = vim.fn.winline() -- line number in the window
+    -- local winheight = vim.fn.winheight(0)
+    --
+    -- -- window top
+    -- if winline < pumheight then
+    --   return pumheight
+    -- end
+    --
+    -- -- window bottom
+    -- if winheight - winline < pumheight then
+    --   return -pumheight
+    -- end
+    return 0
+  end,
   close_timeout = 4000, -- close floating window after ms when laster parameter is entered
   fix_pos = function(signatures, client) -- first arg: second argument is the client
     _, _ = signatures, client
@@ -69,7 +86,6 @@ _LSP_SIG_CFG = {
   mainwin = 0,
 }
 
-local log = helper.log
 function manager.init()
   manager.insertLeave = false
   manager.insertChar = false
@@ -383,12 +399,20 @@ local signature_handler = function(err, result, ctx, config)
     woff = helper.cal_woff(line_to_cursor, label)
   end
 
-  if _LSP_SIG_CFG.floating_window_off_x ~= nil then
-    woff = woff + _LSP_SIG_CFG.floating_window_off_x
+  if _LSP_SIG_CFG.floating_window_off_x then
+    local offx = _LSP_SIG_CFG.floating_window_off_x
+    if type(offx) == "function" then
+      woff = woff + offx()
+    else
+      woff = woff + offx
+    end
   end
 
-  if _LSP_SIG_CFG.floating_window_off_y ~= nil then
+  if _LSP_SIG_CFG.floating_window_off_y then
     config.offset_y = _LSP_SIG_CFG.floating_window_off_y
+    if type(config.offset_y) == "function" then
+      config.offset_y = _LSP_SIG_CFG.floating_window_off_y()
+    end
   end
 
   -- total lines allowed
