@@ -30,7 +30,8 @@ _LSP_SIG_CFG = {
   floating_window_above_cur_line = true, -- try to place the floating above the current line
 
   floating_window_off_x = 1, -- adjust float windows x position. or a function return the x offset
-  floating_window_off_y = function() -- adjust float windows y position. e.g. set to -2 can make floating window move up 2 lines
+  floating_window_off_y = function() -- adjust float windows y position.
+    --e.g. set to -2 can make floating window move up 2 lines
     -- local linenr = vim.api.nvim_win_get_cursor(0)[1] -- buf line number
     -- local pumheight = vim.o.pumheight
     -- local winline = vim.fn.winline() -- line number in the window
