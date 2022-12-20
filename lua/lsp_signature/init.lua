@@ -30,7 +30,7 @@ _LSP_SIG_CFG = {
   floating_window_above_cur_line = true, -- try to place the floating above the current line
 
   floating_window_off_x = 1, -- adjust float windows x position. or a function return the x offset
-  floating_window_off_y = function() -- adjust float windows y position.
+  floating_window_off_y = function(floating_opts) -- adjust float windows y position.
     --e.g. set to -2 can make floating window move up 2 lines
     -- local linenr = vim.api.nvim_win_get_cursor(0)[1] -- buf line number
     -- local pumheight = vim.o.pumheight
@@ -400,22 +400,6 @@ local signature_handler = function(err, result, ctx, config)
     woff = helper.cal_woff(line_to_cursor, label)
   end
 
-  if _LSP_SIG_CFG.floating_window_off_x then
-    local offx = _LSP_SIG_CFG.floating_window_off_x
-    if type(offx) == "function" then
-      woff = woff + offx()
-    else
-      woff = woff + offx
-    end
-  end
-
-  if _LSP_SIG_CFG.floating_window_off_y then
-    config.offset_y = _LSP_SIG_CFG.floating_window_off_y
-    if type(config.offset_y) == "function" then
-      config.offset_y = _LSP_SIG_CFG.floating_window_off_y()
-    end
-  end
-
   -- total lines allowed
   if config.trigger_from_lsp_sig then
     lines = helper.truncate_doc(lines, num_sigs)
@@ -433,7 +417,6 @@ local signature_handler = function(err, result, ctx, config)
     error("guihua text view not supported yet")
   end
   helper.update_config(config)
-  config.offset_x = woff
 
   if type(_LSP_SIG_CFG.fix_pos) == "function" then
     local client = vim.lsp.get_client_by_id(client_id)
@@ -465,20 +448,10 @@ local signature_handler = function(err, result, ctx, config)
   log("win config", config)
   local new_line = helper.is_new_line()
 
-  if _LSP_SIG_CFG.padding ~= "" then
-    for lineIndex = 1, #lines do
-      lines[lineIndex] = _LSP_SIG_CFG.padding .. lines[lineIndex] .. _LSP_SIG_CFG.padding
-    end
-    config.offset_x = config.offset_x - #_LSP_SIG_CFG.padding
-  end
-
   local display_opts
   local cnts
 
-  display_opts, off_y, cnts = helper.cal_pos(lines, config)
-  if cnts then
-    lines = cnts
-  end
+  display_opts, off_y = helper.cal_pos(lines, config)
 
   if _LSP_SIG_CFG.hint_enable == true then
     local v_offy = off_y
@@ -487,6 +460,31 @@ local signature_handler = function(err, result, ctx, config)
     end
     virtual_hint(hint, v_offy)
   end
+
+  if _LSP_SIG_CFG.floating_window_off_x then
+    local offx = _LSP_SIG_CFG.floating_window_off_x
+    if type(offx) == "function" then
+      woff = woff + offx({})
+    else
+      woff = woff + offx
+    end
+  end
+
+  config.offset_x = woff
+  if _LSP_SIG_CFG.padding ~= "" then
+    for lineIndex = 1, #lines do
+      lines[lineIndex] = _LSP_SIG_CFG.padding .. lines[lineIndex] .. _LSP_SIG_CFG.padding
+    end
+    config.offset_x = config.offset_x - #_LSP_SIG_CFG.padding
+  end
+
+  if _LSP_SIG_CFG.floating_window_off_y then
+    config.offset_y = _LSP_SIG_CFG.floating_window_off_y
+    if type(config.offset_y) == "function" then
+      config.offset_y = _LSP_SIG_CFG.floating_window_off_y(display_opts)
+    end
+  end
+
   config.offset_y = off_y + config.offset_y
   config.focusable = true -- allow focus
   config.max_height = display_opts.max_height
