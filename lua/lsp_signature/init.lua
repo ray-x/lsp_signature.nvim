@@ -449,7 +449,6 @@ local signature_handler = function(err, result, ctx, config)
   local new_line = helper.is_new_line()
 
   local display_opts
-  local cnts
 
   display_opts, off_y = helper.cal_pos(lines, config)
 
@@ -501,7 +500,7 @@ local signature_handler = function(err, result, ctx, config)
     return
   end
 
-  log("floating opt", config, display_opts, off_y, cnts)
+  log("floating opt", config, display_opts, off_y, lines)
   if _LSP_SIG_CFG._fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
     if api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and _LSP_SIG_CFG.label == label and not new_line then
       status_line = { hint = "", label = "", range = nil }
