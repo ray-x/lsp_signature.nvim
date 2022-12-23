@@ -65,7 +65,7 @@ use {
 In your init.lua, call setup()
 
 ```lua
-cfg = {…}  -- add you config here
+local cfg = {…}  -- add you config here
 require "lsp_signature".setup(cfg)
 ```
 
