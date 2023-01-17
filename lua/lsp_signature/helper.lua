@@ -623,8 +623,6 @@ function helper.check_lsp_cap(clients, line_to_cursor)
 end
 
 helper.highlight_parameter = function(s, l)
-  -- Not sure why this not working
-  -- api.nvim_command("autocmd User SigComplete".." <buffer> ++once lua pcall(api.nvim_win_close, "..winnr..", true)")
   _LSP_SIG_CFG.ns = api.nvim_create_namespace("lsp_signature_hi_parameter")
   local hi = _LSP_SIG_CFG.hi_parameter
   log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding, hi)
@@ -647,7 +645,7 @@ helper.highlight_parameter = function(s, l)
         _LSP_SIG_CFG.ns,
         line,
         s,
-        { end_line = line, end_col = l, hl_group = hi }
+        { end_line = line, end_col = l, hl_group = hi, strict = false }
       )
 
       log("extmark_id", _LSP_SIG_CFG.markid)
