@@ -522,6 +522,15 @@ function helper.truncate_doc(lines, num_sigs)
 
   lines = vim.lsp.util.trim_empty_lines(lines)
 
+  -- remove trailing space
+  for i, line in ipairs(lines) do
+    -- if line:match("\n") then
+    --   log("***** \n exists", line)
+    -- end
+    -- log(line)
+    lines[i] = line:gsub("%s+$", ""):gsub("\r", " "):gsub("\n", " ")
+  end
+
   -- log(lines)
   return lines
 end
