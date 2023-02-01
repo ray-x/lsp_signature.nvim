@@ -190,7 +190,7 @@ local close_events = { "CursorMoved", "CursorMovedI", "BufHidden", "InsertCharPr
 -- ----------------------
 -- --  signature help  --
 -- ----------------------
--- Note: nvim 0.5.1/0.6.x   - signature_help(err, {result}, {ctx}, {config})
+-- Note: nvim 0.5.1/0.6.x   - signature_help(err, {result}, {ctx}, {config}) deprecated
 local signature_handler = function(err, result, ctx, config)
   log("signature handler")
   if err ~= nil then
@@ -556,13 +556,29 @@ end
 local line_to_cursor_old
 local signature = function(opts)
   opts = opts or {}
+
+  local bufnr = api.nvim_get_current_buf()
   local pos = api.nvim_win_get_cursor(0)
+  local clients = vim.lsp.get_active_clients({bufnr = bufnr})
+  local ft = vim.opt_local.filetype:get()
+  local disabled = { "TelescopePrompt", "guihua", "guihua_rust", "clap_input", "" }
+
+  if vim.fn.empty(ft) == 1 or vim.tbl_contains(disabled, ft)  then
+    return log("skip: disabled filetype", ft)
+  end
+  if clients == nil or next(clients) == nil then
+    return log('no active client')
+  end
+
   local line = api.nvim_get_current_line()
   local line_to_cursor = line:sub(1, pos[2])
-  local clients = vim.lsp.buf_get_clients(0)
-  if clients == nil or next(clients) == nil then
-    return
+  local signature_cap, triggered, trigger_position, trigger_chars = helper.check_lsp_cap(clients, line_to_cursor)
+
+  if signature_cap == false then
+    return log("skip: signature capabilities not enabled")
   end
+
+
   local delta = line_to_cursor
   if line_to_cursor_old == nil then
     delta = line_to_cursor
@@ -577,8 +593,7 @@ local signature = function(opts)
   log("delta", delta, line_to_cursor, line_to_cursor_old, opts)
   line_to_cursor_old = line_to_cursor
 
-  local signature_cap, triggered, trigger_position, trigger_chars = helper.check_lsp_cap(clients, line_to_cursor)
-  local should_trigger = false
+    local should_trigger = false
   for _, c in ipairs(trigger_chars) do
     c = helper.replace_special(c)
     if delta:find(c) then
@@ -599,11 +614,6 @@ local signature = function(opts)
       return
     end
   end
-  if signature_cap == false then
-    log("signature capabilities not enabled")
-    return
-  end
-
   if opts.trigger == "CursorHold" then
     local params = vim.lsp.util.make_position_params()
     params.position.character = trigger_position
@@ -713,7 +723,7 @@ function M.on_InsertLeave()
     return
   end
 
-  local delay = 0.2 -- 200ms
+  local delay = _LSP_SIG_CFG.timer_interval or 200 -- 200ms
   vim.defer_fn(function()
     mode = vim.api.nvim_get_mode().mode
     log("mode:   ", mode)
@@ -729,10 +739,10 @@ function M.on_InsertLeave()
       manager.timer:close()
       manager.timer = nil
     end
-  end, delay * 1000)
+  end, delay)
 
   log("Insert leave cleanup")
-  helper.cleanup_async(true, delay, true) -- defer close after 0.3s
+  helper.cleanup_async(true, 10, true) -- defer close after 200+10s
   status_line = { hint = "", label = "" }
 end
 

@@ -349,7 +349,7 @@ helper.cleanup_async = function(close_float_win, delay, force)
     end
     log("async cleanup: ", mode)
     helper.cleanup(close_float_win)
-  end, delay * 1000)
+  end, delay)
 end
 
 local function get_border_height(opts)
