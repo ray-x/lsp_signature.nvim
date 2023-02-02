@@ -123,12 +123,26 @@ Or:
 
 ```
 
-### Keybinds
-No default keybinds are provided.
-There are two keybinds available:
+### Keymap
+No default keymaps are provided.
+There are two keymaps available in config:
 1. toggle_key: Toggle the signature help window. It manual toggle config.floating_windows on/off
 2. select_signature_key: Select the current signature when mulitple signature is avalible.
 
+#### Customize the keymap in your config:
+
+* To toggle floating windows in `Normal` mode, you need either define a keymap to `vim.lsp.buf.signature_help()` or `require('lsp_signature').toggle_float_win()`
+
+e.g.
+```lua
+    vim.keymap.set({ 'n' }, '<C-k>', function()       require('lsp_signature').toggle_float_win()
+    end, { silent = true, noremap = true, desc = 'toggle signature' })
+
+    vim.keymap.set({ 'n' }, '<Leader>k', function()
+     vim.lsp.buf.signature_help()
+    end, { silent = true, noremap = true, desc = 'toggle signature' })
+
+```
 
 
 ### Full configuration (with default values)
