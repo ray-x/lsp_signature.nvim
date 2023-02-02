@@ -559,15 +559,15 @@ local signature = function(opts)
 
   local bufnr = api.nvim_get_current_buf()
   local pos = api.nvim_win_get_cursor(0)
-  local clients = vim.lsp.get_active_clients({bufnr = bufnr})
+  local clients = vim.lsp.get_active_clients({ bufnr = bufnr })
   local ft = vim.opt_local.filetype:get()
   local disabled = { "TelescopePrompt", "guihua", "guihua_rust", "clap_input", "" }
 
-  if vim.fn.empty(ft) == 1 or vim.tbl_contains(disabled, ft)  then
+  if vim.fn.empty(ft) == 1 or vim.tbl_contains(disabled, ft) then
     return log("skip: disabled filetype", ft)
   end
   if clients == nil or next(clients) == nil then
-    return log('no active client')
+    return log("no active client")
   end
 
   local line = api.nvim_get_current_line()
@@ -577,7 +577,6 @@ local signature = function(opts)
   if signature_cap == false then
     return log("skip: signature capabilities not enabled")
   end
-
 
   local delta = line_to_cursor
   if line_to_cursor_old == nil then
@@ -593,7 +592,7 @@ local signature = function(opts)
   log("delta", delta, line_to_cursor, line_to_cursor_old, opts)
   line_to_cursor_old = line_to_cursor
 
-    local should_trigger = false
+  local should_trigger = false
   for _, c in ipairs(trigger_chars) do
     c = helper.replace_special(c)
     if delta:find(c) then
