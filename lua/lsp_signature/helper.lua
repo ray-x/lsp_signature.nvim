@@ -4,7 +4,7 @@ local fn = vim.fn
 
 -- local lua_magic = [[^$()%.[]*+-?]]
 
-local special_chars = { "%", "*", "[", "]", "^", "$", "(", ")", ".", "+", "-", "?", '"' }
+local special_chars = { '%', '*', '[', ']', '^', '$', '(', ')', '.', '+', '-', '?', '"' }
 
 local contains = vim.tbl_contains
 -- local lsp_trigger_chars = {}
@@ -22,34 +22,34 @@ helper.log = function(...)
 
   local arg = { ... }
   local log_path = _LSP_SIG_CFG.log_path or nil
-  local str = "שׁ "
+  local str = 'שׁ '
 
   -- local info = debug.getinfo(2, "Sl")
 
   if _LSP_SIG_CFG.verbose == true then
-    local info = debug.getinfo(2, "Sl")
-    local lineinfo = info.short_src .. ":" .. info.currentline
+    local info = debug.getinfo(2, 'Sl')
+    local lineinfo = info.short_src .. ':' .. info.currentline
     str = str .. lineinfo
   end
 
   for i, v in ipairs(arg) do
-    if type(v) == "table" then
-      str = str .. " |" .. tostring(i) .. ": " .. vim.inspect(v) .. "\n"
+    if type(v) == 'table' then
+      str = str .. ' |' .. tostring(i) .. ': ' .. vim.inspect(v) .. '\n'
     else
-      str = str .. " |" .. tostring(i) .. ": " .. tostring(v)
+      str = str .. ' |' .. tostring(i) .. ': ' .. tostring(v)
     end
   end
   if #str > 4 then
     if log_path ~= nil and #log_path > 3 then
-      local f = io.open(log_path, "a+")
+      local f = io.open(log_path, 'a+')
       if f == nil then
         return
       end
       io.output(f)
-      io.write(str .. "\n")
+      io.write(str .. '\n')
       io.close(f)
     else
-      print(str .. "\n")
+      print(str .. '\n')
     end
   end
 end
@@ -58,10 +58,10 @@ local log = helper.log
 
 local function replace_special(word)
   for _, value in pairs(special_chars) do
-    local fd = "%" .. value
+    local fd = '%' .. value
     local as_loc = word:find(fd)
     while as_loc do
-      word = word:sub(1, as_loc - 1) .. "%" .. value .. word:sub(as_loc + 1, -1)
+      word = word:sub(1, as_loc - 1) .. '%' .. value .. word:sub(as_loc + 1, -1)
       as_loc = word:find(fd, as_loc + 2)
     end
   end
@@ -74,9 +74,9 @@ local function findwholeword(input, word)
   word = replace_special(word)
 
   local e
-  local l, _ = string.find(input, "%(") -- All languages I know, func parameter start with (
+  local l, _ = string.find(input, '%(') -- All languages I know, func parameter start with (
   l = l or 1
-  l, e = string.find(input, "%f[%a]" .. word .. "%f[%A]", l)
+  l, e = string.find(input, '%f[%a]' .. word .. '%f[%A]', l)
 
   if l == nil then
     -- fall back it %f[%a] fail for int32 etc
@@ -90,15 +90,15 @@ helper.fallback = function(trigger_chars)
   local line = api.nvim_get_current_line()
   line = line:sub(1, r[2])
   local activeParameter = 0
-  if not vim.tbl_contains(trigger_chars, "(") then
-    log("incorrect trigger", trigger_chars)
+  if not vim.tbl_contains(trigger_chars, '(') then
+    log('incorrect trigger', trigger_chars)
     return
   end
 
   for i = #line, 1, -1 do
     local c = line:sub(i, i)
     if vim.tbl_contains(trigger_chars, c) then
-      if c == "(" then
+      if c == '(' then
         return activeParameter
       end
       activeParameter = activeParameter + 1
@@ -118,10 +118,10 @@ end
 
 helper.ft2md = function(ft)
   local m = {
-    javascriptreact = "javascript",
-    typescriptreact = "typescript",
-    ["javascript.jsx"] = "javascript",
-    ["typescript.tsx"] = "typescript",
+    javascriptreact = 'javascript',
+    typescriptreact = 'typescript',
+    ['javascript.jsx'] = 'javascript',
+    ['typescript.tsx'] = 'typescript',
   }
   local f = m[ft]
   if f ~= nil then
@@ -138,8 +138,8 @@ helper.match_parameter = function(result, config)
   local signatures = result.signatures
 
   if #signatures == 0 then -- no parameter
-    log("no sig")
-    return result, "", 0, 0
+    log('no sig')
+    return result, '', 0, 0
   end
 
   local activeSignature = result.activeSignature or 0
@@ -147,26 +147,26 @@ helper.match_parameter = function(result, config)
   local signature = signatures[activeSignature]
 
   if signature == nil or signature.parameters == nil then -- no parameter
-    log("no sig")
-    return result, "", 0, 0
+    log('no sig')
+    return result, '', 0, 0
   end
 
   local activeParameter = signature.activeParameter or result.activeParameter
-  log("sig actPar", activeParameter, signature.label)
+  log('sig actPar', activeParameter, signature.label)
 
   if activeParameter == nil or activeParameter < 0 then
-    log("incorrect signature response?", result, config)
-    activeParameter = helper.fallback(config.triggered_chars or { "(", "," })
+    log('incorrect signature response?', result, config)
+    activeParameter = helper.fallback(config.triggered_chars or { '(', ',' })
   end
 
   if signature.parameters == nil then
-    log("incorrect signature response, missing signature.parameters", result)
-    return result, "", 0, 0
+    log('incorrect signature response, missing signature.parameters', result)
+    return result, '', 0, 0
   end
 
   if activeParameter == nil then
-    log("incorrect signature response, failed to detect activeParameter", result)
-    return result, "", 0, 0
+    log('incorrect signature response, failed to detect activeParameter', result)
+    return result, '', 0, 0
   end
 
   if activeParameter > #signature.parameters then
@@ -174,19 +174,19 @@ helper.match_parameter = function(result, config)
   end
 
   local nextParameter = signature.parameters[activeParameter + 1]
-  log("nextpara:", nextParameter)
+  log('nextpara:', nextParameter)
 
   if nextParameter == nil then
-    log("no next param")
-    return result, "", 0, 0
+    log('no next param')
+    return result, '', 0, 0
   end
 
   local label = signature.label
-  local nexp = ""
+  local nexp = ''
   local s, e
 
-  log("func", label, nextParameter)
-  if type(nextParameter.label) == "table" then -- label = {2, 4} c style
+  log('func', label, nextParameter)
+  if type(nextParameter.label) == 'table' then -- label = {2, 4} c style
     local range = nextParameter.label
     nexp = label:sub(range[1] + 1, range[2])
     s = range[1] + 1
@@ -194,7 +194,7 @@ helper.match_parameter = function(result, config)
     signature.label = label
     -- log("range s, e", s, e)
   else
-    if type(nextParameter.label) == "string" then -- label = 'par1 int'
+    if type(nextParameter.label) == 'string' then -- label = 'par1 int'
       -- log("range str ", label, nextParameter.label)
       local i, j = findwholeword(label, nextParameter.label)
       if i ~= nil then
@@ -204,11 +204,11 @@ helper.match_parameter = function(result, config)
       s = i
       e = j
     else
-      log("incorrect label type", type(nextParameter.label))
+      log('incorrect label type', type(nextParameter.label))
     end
   end
   if nextParameter.documentation and #nextParameter.documentation > 0 then
-    nexp = nexp .. ": " .. nextParameter.documentation
+    nexp = nexp .. ': ' .. nextParameter.documentation
   end
 
   -- test markdown hl
@@ -221,34 +221,34 @@ helper.check_trigger_char = function(line_to_cursor, trigger_characters)
   if trigger_characters == nil then
     return false, #line_to_cursor
   end
-  local no_ws_line_to_cursor = string.gsub(line_to_cursor, "%s+", "")
+  local no_ws_line_to_cursor = string.gsub(line_to_cursor, '%s+', '')
   -- log("newline: ", #line_to_cursor, line_to_cursor)
   if #no_ws_line_to_cursor < 1 then
-    log("newline, lets try signature based on setup")
+    log('newline, lets try signature based on setup')
     return _LSP_SIG_CFG.always_trigger, #line_to_cursor
   end
 
-  local includes = ""
+  local includes = ''
   local excludes = [[^]]
 
   for _, ch in pairs(trigger_characters) do
     log(ch, is_special(ch))
     if is_special(ch) then
       log(ch)
-      includes = includes .. "%" .. ch
-      excludes = excludes .. "%" .. ch
+      includes = includes .. '%' .. ch
+      excludes = excludes .. '%' .. ch
     else
-      log("not special", ch)
+      log('not special', ch)
       includes = includes .. ch
       excludes = excludes .. ch
     end
   end
 
-  if vim.tbl_contains(trigger_characters, "(") then
-    excludes = excludes .. "%)"
+  if vim.tbl_contains(trigger_characters, '(') then
+    excludes = excludes .. '%)'
   end
 
-  local pat = string.format("[%s][%s]*$", includes, excludes)
+  local pat = string.format('[%s][%s]*$', includes, excludes)
   log(pat, includes, excludes)
 
   -- with a this bit of logic we're gonna search for the nearest trigger
@@ -262,8 +262,8 @@ helper.check_trigger_char = function(line_to_cursor, trigger_characters)
   if last_trigger_char_index ~= nil then
     -- check if last character is a closing character
     local last_trigger_char = line_to_cursor:sub(last_trigger_char_index, last_trigger_char_index)
-    log("last trigger char", last_trigger_char)
-    if last_trigger_char ~= ")" then
+    log('last trigger char', last_trigger_char)
+    if last_trigger_char ~= ')' then
       -- when the last character is a closing character, use the full line
       -- for example when the line is: "list(); new_var = " we don't want to trigger on the )
       local line_to_last_trigger = line_to_cursor:sub(1, last_trigger_char_index)
@@ -287,7 +287,7 @@ helper.check_closer_char = function(line_to_cursor, trigger_chars)
   end
 
   local current_char = string.sub(line_to_cursor, #line_to_cursor, #line_to_cursor)
-  if current_char == ")" and vim.tbl_contains(trigger_chars, "(") then
+  if current_char == ')' and vim.tbl_contains(trigger_chars, '(') then
     return true
   end
   return false
@@ -297,9 +297,9 @@ helper.is_new_line = function()
   local line = api.nvim_get_current_line()
   local r = api.nvim_win_get_cursor(0)
   local line_to_cursor = line:sub(1, r[2])
-  line_to_cursor = string.gsub(line_to_cursor, "%s+", "")
+  line_to_cursor = string.gsub(line_to_cursor, '%s+', '')
   if #line_to_cursor < 1 then
-    log("newline")
+    log('newline')
     return true
   end
   return false
@@ -308,7 +308,7 @@ end
 helper.close_float_win = function(close_float_win)
   close_float_win = close_float_win or false
   if _LSP_SIG_CFG.winnr and api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) and close_float_win then
-    log("closing winnr", _LSP_SIG_CFG.winnr)
+    log('closing winnr', _LSP_SIG_CFG.winnr)
     api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
     _LSP_SIG_CFG.winnr = nil
   end
@@ -317,19 +317,19 @@ end
 helper.cleanup = function(close_float_win)
   -- vim.schedule(function()
 
-  _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace("lsp_signature_vt")
-  log("cleanup vt", _LSP_SIG_VT_NS)
+  _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace('lsp_signature_vt')
+  log('cleanup vt', _LSP_SIG_VT_NS)
   api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
   close_float_win = close_float_win or false
   if _LSP_SIG_CFG.ns and _LSP_SIG_CFG.bufnr and api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
-    log("bufnr, ns", _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns)
+    log('bufnr, ns', _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns)
     api.nvim_buf_clear_namespace(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, 0, -1)
   end
   _LSP_SIG_CFG.markid = nil
   _LSP_SIG_CFG.ns = nil
   local winnr = _LSP_SIG_CFG.winnr
   if winnr and winnr ~= 0 and api.nvim_win_is_valid(winnr) and close_float_win then
-    log("closing winnr", _LSP_SIG_CFG.winnr)
+    log('closing winnr', _LSP_SIG_CFG.winnr)
     api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
     _LSP_SIG_CFG.winnr = nil
     _LSP_SIG_CFG.bufnr = nil
@@ -339,15 +339,15 @@ end
 
 helper.cleanup_async = function(close_float_win, delay, force)
   log(debug.traceback())
-  vim.validate({ delay = { delay, "number" } })
+  vim.validate({ delay = { delay, 'number' } })
   vim.defer_fn(function()
     local mode = api.nvim_get_mode().mode
-    if not force and (mode == "i" or mode == "s") then
-      log("async cleanup insert leave ignored")
+    if not force and (mode == 'i' or mode == 's') then
+      log('async cleanup insert leave ignored')
       -- still in insert mode debounce
       return
     end
-    log("async cleanup: ", mode)
+    log('async cleanup: ', mode)
     helper.cleanup(close_float_win)
   end, delay)
 end
@@ -360,15 +360,15 @@ local function get_border_height(opts)
     return
   end
 
-  if type(border) == "string" then
+  if type(border) == 'string' then
     height = border_height[border]
   else
     local function _border_height(id)
       id = (id - 1) % #border + 1
-      if type(border[id]) == "table" then
+      if type(border[id]) == 'table' then
         -- border specified as a table of <character, highlight group>
         return #border[id][1] > 0 and 1 or 0
-      elseif type(border[id]) == "string" then
+      elseif type(border[id]) == 'string' then
         -- border specified as a list of border characters
         return #border[id] > 0 and 1 or 0
       end
@@ -381,7 +381,7 @@ local function get_border_height(opts)
 end
 
 helper.cal_pos = function(contents, opts)
-  local lnum = fn.line(".") - fn.line("w0") + 1
+  local lnum = fn.line('.') - fn.line('w0') + 1
 
   local lines_above = fn.winline() - 1
   local lines_below = fn.winheight(0) - fn.winline() -- not counting current
@@ -403,24 +403,26 @@ helper.cal_pos = function(contents, opts)
 
   -- if the filetype returned is "markdown", and contents contains code fences, the height should minus 2,
   -- because the code fences won't be display
-  local code_block_flag = contents[1]:match("^```")
-  if filetype == "markdown" and code_block_flag ~= nil then
+  local code_block_flag = contents[1]:match('^```')
+  if filetype == 'markdown' and code_block_flag ~= nil then
     height = height - 2
   end
 
-  log("popup size:", width, height, float_option)
+  log('popup size:', width, height, float_option)
   local off_y = 0
   local max_height = float_option.height or _LSP_SIG_CFG.max_height
   local border_height = get_border_height(float_option)
   -- shift win above current line
-  if float_option.anchor == "NW" or float_option.anchor == "NE" then
+  if float_option.anchor == 'NW' or float_option.anchor == 'NE' then
     -- note: the floating widnows will be under current line
     if lines_above >= float_option.height + border_height + 1 then
       off_y = -(float_option.height + border_height + 1)
-      max_height = math.min(max_height, math.max(lines_above - border_height - 1, border_height + 1))
+      max_height =
+        math.min(max_height, math.max(lines_above - border_height - 1, border_height + 1))
     else
       -- below
-      max_height = math.min(max_height, math.max(lines_below - border_height - 1, border_height + 1))
+      max_height =
+        math.min(max_height, math.max(lines_below - border_height - 1, border_height + 1))
     end
   else
     -- above
@@ -441,10 +443,10 @@ function helper.nvim_0_6()
     return nvim_0_6
   end
   -- if debug.getinfo(vim.lsp.handlers.signature_help).nparams == 4 then
-  if vim.fn.has("nvim-0.6.1") == 1 then
+  if vim.fn.has('nvim-0.6.1') == 1 then
     nvim_0_6 = true
   else
-    vim.notify("nvim-0.6.1 is required for this plugin", { timeout = 5000 })
+    vim.notify('nvim-0.6.1 is required for this plugin', { timeout = 5000 })
     nvim_0_6 = false
   end
   return nvim_0_6
@@ -468,18 +470,18 @@ function helper.mk_handler(func)
 end
 
 function helper.cal_woff(line_to_cursor, label)
-  local woff = line_to_cursor:find("%([^%(]*$")
-  local sig_woff = label:find("%([^%(]*$")
+  local woff = line_to_cursor:find('%([^%(]*$')
+  local sig_woff = label:find('%([^%(]*$')
   if woff and sig_woff then
     local function_name = label:sub(1, sig_woff - 1)
 
     -- run this again for some language have multiple `()`
-    local sig_woff2 = function_name:find("%([^%(]*$")
+    local sig_woff2 = function_name:find('%([^%(]*$')
     if sig_woff2 then
       function_name = label:sub(1, sig_woff2 - 1)
     end
     local f = function_name
-    f = ".*" .. replace_special(f)
+    f = '.*' .. replace_special(f)
     local function_on_line = line_to_cursor:match(f)
     if function_on_line then
       woff = #line_to_cursor - #function_on_line + #function_name
@@ -488,7 +490,7 @@ function helper.cal_woff(line_to_cursor, label)
     end
     woff = -woff
   else
-    log("invalid trigger pos? ", line_to_cursor)
+    log('invalid trigger pos? ', line_to_cursor)
     woff = -1 * math.min(3, #line_to_cursor)
   end
   return woff
@@ -499,24 +501,24 @@ function helper.truncate_doc(lines, num_sigs)
   local vmode = api.nvim_get_mode().mode
   -- truncate doc if in insert/replace mode
   if
-    vmode == "i"
-    or vmode == "ic"
-    or vmode == "v"
-    or vmode == "s"
-    or vmode == "S"
-    or vmode == "R"
-    or vmode == "Rc"
-    or vmode == "Rx"
+    vmode == 'i'
+    or vmode == 'ic'
+    or vmode == 'v'
+    or vmode == 's'
+    or vmode == 'S'
+    or vmode == 'R'
+    or vmode == 'Rc'
+    or vmode == 'Rx'
   then
     -- truncate the doc?
     -- log(#lines, doc_num, num_sigs)
     if #lines > doc_num + num_sigs then -- for markdown doc start with ```text and end with ```
       local last = lines[#lines]
       lines = vim.list_slice(lines, 1, doc_num + num_sigs)
-      if last == "```" then
-        table.insert(lines, "```")
+      if last == '```' then
+        table.insert(lines, '```')
       end
-      log("lines truncate", lines)
+      log('lines truncate', lines)
     end
   end
 
@@ -528,7 +530,7 @@ function helper.truncate_doc(lines, num_sigs)
     --   log("***** \n exists", line)
     -- end
     -- log(line)
-    lines[i] = line:gsub("%s+$", ""):gsub("\r", " "):gsub("\n", " ")
+    lines[i] = line:gsub('%s+$', ''):gsub('\r', ' '):gsub('\n', ' ')
   end
 
   -- log(lines)
@@ -536,22 +538,22 @@ function helper.truncate_doc(lines, num_sigs)
 end
 
 function helper.update_config(config)
-  local double = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" }
-  local rounded = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" }
+  local double = { '╔', '═', '╗', '║', '╝', '═', '╚', '║' }
+  local rounded = { '╭', '─', '╮', '│', '╯', '─', '╰', '│' }
   local rand = math.random(1, 1000)
-  local id = string.format("%d", rand)
+  local id = string.format('%d', rand)
   config.max_height = math.max(_LSP_SIG_CFG.max_height, 1)
   if config.max_height <= 3 then
     config.separator = false
   end
   config.max_width = math.max(_LSP_SIG_CFG.max_width, 60)
 
-  config.focus_id = "lsp_signature" .. id
+  config.focus_id = 'lsp_signature' .. id
   config.stylize_markdown = true
-  if config.border == "double" then
+  if config.border == 'double' then
     config.border = double
   end
-  if config.border == "rounded" then
+  if config.border == 'rounded' then
     config.border = rounded
   end
   if _LSP_SIG_CFG.wrap then
@@ -577,7 +579,7 @@ function helper.check_lsp_cap(clients, line_to_cursor)
       local sig_provider = value.server_capabilities.signatureHelpProvider
       local rslv_cap = value.server_capabilities
       if vim_version < 61 then
-        vim.notify("LSP: lsp-signature requires neovim 0.6.1 or later", vim.log.levels.WARN)
+        vim.notify('LSP: lsp-signature requires neovim 0.6.1 or later', vim.log.levels.WARN)
         return
       end
       if fn.empty(sig_provider) == 0 then
@@ -609,7 +611,10 @@ function helper.check_lsp_cap(clients, line_to_cursor)
         end
         if sig_provider == nil and vim_version <= 70 then -- TODO: deprecated
           if rslv_cap ~= nil and rslv_cap.signature_help_trigger_characters ~= nil then
-            triggered_chars = tbl_combine(triggered_chars, value.server_capabilities.signature_help_trigger_characters)
+            triggered_chars = tbl_combine(
+              triggered_chars,
+              value.server_capabilities.signature_help_trigger_characters
+            )
           end
         end
 
@@ -620,23 +625,23 @@ function helper.check_lsp_cap(clients, line_to_cursor)
     end
   end
   if hover_cap == false then
-    log("hover not supported")
+    log('hover not supported')
   end
 
   if total_lsp > 1 then
-    log("you have multiple lsp with signatureHelp enabled")
+    log('you have multiple lsp with signatureHelp enabled')
   end
-  log("lsp cap: ", signature_cap, triggered, trigger_position)
+  log('lsp cap: ', signature_cap, triggered, trigger_position)
 
   return signature_cap, triggered, trigger_position, triggered_chars
 end
 
 helper.highlight_parameter = function(s, l)
-  _LSP_SIG_CFG.ns = api.nvim_create_namespace("lsp_signature_hi_parameter")
+  _LSP_SIG_CFG.ns = api.nvim_create_namespace('lsp_signature_hi_parameter')
   local hi = _LSP_SIG_CFG.hi_parameter
-  log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding, hi)
+  log('extmark', _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding, hi)
   if s and l and s > 0 then
-    if _LSP_SIG_CFG.padding == "" then
+    if _LSP_SIG_CFG.padding == '' then
       s = s - 1
     else
       s = s - 1 + #_LSP_SIG_CFG.padding
@@ -648,7 +653,7 @@ helper.highlight_parameter = function(s, l)
       line = 1
     end
     if _LSP_SIG_CFG.bufnr and api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
-      log("extmark", _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding)
+      log('extmark', _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding)
       _LSP_SIG_CFG.markid = api.nvim_buf_set_extmark(
         _LSP_SIG_CFG.bufnr,
         _LSP_SIG_CFG.ns,
@@ -657,10 +662,10 @@ helper.highlight_parameter = function(s, l)
         { end_line = line, end_col = l, hl_group = hi, strict = false }
       )
 
-      log("extmark_id", _LSP_SIG_CFG.markid)
+      log('extmark_id', _LSP_SIG_CFG.markid)
     end
   else
-    log("failed get highlight parameter", s, l)
+    log('failed get highlight parameter', s, l)
   end
 end
 
@@ -690,7 +695,7 @@ helper.get_doc = function(result)
 end
 
 helper.completion_visible = function()
-  local hascmp, cmp = pcall(require, "cmp")
+  local hascmp, cmp = pcall(require, 'cmp')
   if hascmp then
     return cmp.visible()
   end
@@ -705,7 +710,7 @@ local function jump_to_win(wr)
 end
 
 helper.change_focus = function()
-  helper.log("move focus", _LSP_SIG_CFG.winnr, _LSP_SIG_CFG.mainwin)
+  helper.log('move focus', _LSP_SIG_CFG.winnr, _LSP_SIG_CFG.mainwin)
   local winnr = api.nvim_get_current_win()
   if winnr == _LSP_SIG_CFG.winnr then --need to change back to main
     return jump_to_win(_LSP_SIG_CFG.mainwin)
