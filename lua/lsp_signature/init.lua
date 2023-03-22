@@ -507,6 +507,7 @@ local signature_handler = function(err, result, ctx, config)
     return
   end
 
+  config.noautocmd = true
   log('floating opt', config, display_opts, off_y, lines)
   if _LSP_SIG_CFG._fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
     if
@@ -937,11 +938,12 @@ local signature_should_close_handler = helper.mk_handler(function(err, result, c
     return
   end
 
-  log('sig cleanup', result, ctx)
+  -- log('sig should cleanup?', result, ctx)
   local client_id = ctx.client_id
   local valid_result = result and result.signatures and result.signatures[1]
   local rlabel = nil
   if not valid_result then
+    log('sig should cleanup? no valid result', result, ctx)
     -- only close if this client opened the signature
     if _LSP_SIG_CFG.client_id == client_id then
       helper.cleanup_async(true, 0.01, true)
@@ -1083,6 +1085,8 @@ M.setup = function(cfg)
     end
     return _start_client(lsp_config)
   end
+  vim.lsp.util.make_floating_popup_options =
+    require('lsp_signature.helper').make_floating_popup_options
 
   -- default if not defined
   vim.cmd([[hi default link LspSignatureActiveParameter Search]])

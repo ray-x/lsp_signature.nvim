@@ -725,4 +725,98 @@ helper.change_focus = function()
   -- vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(_LSP_SIG_CFG.move_cursor_key, true, true, true), "i", true)
 end
 
+local validate = vim.validate
+local default_border = {
+  { '', 'NormalFloat' },
+  { '', 'NormalFloat' },
+  { '', 'NormalFloat' },
+  { ' ', 'NormalFloat' },
+  { '', 'NormalFloat' },
+  { '', 'NormalFloat' },
+  { '', 'NormalFloat' },
+  { ' ', 'NormalFloat' },
+}
+
+
+
+--- Creates a table with sensible default options for a floating window. The
+--- table can be passed to |nvim_open_win()|.
+---
+---@param width (integer) window width (in character cells)
+---@param height (integer) window height (in character cells)
+---@param opts (table, optional)
+---        - offset_x (integer) offset to add to `col`
+---        - offset_y (integer) offset to add to `row`
+---        - border (string or table) override `border`
+---        - focusable (string or table) override `focusable`
+---        - zindex (string or table) override `zindex`, defaults to 50
+---        - relative ("mouse"|"cursor") defaults to "cursor"
+---        - noautocmd (boolean) defaults to "false"
+
+---@returns (table) Options
+function helper.make_floating_popup_options(width, height, opts)
+  validate({
+    opts = { opts, 't', true },
+  })
+  opts = opts or {}
+  validate({
+    ['opts.offset_x'] = { opts.offset_x, 'n', true },
+    ['opts.offset_y'] = { opts.offset_y, 'n', true },
+  })
+
+  local anchor = ''
+  local row, col
+
+  local lines_above = opts.relative == 'mouse' and vim.fn.getmousepos().line - 1
+    or vim.fn.winline() - 1
+  local lines_below = vim.fn.winheight(0) - lines_above
+
+  if lines_above < lines_below then
+    anchor = anchor .. 'N'
+    height = math.min(lines_below, height)
+    row = 1
+  else
+    anchor = anchor .. 'S'
+    height = math.min(lines_above, height)
+    row = 0
+  end
+
+  local wincol = opts.relative == 'mouse' and vim.fn.getmousepos().column or vim.fn.wincol()
+
+  if wincol + width + (opts.offset_x or 0) <= api.nvim_get_option('columns') then
+    anchor = anchor .. 'W'
+    col = 0
+  else
+    anchor = anchor .. 'E'
+    col = 1
+  end
+
+  local title = (opts.border and opts.title) and opts.title or nil
+  local title_pos
+
+  if title then
+    title_pos = opts.title_pos or 'center'
+  end
+  if opts.noautocmd == nil then
+    opts.noautocmd = false
+  end
+
+  return {
+    anchor = anchor,
+    col = col + (opts.offset_x or 0),
+    height = height,
+    focusable = opts.focusable,
+    relative = opts.relative == 'mouse' and 'mouse' or 'cursor',
+    row = row + (opts.offset_y or 0),
+    style = 'minimal',
+    width = width,
+    border = opts.border or default_border,
+    zindex = opts.zindex or 50,
+    title = title,
+    title_pos = title_pos,
+    noautocmd = opts.noautocmd,
+  }
+end
+
+
 return helper
