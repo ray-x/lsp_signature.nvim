@@ -387,7 +387,7 @@ helper.cal_pos = function(contents, opts)
   local lines_below = fn.winheight(0) - fn.winline() -- not counting current
   -- wont fit if move floating above current line
   if not _LSP_SIG_CFG.floating_window_above_cur_line or lnum <= 2 then
-    return {}, 0
+    return {}, 2
   end
   local util = vim.lsp.util
   contents = util._trim(contents, opts)
