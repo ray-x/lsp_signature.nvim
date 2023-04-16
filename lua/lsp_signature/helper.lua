@@ -737,8 +737,6 @@ local default_border = {
   { ' ', 'NormalFloat' },
 }
 
-
-
 --- Creates a table with sensible default options for a floating window. The
 --- table can be passed to |nvim_open_win()|.
 ---
