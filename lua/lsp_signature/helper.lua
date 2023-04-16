@@ -816,5 +816,4 @@ function helper.make_floating_popup_options(width, height, opts)
   }
 end
 
-
 return helper
