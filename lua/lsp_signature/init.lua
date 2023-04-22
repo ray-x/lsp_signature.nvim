@@ -470,7 +470,7 @@ local signature_handler = function(err, result, ctx, config)
   if _LSP_SIG_CFG.floating_window_off_x then
     local offx = _LSP_SIG_CFG.floating_window_off_x
     if type(offx) == 'function' then
-      woff = woff + offx({})
+      woff = woff + offx({ x_off = woff })
     else
       woff = woff + offx
     end
