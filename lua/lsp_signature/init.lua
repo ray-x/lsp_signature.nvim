@@ -8,7 +8,7 @@ local match_parameter = helper.match_parameter
 
 local status_line = { hint = '', label = '' }
 local manager = {
-  insertChar = false, -- flag for InsertCharPre event, turn off imediately when performing completion
+  insertChar = false, -- flag for InsertCharPre event, turn off immediately when performing completion
   insertLeave = true, -- flag for InsertLeave, prevent every completion if true
   changedTick = 0, -- handle changeTick
   confirmedCompletion = false, -- flag for manual confirmation of completion
@@ -78,7 +78,7 @@ _LSP_SIG_CFG = {
   toggle_key = nil, -- toggle signature on and off in insert mode,  e.g. '<M-x>'
   -- set this key also helps if you want see signature in newline
   select_signature_key = nil, -- cycle to next signature, e.g. '<M-n>' function overloading
-  -- internal vars, init here to suppress linter warings
+  -- internal vars, init here to suppress linter warnings
   move_cursor_key = nil, -- use nvim_set_current_win
 
   --- private vars
@@ -255,7 +255,7 @@ local signature_handler = function(err, result, ctx, config)
 
   if actSig == nil then
     log('no valid signature, or invalid response', result)
-    print('no valid signature or incorrect lsp reponse ', vim.inspect(result))
+    print('no valid signature or incorrect lsp response ', vim.inspect(result))
     return
   end
 
@@ -1023,7 +1023,9 @@ M.status_line = function(size)
 end
 
 M.toggle_float_win = function()
-  _LSP_SIG_CFG.floating_window = not _LSP_SIG_CFG.floating_window
+  if _LSP_SIG_CFG.toggle_key_flip_floatwin_setting then
+    _LSP_SIG_CFG.floating_window = not _LSP_SIG_CFG.floating_window
+  end
 
   if
     _LSP_SIG_CFG.winnr
