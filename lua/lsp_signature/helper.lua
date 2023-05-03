@@ -22,7 +22,7 @@ helper.log = function(...)
 
   local arg = { ... }
   local log_path = _LSP_SIG_CFG.log_path or nil
-  local str = 'שׁ '
+  local str = '󰘫 '
 
   -- local info = debug.getinfo(2, "Sl")
 
