@@ -1010,7 +1010,7 @@ M.status_line = function(size)
     end
     return {
       hint = status_line.hint,
-      label = status_line.label:sub(1, labelsize) .. [[]],
+      label = status_line.label:sub(1, labelsize) .. [[󰇘]],
       range = status_line.range,
     }
   end
