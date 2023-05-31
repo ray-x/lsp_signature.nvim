@@ -183,6 +183,7 @@ e.g.
   hint_enable = true, -- virtual hint enable
   hint_prefix = "🐼 ",  -- Panda for parameter, NOTE: for the terminal not support emoji, might crash
   hint_scheme = "String",
+  hint_inline = function() return has('nvim-0.10') end,  -- should the hint be inline? return true for nvim 0.10
   hi_parameter = "LspSignatureActiveParameter", -- how your parameter will be highlight
   handler_opts = {
     border = "rounded"   -- double, rounded, single, shadow, none, or a table of borders

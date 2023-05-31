@@ -2,6 +2,7 @@ local api = vim.api
 local fn = vim.fn
 local M = {}
 local helper = require('lsp_signature.helper')
+local inline_vt
 local log = helper.log
 local match_parameter = helper.match_parameter
 -- local check_closer_char = helper.check_closer_char
@@ -57,6 +58,17 @@ _LSP_SIG_CFG = {
   hint_enable = true, -- virtual hint
   hint_prefix = '🐼 ',
   hint_scheme = 'String',
+  hint_inline = function()
+    if inline_vt ~= nil then
+      return inline_vt
+    end
+    if fn.has('nvim_0.10') and _LSP_SIG_CFG.hint_enable then
+      inline_vt = true
+    else
+      inline_vt = false
+    end
+    return inline_vt
+  end,
   hi_parameter = 'LspSignatureActiveParameter',
   handler_opts = { border = 'rounded' },
   cursorhold_update = true, -- if cursorhold slows down the completion, set to false to disable it
@@ -157,15 +169,17 @@ local function virtual_hint(hint, off_y)
   end
   pl = pl or ''
   local pad = ''
-  local line_to_cursor_width = dwidth(line_to_cursor)
-  local pl_width = dwidth(pl)
-  if show_at ~= cur_line and line_to_cursor_width > pl_width + 1 then
-    pad = string.rep(' ', line_to_cursor_width - pl_width)
-    local width = vim.api.nvim_win_get_width(0)
-    local hint_width = dwidth(_LSP_SIG_CFG.hint_prefix .. hint)
-    -- todo: 6 is width of sign+linenumber column
-    if #pad + pl_width + hint_width + 6 > width then
-      pad = string.rep(' ', math.max(1, line_to_cursor_width - pl_width - hint_width - 6))
+  if _LSP_SIG_CFG.hint_inline() == false then
+    local line_to_cursor_width = dwidth(line_to_cursor)
+    local pl_width = dwidth(pl)
+    if show_at ~= cur_line and line_to_cursor_width > pl_width + 1 then
+      pad = string.rep(' ', line_to_cursor_width - pl_width)
+      local width = vim.api.nvim_win_get_width(0)
+      local hint_width = dwidth(_LSP_SIG_CFG.hint_prefix .. hint)
+      -- todo: 6 is width of sign+linenumber column
+      if #pad + pl_width + hint_width + 6 > width then
+        pad = string.rep(' ', math.max(1, line_to_cursor_width - pl_width - hint_width - 6))
+      end
     end
   end
   _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace('lsp_signature_vt')
@@ -174,8 +188,17 @@ local function virtual_hint(hint, off_y)
 
   local vt = { pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme }
 
-  log('virtual text: ', cur_line, show_at, vt)
-  if r ~= nil then
+  if _LSP_SIG_CFG.hint_inline() then
+    log('virtual text: ', cur_line, r[1]-1, r[2], vt)
+    vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, r[1]-1, r[2], { -- Note: the vt was put after of cursor.
+      -- this seems eaiser to handle in the code also easy to read
+      virt_text_pos = "inline",
+      virt_text = { vt },
+      hl_mode = 'combine',
+      -- hl_group = _LSP_SIG_CFG.hint_scheme
+    })
+  else  -- I may deprecated this when nvim 0.10 release
+    log('virtual text: ', cur_line, show_at, vt)
     vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, show_at, 0, {
       virt_text = { vt },
       virt_text_pos = 'eol',
