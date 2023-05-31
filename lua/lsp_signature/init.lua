@@ -65,7 +65,7 @@ _LSP_SIG_CFG = {
     if inline_vt ~= nil then
       return inline_vt
     end
-    if fn.has('nvim_0.10') and _LSP_SIG_CFG.hint_enable then
+    if fn.has('nvim_0.10') == 1 and _LSP_SIG_CFG.hint_enable then
       inline_vt = true
     else
       inline_vt = false
