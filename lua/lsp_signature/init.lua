@@ -2,7 +2,6 @@ local api = vim.api
 local fn = vim.fn
 local M = {}
 local helper = require('lsp_signature.helper')
-local inline_vt
 local log = helper.log
 local match_parameter = helper.match_parameter
 -- local check_closer_char = helper.check_closer_char
@@ -59,18 +58,7 @@ _LSP_SIG_CFG = {
   hint_prefix = '🐼 ',
   hint_scheme = 'String',
   hint_inline = function()
-    if true then  -- turn off by default, need to improve UX
-      return false
-    end
-    if inline_vt ~= nil then
-      return inline_vt
-    end
-    if fn.has('nvim_0.10') == 1 and _LSP_SIG_CFG.hint_enable then
-      inline_vt = true
-    else
-      inline_vt = false
-    end
-    return inline_vt
+    return false -- return fn.has('nvim_0.10') == 1
   end,
   hi_parameter = 'LspSignatureActiveParameter',
   handler_opts = { border = 'rounded' },
@@ -172,6 +160,7 @@ local function virtual_hint(hint, off_y)
   end
   pl = pl or ''
   local pad = ''
+  local offset = r[2]
   if _LSP_SIG_CFG.hint_inline() == false then
     local line_to_cursor_width = dwidth(line_to_cursor)
     local pl_width = dwidth(pl)
@@ -184,6 +173,25 @@ local function virtual_hint(hint, off_y)
         pad = string.rep(' ', math.max(1, line_to_cursor_width - pl_width - hint_width - 6))
       end
     end
+  else -- inline enabled
+    local str = vim.api.nvim_get_current_line()
+    local cursor_position = vim.api.nvim_win_get_cursor(0)
+    local cursor_index = cursor_position[2]
+
+    local closest_char = nil
+    local closest_index = nil
+
+    for i = cursor_index, 1, -1 do
+      local char = string.sub(str, i, i)
+      if char == "," or char == "(" then
+        closest_char = char
+        closest_index = i
+        break
+      end
+    end
+    offset = closest_index
+    hint = hint .. ': '
+
   end
   _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace('lsp_signature_vt')
 
@@ -193,7 +201,7 @@ local function virtual_hint(hint, off_y)
 
   if _LSP_SIG_CFG.hint_inline() then
     log('virtual text: ', cur_line, r[1] - 1, r[2], vt)
-    vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, r[1] - 1, r[2], { -- Note: the vt was put after of cursor.
+    vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, r[1] - 1, offset, { -- Note: the vt was put after of cursor.
       -- this seems eaiser to handle in the code also easy to read
       virt_text_pos = 'inline',
       virt_text = { vt },
