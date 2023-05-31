@@ -59,6 +59,9 @@ _LSP_SIG_CFG = {
   hint_prefix = '🐼 ',
   hint_scheme = 'String',
   hint_inline = function()
+    if true then  -- turn off by default, need to improve UX
+      return false
+    end
     if inline_vt ~= nil then
       return inline_vt
     end
@@ -189,15 +192,15 @@ local function virtual_hint(hint, off_y)
   local vt = { pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme }
 
   if _LSP_SIG_CFG.hint_inline() then
-    log('virtual text: ', cur_line, r[1]-1, r[2], vt)
-    vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, r[1]-1, r[2], { -- Note: the vt was put after of cursor.
+    log('virtual text: ', cur_line, r[1] - 1, r[2], vt)
+    vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, r[1] - 1, r[2], { -- Note: the vt was put after of cursor.
       -- this seems eaiser to handle in the code also easy to read
-      virt_text_pos = "inline",
+      virt_text_pos = 'inline',
       virt_text = { vt },
       hl_mode = 'combine',
       -- hl_group = _LSP_SIG_CFG.hint_scheme
     })
-  else  -- I may deprecated this when nvim 0.10 release
+  else -- I may deprecated this when nvim 0.10 release
     log('virtual text: ', cur_line, show_at, vt)
     vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, show_at, 0, {
       virt_text = { vt },
