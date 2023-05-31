@@ -178,13 +178,11 @@ local function virtual_hint(hint, off_y)
     local cursor_position = vim.api.nvim_win_get_cursor(0)
     local cursor_index = cursor_position[2]
 
-    local closest_char = nil
     local closest_index = nil
 
     for i = cursor_index, 1, -1 do
       local char = string.sub(str, i, i)
-      if char == "," or char == "(" then
-        closest_char = char
+      if char == ',' or char == '(' then
         closest_index = i
         break
       end
