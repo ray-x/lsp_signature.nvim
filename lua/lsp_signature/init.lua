@@ -189,7 +189,6 @@ local function virtual_hint(hint, off_y)
     end
     offset = closest_index
     hint = hint .. ': '
-
   end
   _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace('lsp_signature_vt')
 
