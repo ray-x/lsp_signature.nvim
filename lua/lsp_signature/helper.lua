@@ -696,7 +696,7 @@ end
 
 helper.completion_visible = function()
   local hascmp, cmp = pcall(require, 'cmp')
-  local hasrusttools, rusttools = pcall(require, 'rust-tools')
+  local hasrusttools = pcall(require, 'rust-tools')
   if hasrusttools then
     return true
   end
