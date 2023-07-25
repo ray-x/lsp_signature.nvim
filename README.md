@@ -65,7 +65,7 @@ use {
   event = "VeryLazy",
   opts = {},
   config = function(_, opts) require'lsp_signature'.setup(opts) end
-},
+}
 ```
 
 # Setup / Attach the plugin
