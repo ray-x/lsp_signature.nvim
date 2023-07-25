@@ -58,6 +58,14 @@ Plug 'ray-x/lsp_signature.nvim'
 use {
   "ray-x/lsp_signature.nvim",
 }
+
+" Lazy
+{
+  "ray-x/lsp_signature.nvim",
+  event = "VeryLazy",
+  opts = {},
+  config = function(_, opts) require'lsp_signature'.setup(opts) end
+}
 ```
 
 # Setup / Attach the plugin
