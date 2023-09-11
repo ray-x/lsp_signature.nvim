@@ -193,7 +193,10 @@ local function virtual_hint(hint, off_y)
   _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace('lsp_signature_vt')
 
   helper.cleanup(false) -- cleanup extmark
-
+  if offset == nil then
+    log('virtual text: ', cur_line, "invalid offset")
+    return -- no offset found
+  end
   local vt = { pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme }
 
   if _LSP_SIG_CFG.hint_inline() then
