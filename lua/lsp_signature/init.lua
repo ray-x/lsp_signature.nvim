@@ -194,7 +194,7 @@ local function virtual_hint(hint, off_y)
 
   helper.cleanup(false) -- cleanup extmark
   if offset == nil then
-    log('virtual text: ', cur_line, "invalid offset")
+    log('virtual text: ', cur_line, 'invalid offset')
     return -- no offset found
   end
   local vt = { pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme }
