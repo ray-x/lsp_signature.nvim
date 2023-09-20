@@ -390,7 +390,7 @@ helper.cal_pos = function(contents, opts)
     return {}, 2
   end
   local util = vim.lsp.util
-  contents = util._trim(contents, opts)
+  contents = vim.split(table.concat(contents, "\n"), "\n", { trimempty = true })
   -- there are 2 cases:
   -- 1. contents[1] = "```{language_id}", and contents[#contents] = "```", the code fences will be removed
   --    and return language_id
