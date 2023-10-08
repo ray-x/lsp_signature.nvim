@@ -1064,9 +1064,7 @@ M.status_line = function(size)
 end
 
 M.toggle_float_win = function()
-  if _LSP_SIG_CFG.toggle_key_flip_floatwin_setting then
-    _LSP_SIG_CFG.floating_window = not _LSP_SIG_CFG.floating_window
-  end
+  _LSP_SIG_CFG.floating_window = not _LSP_SIG_CFG.floating_window
 
   if
     _LSP_SIG_CFG.winnr
