@@ -1063,6 +1063,8 @@ M.status_line = function(size)
   }
 end
 
+-- Enables/disables lsp_signature.nvim
+---@return boolean state true/false if enabled/disabled.
 M.toggle_float_win = function()
   _LSP_SIG_CFG.floating_window = not _LSP_SIG_CFG.floating_window
 
@@ -1077,7 +1079,7 @@ M.toggle_float_win = function()
     if _LSP_SIG_VT_NS then
       vim.api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
     end
-    return
+    return _LSP_SIG_CFG.floating_window
   end
 
   local params = vim.lsp.util.make_position_params()
@@ -1099,6 +1101,7 @@ M.toggle_float_win = function()
     })
   )
   -- LuaFormatter on
+  return _LSP_SIG_CFG.floating_window
 end
 
 M.signature_handler = signature_handler
