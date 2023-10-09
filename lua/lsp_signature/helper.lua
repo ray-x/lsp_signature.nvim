@@ -696,7 +696,10 @@ end
 helper.completion_visible = function()
   local hascmp, cmp = pcall(require, 'cmp')
   if hascmp then
-    return cmp.visible()
+    -- reduce timeout from cmp's hardcoded 1000ms:
+    -- https://github.com/ray-x/lsp_signature.nvim/issues/288
+    cmp.core.filter:sync(42)
+    return cmp.core.view:visible() or fn.pumvisible() == 1
   end
 
   return fn.pumvisible() ~= 0
