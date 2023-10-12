@@ -402,6 +402,7 @@ local signature_handler = function(err, result, ctx, config)
     end
     log('before insert', lines)
     for index, sig in ipairs(result.signatures) do
+      sig.label = sig.label:gsub('%s+$', ''):gsub('\r', ' '):gsub('\n', ' ')
       if index ~= activeSignature then
         table.insert(lines, offset, sig.label)
         offset = offset + 1
@@ -414,6 +415,7 @@ local signature_handler = function(err, result, ctx, config)
   if #result.signatures > 1 then
     label = result.signatures[activeSignature].label
   end
+  label = label:gsub('%s+$', ''):gsub('\r', ' '):gsub('\n', ' ')
 
   log(
     'label:',
@@ -1001,7 +1003,7 @@ local signature_should_close_handler = helper.mk_handler(function(err, result, c
   local last_valid_result = result and result.signatures and result.signatures[1]
   local llabel = nil
   if last_valid_result then
-    llabel = result.signatures[1].label
+    llabel = result.signatures[1].label:gsub('%s+$', ''):gsub('\r', ' '):gsub('\n', ' ')
   end
 
   log(rlabel, llabel)
