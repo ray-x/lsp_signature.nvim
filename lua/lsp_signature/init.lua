@@ -163,7 +163,8 @@ local function virtual_hint(hint, off_y)
   pl = pl or ''
   local pad = ''
   local offset = r[2]
-  if _LSP_SIG_CFG.hint_inline() == false then
+  local inline_display = _LSP_SIG_CFG.hint_inline()
+  if inline_display == false then
     local line_to_cursor_width = dwidth(line_to_cursor)
     local pl_width = dwidth(pl)
     if show_at ~= cur_line and line_to_cursor_width > pl_width + 1 then
@@ -200,8 +201,6 @@ local function virtual_hint(hint, off_y)
     return -- no offset found
   end
   local vt = { pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme }
-  local inline_display = _LSP_SIG_CFG.hint_inline()
-  -- if inline_display then
   if inline_display then
     if type(inline_display) == 'boolean' then
       inline_display = 'inline'
@@ -216,6 +215,7 @@ local function virtual_hint(hint, off_y)
       { -- Note: the vt was put after of cursor.
         -- this seems eaiser to handle in the code also easy to read
         virt_text_pos = inline_display,
+        -- virt_text_pos = 'right_align',
         virt_text = { vt },
         hl_mode = 'combine',
         ephemeral = false,

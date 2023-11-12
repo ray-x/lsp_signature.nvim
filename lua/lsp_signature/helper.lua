@@ -662,10 +662,12 @@ helper.highlight_parameter = function(s, l)
     end
     if vim.fn.has('nvim-0.10') == 1 then
       local lines = vim.api.nvim_buf_get_lines(_LSP_SIG_CFG.bufnr, 0, 3, false)
-      if lines[1]:find([[```]]) then  -- it is strange that the first line is not signatures, it is ```language_id
+      if lines[1]:find([[```]]) then -- it is strange that the first line is not signatures, it is ```language_id
         -- open_floating_preview changed display ```language_id
-        log("Check: first line is ```language_id, it may not be behavior of release version of nvim")
-        log("first two lines: ", lines)
+        log(
+          'Check: first line is ```language_id, it may not be behavior of release version of nvim'
+        )
+        log('first two lines: ', lines)
         line = 1
       end
     end
@@ -753,7 +755,7 @@ end
 helper.trim_empty_lines = function(lines)
   local new_list = {}
   for i, str in ipairs(lines) do
-    if str ~= "" and str then
+    if str ~= '' and str then
       table.insert(new_list, str)
     end
   end
@@ -768,7 +770,7 @@ helper.get_mardown_syntax = function(lines)
   return 'markdown'
 end
 
- function  helper.try_trim_markdown_code_blocks(lines)
+function helper.try_trim_markdown_code_blocks(lines)
   local language_id = lines[1]:match('^```(.*)')
   if language_id then
     local has_inner_code_fence = false
@@ -788,7 +790,6 @@ end
   end
   return 'markdown'
 end
-
 
 local validate = vim.validate
 local default_border = {
