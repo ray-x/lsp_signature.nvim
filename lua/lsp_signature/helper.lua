@@ -347,7 +347,7 @@ helper.cleanup = function(close_float_win)
 end
 
 helper.cleanup_async = function(close_float_win, delay, force)
-  log(debug.traceback())
+  -- log(debug.traceback())
   vim.validate({ delay = { delay, 'number' } })
   vim.defer_fn(function()
     local mode = api.nvim_get_mode().mode
@@ -659,6 +659,15 @@ helper.highlight_parameter = function(s, l)
 
     if _LSP_SIG_CFG.noice then
       line = 1
+    end
+    if vim.fn.has('nvim-0.10') == 1 then
+      local lines = vim.api.nvim_buf_get_lines(_LSP_SIG_CFG.bufnr, 0, 3, false)
+      if lines[1]:find([[```]]) then  -- it is strange that the first line is not signatures, it is ```language_id
+        -- open_floating_preview changed display ```language_id
+        log("Check: first line is ```language_id, it may not be behavior of release version of nvim")
+        log("first two lines: ", lines)
+        line = 1
+      end
     end
     if _LSP_SIG_CFG.bufnr and api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
       log('extmark', _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding)

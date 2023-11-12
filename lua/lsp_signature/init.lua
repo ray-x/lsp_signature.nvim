@@ -58,6 +58,8 @@ _LSP_SIG_CFG = {
   hint_prefix = '🐼 ',
   hint_scheme = 'String',
   hint_inline = function()
+    -- options:
+    -- 'inline', 'eol'
     return false -- return fn.has('nvim_0.10') == 1
   end,
   hi_parameter = 'LspSignatureActiveParameter',
@@ -198,8 +200,13 @@ local function virtual_hint(hint, off_y)
     return -- no offset found
   end
   local vt = { pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme }
-
-  if _LSP_SIG_CFG.hint_inline() then
+  local inline_display = _LSP_SIG_CFG.hint_inline()
+  -- if inline_display then
+  if inline_display then
+    if type(inline_display) == 'boolean' then
+      inline_display = 'inline'
+    end
+    inline_display = inline_display and 'inline'
     log('virtual text: ', cur_line, r[1] - 1, r[2], vt)
     vim.api.nvim_buf_set_extmark(
       0,
@@ -208,7 +215,7 @@ local function virtual_hint(hint, off_y)
       offset,
       { -- Note: the vt was put after of cursor.
         -- this seems eaiser to handle in the code also easy to read
-        virt_text_pos = 'inline',
+        virt_text_pos = inline_display,
         virt_text = { vt },
         hl_mode = 'combine',
         ephemeral = false,
@@ -359,7 +366,7 @@ local signature_handler = function(err, result, ctx, config)
 
     helper.cleanup(false) -- cleanup extmark
   end
-  -- I do not need a floating win
+  -- floating win disabled
   if
     _LSP_SIG_CFG.floating_window == false
     and config.toggle ~= true
@@ -372,7 +379,7 @@ local signature_handler = function(err, result, ctx, config)
     return {}, s, l
   end
   local off_y
-  local ft = vim.api.nvim_buf_get_option(bufnr, 'ft')
+  local ft = vim.bo.filetype
 
   ft = helper.ft2md(ft)
   -- handles multiple file type, we should just take the first filetype
