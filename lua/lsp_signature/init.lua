@@ -396,10 +396,8 @@ local signature_handler = function(err, result, ctx, config)
     return
   end
 
-  lines = vim.lsp.util.trim_empty_lines(lines)
-  -- offset used for multiple signatures
-  -- makrdown format
-  log('md lines trim', lines)
+  lines = helper.trim_empty_lines(lines)
+  -- log('md lines trim', lines)
   local offset = 2
   local num_sigs = #result.signatures
   if #result.signatures > 1 then
@@ -464,7 +462,7 @@ local signature_handler = function(err, result, ctx, config)
     log('WARN: signature is empty')
     return
   end
-  local syntax = vim.lsp.util.try_trim_markdown_code_blocks(lines)
+  local syntax = helper.try_trim_markdown_code_blocks(lines)
 
   if config.trigger_from_lsp_sig == true and _LSP_SIG_CFG.preview == 'guihua' then
     -- This is a TODO
@@ -581,6 +579,7 @@ local signature_handler = function(err, result, ctx, config)
       vim.lsp.util.open_floating_preview(lines, syntax, config)
     _LSP_SIG_CFG.label = label
     _LSP_SIG_CFG.client_id = client_id
+    vim.api.nvim_win_set_cursor(_LSP_SIG_CFG.winnr, { 1, 0 })
 
     log('sig_cfg new bufnr, winnr ', _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr)
 

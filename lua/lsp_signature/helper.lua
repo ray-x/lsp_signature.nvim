@@ -530,7 +530,7 @@ function helper.truncate_doc(lines, num_sigs)
     end
   end
 
-  lines = vim.lsp.util.trim_empty_lines(lines)
+  lines = helper.trim_empty_lines(lines)
 
   -- remove trailing space
   for i, line in ipairs(lines) do
@@ -669,6 +669,10 @@ helper.highlight_parameter = function(s, l)
         line = 1
       end
     end
+    if line == 1 then
+      -- scroll to top
+      vim.api.nvim_win_set_cursor(_LSP_SIG_CFG.winnr, { 2, 0 })
+    end
     if _LSP_SIG_CFG.bufnr and api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
       log('extmark', _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding)
       _LSP_SIG_CFG.markid = api.nvim_buf_set_extmark(
@@ -744,6 +748,47 @@ helper.change_focus = function()
 
   -- vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(_LSP_SIG_CFG.move_cursor_key, true, true, true), "i", true)
 end
+
+-- from vim.lsp.util deprecated function
+helper.trim_empty_lines = function(lines)
+  local new_list = {}
+  for i, str in ipairs(lines) do
+    if str ~= "" and str then
+      table.insert(new_list, str)
+    end
+  end
+  return new_list
+end
+
+helper.get_mardown_syntax = function(lines)
+  local language_id = lines[1]:match('^```(.*)')
+  if language_id then
+    return language_id
+  end
+  return 'markdown'
+end
+
+ function  helper.try_trim_markdown_code_blocks(lines)
+  local language_id = lines[1]:match('^```(.*)')
+  if language_id then
+    local has_inner_code_fence = false
+    for i = 2, (#lines - 1) do
+      local line = lines[i]
+      if line:sub(1, 3) == '```' then
+        has_inner_code_fence = true
+        break
+      end
+    end
+    -- No inner code fences + starting with code fence = hooray.
+    if not has_inner_code_fence then
+      table.remove(lines, 1)
+      table.remove(lines)
+      return language_id
+    end
+  end
+  return 'markdown'
+end
+
 
 local validate = vim.validate
 local default_border = {
