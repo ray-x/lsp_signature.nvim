@@ -678,7 +678,7 @@ helper.highlight_parameter = function(s, l)
     end
     if line == 1 then
       -- scroll to top
-      vim.api.nvim_win_set_cursor(_LSP_SIG_CFG.winnr, { 2, 0 })
+      pcall(vim.api.nvim_win_set_cursor, _LSP_SIG_CFG.winnr, { 2, 0 })
     end
     if _LSP_SIG_CFG.bufnr and api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
       log('extmark', _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding)
