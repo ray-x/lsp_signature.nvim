@@ -759,7 +759,7 @@ end
 -- from vim.lsp.util deprecated function
 helper.trim_empty_lines = function(lines)
   local new_list = {}
-  for i, str in ipairs(lines) do
+  for _, str in ipairs(lines) do
     if str ~= '' and str then
       table.insert(new_list, str)
     end
