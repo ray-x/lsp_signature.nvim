@@ -122,7 +122,7 @@ FULL CONFIGURATION (WITH DEFAULT VALUES) *lsp_signature-full_configuration_(with
       hi_parameter = "LspSignatureActiveParameter", -- how your parameter will be highlight
       max_height = 12, -- max height of signature floating_window, if content is more than max_height, you can scroll down
                        -- to view the hiding contents
-      max_width = 120, -- max_width of signature floating_window, line will be wrapped if exceed max_width, the value need > 60
+      max_width = 120, -- max_width of signature floating_window, line will be wrapped if exceed max_width, the value need >= 40
       handler_opts = {
         border = "rounded"   -- double, rounded, single, shadow, none
       },
