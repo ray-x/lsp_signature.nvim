@@ -554,7 +554,7 @@ function helper.update_config(config)
   if config.max_height <= 3 then
     config.separator = false
   end
-  config.max_width = math.max(_LSP_SIG_CFG.max_width, 60)
+  config.max_width = math.max(_LSP_SIG_CFG.max_width, 40)
 
   config.focus_id = 'lsp_signature' .. id
   config.stylize_markdown = true
