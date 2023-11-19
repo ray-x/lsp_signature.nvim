@@ -17,19 +17,33 @@ end
 
 local function fs_write(path, data)
   local uv = vim.uv or vim.loop
-  uv.fs_open(path, 'a', tonumber('644', 8), function(err, fd)
-    if err then
-      print('Error opening file: ' .. err)
-      return err
+
+  -- Open the file in append mode
+  uv.fs_open(path, 'a', tonumber('644', 8), function(open_err, fd)
+    if open_err then
+      -- Handle error in opening file
+      print('Error opening file: ' .. open_err)
+      return
     end
-    uv.fs_write(fd, data, 0, function(e2, _)
-      assert(not e2, e2)
-      uv.fs_close(fd, function(e3)
-        assert(not e3, e3)
+
+    -- Write data to the file
+    uv.fs_write(fd, data, -1, function(write_err)
+      if write_err then
+        -- Handle error in writing to file
+        print('Error writing to file: ' .. write_err)
+      end
+
+      -- Close the file descriptor
+      uv.fs_close(fd, function(close_err)
+        if close_err then
+          -- Handle error in closing file
+          print('Error closing file: ' .. close_err)
+        end
       end)
     end)
   end)
 end
+
 helper.log = function(...)
   if _LSP_SIG_CFG.debug ~= true and _LSP_SIG_CFG.verbose ~= true then
     return
@@ -39,14 +53,11 @@ helper.log = function(...)
   local log_path = _LSP_SIG_CFG.log_path or nil
   local str = '󰘫 '
 
-  -- local info = debug.getinfo(2, "Sl")
-
   if _LSP_SIG_CFG.verbose == true then
     local info = debug.getinfo(2, 'Sl')
     local lineinfo = info.short_src .. ':' .. info.currentline
     str = str .. lineinfo
   end
-
   for i, v in ipairs(arg) do
     if type(v) == 'table' then
       str = str .. ' |' .. tostring(i) .. ': ' .. vim.inspect(v) .. '\n'
@@ -241,13 +252,10 @@ helper.check_trigger_char = function(line_to_cursor, trigger_characters)
   local excludes = [[^]]
 
   for _, ch in pairs(trigger_characters) do
-    log(ch, is_special(ch))
     if is_special(ch) then
-      log(ch)
       includes = includes .. '%' .. ch
       excludes = excludes .. '%' .. ch
     else
-      log('not special', ch)
       includes = includes .. ch
       excludes = excludes .. ch
     end
@@ -657,9 +665,6 @@ helper.highlight_parameter = function(s, l)
     end
     local line = 0
 
-    if _LSP_SIG_CFG.noice then
-      line = 1
-    end
     if vim.fn.has('nvim-0.10') == 1 then
       local lines = vim.api.nvim_buf_get_lines(_LSP_SIG_CFG.bufnr, 0, 3, false)
       if lines[1]:find([[```]]) then -- it is strange that the first line is not signatures, it is ```language_id
