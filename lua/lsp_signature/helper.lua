@@ -172,7 +172,6 @@ helper.match_parameter = function(result, config)
   end
 
   local activeParameter = signature.activeParameter or result.activeParameter
-  log('sig actPar', activeParameter, signature.label)
 
   if activeParameter == nil or activeParameter < 0 then
     log('incorrect signature response?', result, config)
@@ -194,7 +193,7 @@ helper.match_parameter = function(result, config)
   end
 
   local nextParameter = signature.parameters[activeParameter + 1]
-  log('nextpara:', nextParameter)
+  log('sig Par', activeParameter, nextParameter, 'label:', signature.label)
 
   if nextParameter == nil then
     log('no next param')
@@ -205,7 +204,6 @@ helper.match_parameter = function(result, config)
   local nexp = ''
   local s, e
 
-  log('func', label, nextParameter)
   if type(nextParameter.label) == 'table' then -- label = {2, 4} c style
     local range = nextParameter.label
     nexp = label:sub(range[1] + 1, range[2])
@@ -233,7 +231,7 @@ helper.match_parameter = function(result, config)
 
   -- test markdown hl
   -- signature.label = "```lua\n"..signature.label.."\n```"
-  -- log("match:", result, nexp, s, e)
+  log('match next pos:', nexp, s, e)
   return result, nexp, s, e
 end
 
@@ -279,15 +277,19 @@ helper.check_trigger_char = function(line_to_cursor, trigger_characters)
   if last_trigger_char_index ~= nil then
     -- check if last character is a closing character
     local last_trigger_char = line_to_cursor:sub(last_trigger_char_index, last_trigger_char_index)
-    log('last trigger char', last_trigger_char)
+    -- log('last trigger char', last_trigger_char, last_trigger_char_index)
+    -- when the last character is not a closing character, use the line
+    -- until this trigger character to request the signature help.
+    -- when the last character is a closing character, use the full line
+    -- for example when the line is: "list(); new_var = " we don't want to trigger on the )
     if last_trigger_char ~= ')' then
-      -- when the last character is a closing character, use the full line
-      -- for example when the line is: "list(); new_var = " we don't want to trigger on the )
       local line_to_last_trigger = line_to_cursor:sub(1, last_trigger_char_index)
+      -- seems gopls does not handle this well, mightbe other language too
+      if last_trigger_char == '(' and vim.tbl_contains({ 'go' }, vim.bo.filetype) then
+        return true, #line_to_last_trigger - 1
+      end
       return true, #line_to_last_trigger
     else
-      -- when the last character is not a closing character, use the line
-      -- until this trigger character to request the signature help.
       return true, #line_to_cursor
     end
   end
@@ -333,6 +335,7 @@ end
 
 helper.cleanup = function(close_float_win)
   -- vim.schedule(function()
+  -- log(debug.traceback())
 
   _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace('lsp_signature_vt')
   log('cleanup vt', _LSP_SIG_VT_NS)
@@ -424,7 +427,7 @@ helper.cal_pos = function(contents, opts)
   end
   local float_option = util.make_floating_popup_options(width, height, opts)
 
-  log('popup size:', width, height, float_option)
+  -- log('popup size:', width, height, float_option)
   local off_y = 0
   local max_height = float_option.height or _LSP_SIG_CFG.max_height
   local border_height = get_border_height(float_option)
@@ -445,7 +448,7 @@ helper.cal_pos = function(contents, opts)
     max_height = math.min(max_height, math.max(lines_above - border_height - 1, border_height + 1))
   end
 
-  log(float_option, off_y, lines_above, max_height)
+  log(off_y, lines_above, max_height)
   if not float_option.height or float_option.height < 1 then
     float_option.height = 1
   end
@@ -594,8 +597,8 @@ function helper.check_lsp_cap(clients, line_to_cursor)
     if value ~= nil then
       local sig_provider = value.server_capabilities.signatureHelpProvider
       local rslv_cap = value.server_capabilities
-      if vim_version < 61 then
-        vim.notify('LSP: lsp-signature requires neovim 0.6.1 or later', vim.log.levels.WARN)
+      if vim_version <= 70 then
+        vim.notify('LSP: lsp-signature requires neovim 0.7.1 or later', vim.log.levels.WARN)
         return
       end
       if fn.empty(sig_provider) == 0 then
@@ -603,10 +606,6 @@ function helper.check_lsp_cap(clients, line_to_cursor)
         total_lsp = total_lsp + 1
 
         local h = rslv_cap.hoverProvider
-        if vim_version <= 70 then
-          h = rslv_cap.hover
-        end
-
         if h == true or (h ~= nil and h ~= {}) then
           hover_cap = true
         end
@@ -625,14 +624,6 @@ function helper.check_lsp_cap(clients, line_to_cursor)
             triggered_chars = tbl_combine(triggered_chars, _LSP_SIG_CFG.extra_trigger_chars)
           end
         end
-        if sig_provider == nil and vim_version <= 70 then -- TODO: deprecated
-          if rslv_cap ~= nil and rslv_cap.signature_help_trigger_characters ~= nil then
-            triggered_chars = tbl_combine(
-              triggered_chars,
-              value.server_capabilities.signature_help_trigger_characters
-            )
-          end
-        end
 
         if triggered == false then
           triggered, trigger_position = helper.check_trigger_char(line_to_cursor, triggered_chars)
@@ -645,9 +636,9 @@ function helper.check_lsp_cap(clients, line_to_cursor)
   end
 
   if total_lsp > 1 then
-    log('you have multiple lsp with signatureHelp enabled')
+    log('multiple lsp with signatureHelp enabled')
   end
-  log('lsp cap: ', signature_cap, triggered, trigger_position)
+  log('lsp cap & trigger pos: ', signature_cap, triggered, trigger_position)
 
   return signature_cap, triggered, trigger_position, triggered_chars
 end

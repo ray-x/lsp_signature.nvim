@@ -233,7 +233,7 @@ local function virtual_hint(hint, off_y)
   end
 end
 
-local close_events = { 'CursorMoved', 'CursorMovedI', 'BufHidden', 'InsertCharPre' }
+local close_events = { 'InsertLeave', 'BufHidden', 'ModeChanged', 'CursorHold' }
 
 -- ----------------------
 -- --  signature help  --
@@ -241,7 +241,7 @@ local close_events = { 'CursorMoved', 'CursorMovedI', 'BufHidden', 'InsertCharPr
 -- Note: nvim 0.5.1/0.6.x   - signature_help(err, {result}, {ctx}, {config}) deprecated
 local signature_handler = function(err, result, ctx, config)
   if err ~= nil then
-    print("lsp_signatur handler", err)
+    -- print('lsp_signatur handler', err)
     return
   end
 
@@ -499,7 +499,7 @@ local signature_handler = function(err, result, ctx, config)
   config.zindex = _LSP_SIG_CFG.zindex
 
   -- fix pos
-  log('win config', config)
+  -- log('win config', config)
   local new_line = helper.is_new_line()
 
   local display_opts
@@ -555,7 +555,7 @@ local signature_handler = function(err, result, ctx, config)
   end
 
   config.noautocmd = true
-  log('floating opt', config, display_opts, off_y, lines)
+  log('floating opt', config, display_opts, off_y, lines, _LSP_SIG_CFG.label, label, new_line)
   if _LSP_SIG_CFG._fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
     if
       api.nvim_win_is_valid(_LSP_SIG_CFG.winnr)
@@ -565,13 +565,21 @@ local signature_handler = function(err, result, ctx, config)
       status_line = { hint = '', label = '', range = nil }
     else
       -- vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
-      _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr =
-        vim.lsp.util.open_floating_preview(lines, syntax, config)
 
       -- vim.api.nvim_buf_set_option(_LSP_SIG_CFG.bufnr, "filetype", "")
-      log('sig_cfg bufnr, winnr not valid recreate', _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr)
+      log(
+        'sig_cfg bufnr, winnr not valid recreate',
+        _LSP_SIG_CFG.bufnr,
+        _LSP_SIG_CFG.winnr,
+        label == _LSP_SIG_CFG.label,
+        api.nvim_win_is_valid(_LSP_SIG_CFG.winnr),
+        not new_line
+      )
       _LSP_SIG_CFG.label = label
       _LSP_SIG_CFG.client_id = client_id
+
+      _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr =
+        vim.lsp.util.open_floating_preview(lines, syntax, config)
     end
   else
     _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr =
@@ -680,10 +688,12 @@ local signature = function(opts)
       return
     end
   end
-  if opts.trigger == 'CursorHold' then
-    local params = vim.lsp.util.make_position_params()
-    params.position.character = trigger_position
 
+  local params = vim.lsp.util.make_position_params()
+  log('change trigger pos to ', params.position.character, trigger_position)
+  local shift = math.max(1, trigger_position - 0)
+  params.position.character = shift
+  if opts.trigger == 'CursorHold' then
     return vim.lsp.buf_request(
       0,
       'textDocument/signatureHelp',
@@ -711,9 +721,6 @@ local signature = function(opts)
       actSig = 1
     end
 
-    local params = vim.lsp.util.make_position_params()
-    params.position.character = trigger_position
-
     return vim.lsp.buf_request(
       0,
       'textDocument/signatureHelp',
@@ -729,9 +736,6 @@ local signature = function(opts)
     )
   end
   if triggered then
-    -- overwrite signature help here to disable "no signature help" message
-    local params = vim.lsp.util.make_position_params()
-    params.position.character = trigger_position
     -- Try using the already binded one, otherwise use it without custom config.
     -- LuaFormatter off
     vim.lsp.buf_request(
@@ -815,7 +819,7 @@ function M.on_InsertLeave()
   end, delay)
 
   log('Insert leave cleanup')
-  helper.cleanup_async(true, 10, true) -- defer close after 200+10s
+  helper.cleanup_async(true, 10, true) -- defer close after 200+10ms
   status_line = { hint = '', label = '' }
 end
 
@@ -839,12 +843,13 @@ local start_watch_changes_timer = function()
       local m = vim.api.nvim_get_mode().mode
       -- log(m)
       if m == 'n' or m == 'v' then
+        log('insert mode changed', m)
         M.on_InsertLeave()
         return
       end
       if l_changedTick ~= manager.changedTick then
         manager.changedTick = l_changedTick
-        log('changed')
+        log('insert leave changed', m)
         signature()
       end
     end)
@@ -879,11 +884,9 @@ end
 
 function M.on_UpdateSignature()
   -- need auto brackets to make things work
-  signature({ trigger = 'CursorHold' })
-  -- cleanup virtual hint
   local m = vim.api.nvim_get_mode().mode
-
-  log('Insert leave cleanup', m)
+  log('on update signature cursorhold', m)
+  signature({ trigger = 'CursorHold' })
 end
 
 M.deprecated = function(cfg)
@@ -903,6 +906,9 @@ M.deprecated = function(cfg)
 end
 
 local function cleanup_logs(cfg)
+  if _LSP_SIG_CFG.debug ~= true then
+    return
+  end
   local log_path = cfg.log_path or _LSP_SIG_CFG.log_path or nil
   local fp = io.open(log_path, 'r')
   if fp then
@@ -917,6 +923,7 @@ end
 M.on_attach = function(cfg, bufnr)
   bufnr = bufnr or 0
 
+  -- stylua ignore start
   api.nvim_command('augroup Signature')
   api.nvim_command('autocmd! * <buffer>')
   api.nvim_command("autocmd InsertEnter <buffer> lua require'lsp_signature'.on_InsertEnter()")
@@ -929,16 +936,16 @@ M.on_attach = function(cfg, bufnr)
       "autocmd CursorHoldI,CursorHold <buffer> lua require'lsp_signature'.on_UpdateSignature()"
     )
     api.nvim_command(
-      "autocmd CursorHold,CursorHoldI <buffer> lua require'lsp_signature'.check_signature_should_close()"
+      "autocmd CursorHoldI,CursorHold <buffer> lua require'lsp_signature'.check_signature_should_close()"
     )
   end
-
+  -- stylua ignore end
   api.nvim_command('augroup end')
 
   if type(cfg) == 'table' then
     _LSP_SIG_CFG = vim.tbl_extend('keep', cfg, _LSP_SIG_CFG)
     cleanup_logs(cfg)
-    log(_LSP_SIG_CFG)
+    -- log(_LSP_SIG_CFG)
   end
 
   if _LSP_SIG_CFG.bind then
@@ -1026,8 +1033,20 @@ M.check_signature_should_close = function()
     and _LSP_SIG_CFG.winnr > 0
     and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr)
   then
-    local params = vim.lsp.util.make_position_params()
+    local bufnr = vim.api.nvim_get_current_buf()
     local pos = api.nvim_win_get_cursor(0)
+    local clients = vim.lsp.get_active_clients({ bufnr = bufnr })
+    local line = api.nvim_get_current_line()
+    local line_to_cursor = line:sub(1, pos[2])
+    local signature_cap, triggered, trigger_position, trigger_chars =
+      helper.check_lsp_cap(clients, line_to_cursor)
+    if not signature_cap or not triggered then
+      helper.cleanup_async(true, 0.01, true)
+      status_line = { hint = '', label = '' }
+      return
+    end
+    local params = vim.lsp.util.make_position_params()
+    params.position.character = math.max(trigger_position, 1)
     local line = api.nvim_get_current_line()
     local line_to_cursor = line:sub(1, pos[2])
     -- Try using the already binded one, otherwise use it without custom config.
