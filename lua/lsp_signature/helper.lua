@@ -669,7 +669,7 @@ helper.highlight_parameter = function(s, l)
     end
     if line == 1 then
       -- scroll to top
-      vim.api.nvim_win_set_cursor(_LSP_SIG_CFG.winnr, { 2, 0 })
+      pcall(vim.api.nvim_win_set_cursor, _LSP_SIG_CFG.winnr, { 2, 0 })
     end
     if _LSP_SIG_CFG.bufnr and api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
       log('extmark', _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding)
@@ -750,7 +750,7 @@ end
 -- from vim.lsp.util deprecated function
 helper.trim_empty_lines = function(lines)
   local new_list = {}
-  for i, str in ipairs(lines) do
+  for _, str in ipairs(lines) do
     if str ~= '' and str then
       table.insert(new_list, str)
     end
