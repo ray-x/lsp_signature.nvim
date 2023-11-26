@@ -238,7 +238,7 @@ local close_events = { 'InsertLeave', 'BufHidden', 'ModeChanged', 'CursorHold' }
 -- ----------------------
 -- --  signature help  --
 -- ----------------------
--- Note: nvim 0.5.1/0.6.x   - signature_help(err, {result}, {ctx}, {config}) deprecated
+-- Note: 0.6.x   - signature_help(err, {result}, {ctx}, {config})
 local signature_handler = function(err, result, ctx, config)
   if err ~= nil then
     print('lsp_signatur handler', err)
