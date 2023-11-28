@@ -180,7 +180,7 @@ e.g.
   -- will set to true when fully tested, set to false will use whichever side has more space
   -- this setting will be helpful if you do not want the PUM and floating win overlap
 
-  floating_window_off_x = 1, -- adjust float windows x position. 
+  floating_window_off_x = 1, -- adjust float windows x position.
                              -- can be either a number or function
   floating_window_off_y = 0, -- adjust float windows y position. e.g -2 move window up 2 lines; 2 move down 2 lines
                               -- can be either number or function, see examples
@@ -211,7 +211,9 @@ e.g.
   shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
   timer_interval = 200, -- default timer check interval set to lower value if you want to reduce latency
   toggle_key = nil, -- toggle signature on and off in insert mode,  e.g. toggle_key = '<M-x>'
-  toggle_key_flip_floatwin_setting = false, -- true: toggle float setting after toggle key pressed
+  toggle_key_flip_floatwin_setting = true, -- true: toggle floating_windows: true|false setting after toggle key pressed
+     -- false: floating_windows setup will not change, toggle_key will pop up signature helper, but signature
+     -- may not popup when typing depends on floating_window setting
 
   select_signature_key = nil, -- cycle to next signature, e.g. '<M-n>' function overloading
   move_cursor_key = nil, -- imap, use nvim_set_current_win to move cursor between current win and floating

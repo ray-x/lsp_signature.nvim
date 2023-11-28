@@ -28,7 +28,7 @@ _LSP_SIG_CFG = {
 
   floating_window = true, -- show hint in a floating window
   floating_window_above_cur_line = true, -- try to place the floating above the current line
-
+  toggle_key_flip_floatwin_setting = true, -- toggle key will enable|disable floating_window flag
   floating_window_off_x = 1, -- adjust float windows x position. or a function return the x offset
   floating_window_off_y = function(floating_opts) -- adjust float windows y position.
     --e.g. set to -2 can make floating window move up 2 lines
@@ -233,7 +233,7 @@ local function virtual_hint(hint, off_y)
   end
 end
 
-local close_events = { 'InsertLeave', 'BufHidden', 'ModeChanged', 'CursorHold' }
+local close_events = { 'InsertLeave', 'BufHidden', 'ModeChanged' }
 
 -- ----------------------
 -- --  signature help  --
@@ -246,12 +246,6 @@ local signature_handler = function(err, result, ctx, config)
   end
 
   -- log("sig result", ctx, result, config)
-  -- if config.check_client_handlers then
-  --   -- this feature will be removed
-  --   if helper.client_handler(err, result, ctx, config) then
-  --     return
-  --   end
-  -- end
   local client_id = ctx.client_id
   local bufnr = ctx.bufnr
   if result == nil or result.signatures == nil or result.signatures[1] == nil then
@@ -1092,8 +1086,9 @@ end
 -- Enables/disables lsp_signature.nvim
 ---@return boolean state true/false if enabled/disabled.
 M.toggle_float_win = function()
-  _LSP_SIG_CFG.floating_window = not _LSP_SIG_CFG.floating_window
-
+  if _LSP_SIG_CFG.toggle_key_flip_floatwin_setting == true then
+    _LSP_SIG_CFG.floating_window = not _LSP_SIG_CFG.floating_window
+  end
   if
     _LSP_SIG_CFG.winnr
     and _LSP_SIG_CFG.winnr > 0
