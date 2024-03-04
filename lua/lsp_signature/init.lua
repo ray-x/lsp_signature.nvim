@@ -228,6 +228,7 @@ local function virtual_hint(hint, off_y)
       virt_text = { vt },
       virt_text_pos = 'eol',
       hl_mode = 'combine',
+      -- virt_lines_above = true,
       -- hl_group = _LSP_SIG_CFG.hint_scheme
     })
   end
@@ -583,8 +584,6 @@ local signature_handler = function(err, result, ctx, config)
     vim.api.nvim_win_set_cursor(_LSP_SIG_CFG.winnr, { 1, 0 })
 
     log('sig_cfg new bufnr, winnr ', _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr)
-
-    -- vim.api.nvim_buf_set_option(_LSP_SIG_CFG.bufnr, "filetype", "lsp_signature")
   end
 
   if
@@ -608,8 +607,6 @@ local signature_handler = function(err, result, ctx, config)
     log('last para', close_events)
     if _LSP_SIG_CFG._fix_pos == false then
       vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)
-      -- elseif _LSP_SIG_CFG._fix_pos then
-      --   vim.lsp.util.close_preview_autocmd(close_events_au, _LSP_SIG_CFG.winnr)
     end
     if _LSP_SIG_CFG.auto_close_after then
       helper.cleanup_async(true, _LSP_SIG_CFG.auto_close_after)
@@ -865,7 +862,6 @@ end
 -- Note: this function may not work, depends on if complete plugin add parents or not
 function M.on_CompleteDone()
   -- need auto brackets to make things work
-  -- signature()
   -- cleanup virtual hint
   local m = vim.api.nvim_get_mode().mode
   vim.api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
@@ -979,7 +975,7 @@ M.on_attach = function(cfg, bufnr)
   _LSP_SIG_VT_NS = api.nvim_create_namespace('lsp_signature_vt')
 end
 
-local signature_should_close_handler = helper.mk_handler(function(err, result, ctx, _)
+local signature_should_close_handler = function(err, result, ctx, _)
   if err ~= nil then
     print(err)
     helper.cleanup_async(true, 0.01, true)
@@ -1019,7 +1015,7 @@ local signature_should_close_handler = helper.mk_handler(function(err, result, c
     status_line = { hint = '', label = '' }
     signature()
   end
-end)
+end
 
 M.check_signature_should_close = function()
   if
@@ -1029,10 +1025,10 @@ M.check_signature_should_close = function()
   then
     local bufnr = vim.api.nvim_get_current_buf()
     local pos = api.nvim_win_get_cursor(0)
-    local clients = vim.lsp.get_active_clients({ bufnr = bufnr })
+    local clients = vim.lsp.get_clients({ bufnr = bufnr })
     local line = api.nvim_get_current_line()
     local line_to_cursor = line:sub(1, pos[2])
-    local signature_cap, triggered, trigger_position, trigger_chars =
+    local signature_cap, triggered, trigger_position, _ =
       helper.check_lsp_cap(clients, line_to_cursor)
     if not signature_cap or not triggered then
       helper.cleanup_async(true, 0.01, true)
@@ -1041,8 +1037,8 @@ M.check_signature_should_close = function()
     end
     local params = vim.lsp.util.make_position_params()
     params.position.character = math.max(trigger_position, 1)
-    local line = api.nvim_get_current_line()
-    local line_to_cursor = line:sub(1, pos[2])
+    line = api.nvim_get_current_line()
+    line_to_cursor = line:sub(1, pos[2])
     -- Try using the already binded one, otherwise use it without custom config.
     -- LuaFormatter off
     vim.lsp.buf_request(
@@ -1087,7 +1083,7 @@ end
 ---@return boolean state true/false if enabled/disabled.
 M.toggle_float_win = function()
   if _LSP_SIG_CFG.toggle_key_flip_floatwin_setting == true then
-    _LSP_SIG_CFG.floating_window = not _LSP_SIG_CFG.floating_window
+  _LSP_SIG_CFG.floating_window = not _LSP_SIG_CFG.floating_window
   end
   if
     _LSP_SIG_CFG.winnr
