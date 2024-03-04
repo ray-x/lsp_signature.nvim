@@ -1083,7 +1083,7 @@ end
 ---@return boolean state true/false if enabled/disabled.
 M.toggle_float_win = function()
   if _LSP_SIG_CFG.toggle_key_flip_floatwin_setting == true then
-  _LSP_SIG_CFG.floating_window = not _LSP_SIG_CFG.floating_window
+    _LSP_SIG_CFG.floating_window = not _LSP_SIG_CFG.floating_window
   end
   if
     _LSP_SIG_CFG.winnr
