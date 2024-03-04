@@ -456,38 +456,6 @@ helper.cal_pos = function(contents, opts)
   return float_option, off_y, contents, max_height
 end
 
-local nvim_0_6
-function helper.nvim_0_6()
-  if nvim_0_6 ~= nil then
-    return nvim_0_6
-  end
-  -- if debug.getinfo(vim.lsp.handlers.signature_help).nparams == 4 then
-  if vim.fn.has('nvim-0.6.1') == 1 then
-    nvim_0_6 = true
-  else
-    vim.notify('nvim-0.6.1 is required for this plugin', { timeout = 5000 })
-    nvim_0_6 = false
-  end
-  return nvim_0_6
-end
-
-function helper.mk_handler(func)
-  return function(...)
-    local is_new = helper.nvim_0_6()
-    if is_new then
-      return func(...)
-    else
-      local err = select(1, ...)
-      local method = select(2, ...)
-      local result = select(3, ...)
-      local client_id = select(4, ...)
-      local bufnr = select(5, ...)
-      local config = select(6, ...)
-      return fn(err, result, { method = method, client_id = client_id, bufnr = bufnr }, config)
-    end
-  end
-end
-
 function helper.cal_woff(line_to_cursor, label)
   local woff = line_to_cursor:find('%([^%(]*$')
   local sig_woff = label:find('%([^%(]*$')
