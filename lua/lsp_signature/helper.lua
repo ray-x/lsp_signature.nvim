@@ -846,4 +846,12 @@ function helper.make_floating_popup_options(width, height, opts)
   }
 end
 
+function helper.get_clients(opts)
+  if vim.lsp.get_clients then
+    return vim.lsp.get_clients(opts)
+  else
+    return vim.lsp.get_active_clients(opts)
+  end
+end
+
 return helper

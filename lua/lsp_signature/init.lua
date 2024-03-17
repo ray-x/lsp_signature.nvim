@@ -625,7 +625,7 @@ local signature = function(opts)
 
   local bufnr = api.nvim_get_current_buf()
   local pos = api.nvim_win_get_cursor(0)
-  local clients = vim.lsp.get_active_clients({ bufnr = bufnr })
+  local clients = helper.get_clients({ bufnr = bufnr })
   local ft = vim.opt_local.filetype:get()
   local disabled = { 'TelescopePrompt', 'guihua', 'guihua_rust', 'clap_input', '' }
 
@@ -1029,7 +1029,7 @@ M.check_signature_should_close = function()
   then
     local bufnr = vim.api.nvim_get_current_buf()
     local pos = api.nvim_win_get_cursor(0)
-    local clients = vim.lsp.get_clients({ bufnr = bufnr })
+    local clients = helper.get_clients({ bufnr = bufnr })
     local line = api.nvim_get_current_line()
     local line_to_cursor = line:sub(1, pos[2])
     local signature_cap, triggered, trigger_position, _ =
