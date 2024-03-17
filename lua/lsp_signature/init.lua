@@ -195,6 +195,7 @@ local function virtual_hint(hint, off_y)
   end
   _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace('lsp_signature_vt')
 
+  log('virtual hint cleanup')
   helper.cleanup(false) -- cleanup extmark
   if offset == nil then
     log('virtual text: ', cur_line, 'invalid offset')
@@ -999,18 +1000,21 @@ local signature_should_close_handler = function(err, result, ctx, _)
 
   -- corner case, result is not same
   if valid_result then
-    rlabel = result.signatures[1].label
+    rlabel =
+      result.signatures[1].label:gsub('%s+$', ''):gsub('\r', ''):gsub('\n', ''):gsub('%s', '')
   end
-  result = _LSP_SIG_CFG.signature_result
+  result = _LSP_SIG_CFG.signature_result -- last signature result
   local last_valid_result = result and result.signatures and result.signatures[1]
-  local llabel = nil
+  local llabel
   if last_valid_result then
-    llabel = result.signatures[1].label:gsub('%s+$', ''):gsub('\r', ' '):gsub('\n', ' ')
+    llabel =
+      result.signatures[1].label:gsub('%s+$', ''):gsub('\r', ''):gsub('\n', ''):gsub('%s', '')
   end
 
   log(rlabel, llabel)
 
   if rlabel and rlabel ~= llabel then
+    log('sig should cleanup? result not same', rlabel, llabel)
     helper.cleanup(true)
     status_line = { hint = '', label = '' }
     signature()
