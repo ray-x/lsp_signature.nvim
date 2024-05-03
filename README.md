@@ -77,7 +77,7 @@ local cfg = {…}  -- add your config here
 require "lsp_signature".setup(cfg)
 ```
 
-Alternatively, call on_attach(cfg, bufnr) when the LSP client attaches to a buffer
+Alternatively, call `on_attach(cfg, bufnr)` when the LSP client attaches to a buffer
 
 e.g. gopls:
 
@@ -92,7 +92,20 @@ local golang_setup = {
 }
 
 require'lspconfig'.gopls.setup(golang_setup)
+```
 
+Or use the newer `LspAttach` autocommands. The following example enables
+signatures for any attached language server:
+
+```lua
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(args)
+    local bufnr = args.buf
+    require("lsp_signature").on_attach({
+      -- ... setup options here ...
+    }, bufnr)
+  end,
+})
 ```
 
 ## Configure
