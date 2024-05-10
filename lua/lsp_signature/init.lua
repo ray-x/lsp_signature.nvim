@@ -912,26 +912,61 @@ local function cleanup_logs(cfg)
 end
 
 M.on_attach = function(cfg, bufnr)
-  bufnr = bufnr or 0
+  bufnr = bufnr or api.nvim_get_current_buf()
 
-  -- stylua ignore start
-  api.nvim_command('augroup Signature')
-  api.nvim_command('autocmd! * <buffer>')
-  api.nvim_command("autocmd InsertEnter <buffer> lua require'lsp_signature'.on_InsertEnter()")
-  api.nvim_command("autocmd InsertLeave <buffer> lua require'lsp_signature'.on_InsertLeave()")
-  api.nvim_command("autocmd InsertCharPre <buffer> lua require'lsp_signature'.on_InsertCharPre()")
-  api.nvim_command("autocmd CompleteDone <buffer> lua require'lsp_signature'.on_CompleteDone()")
+  local augroup = api.nvim_create_augroup('Signature', {})
+  api.nvim_create_autocmd('InsertEnter', {
+    group = augroup,
+    buffer = bufnr,
+    callback = function()
+      require('lsp_signature').on_InsertEnter()
+    end,
+    desc = 'signature on insert enter',
+  })
+  api.nvim_create_autocmd('InsertLeave', {
+    group = augroup,
+    buffer = bufnr,
+    callback = function()
+      require('lsp_signature').on_InsertLeave()
+    end,
+    desc = 'signature on insert leave',
+  })
+  api.nvim_create_autocmd('InsertCharPre', {
+    group = augroup,
+    buffer = bufnr,
+    callback = function()
+      require('lsp_signature').on_InsertCharPre()
+    end,
+    desc = 'signature on insert char pre',
+  })
+  api.nvim_create_autocmd('CompleteDone', {
+    group = augroup,
+    buffer = bufnr,
+    callback = function()
+      require('lsp_signature').on_CompleteDone()
+    end,
+    desc = 'signature on complete done',
+  })
 
   if _LSP_SIG_CFG.cursorhold_update then
-    api.nvim_command(
-      "autocmd CursorHoldI,CursorHold <buffer> lua require'lsp_signature'.on_UpdateSignature()"
-    )
-    api.nvim_command(
-      "autocmd CursorHoldI,CursorHold <buffer> lua require'lsp_signature'.check_signature_should_close()"
-    )
+    api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+      group = augroup,
+      buffer = bufnr,
+      callback = function()
+        require('lsp_signature').on_UpdateSignature()
+      end,
+      desc = 'signature on cursor hold',
+    })
+    api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+      group = augroup,
+      buffer = bufnr,
+      callback = function()
+        require('lsp_signature').check_signature_should_close()
+      end,
+      desc = 'signature on cursor hold',
+    })
   end
   -- stylua ignore end
-  api.nvim_command('augroup end')
 
   if type(cfg) == 'table' then
     _LSP_SIG_CFG = vim.tbl_extend('keep', cfg, _LSP_SIG_CFG)
