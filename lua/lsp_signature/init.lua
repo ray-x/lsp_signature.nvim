@@ -236,7 +236,6 @@ local function virtual_hint(hint, off_y)
 end
 
 local close_events = { 'InsertLeave', 'BufHidden', 'ModeChanged' }
-
 -- ----------------------
 -- --  signature help  --
 -- ----------------------
@@ -576,6 +575,7 @@ local signature_handler = function(err, result, ctx, config)
 
       _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr =
         vim.lsp.util.open_floating_preview(lines, syntax, config)
+      helper.set_keymaps(_LSP_SIG_CFG.winnr, _LSP_SIG_CFG.bufnr)
     end
   else
     _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr =
@@ -584,6 +584,7 @@ local signature_handler = function(err, result, ctx, config)
     _LSP_SIG_CFG.client_id = client_id
     vim.api.nvim_win_set_cursor(_LSP_SIG_CFG.winnr, { 1, 0 })
 
+    helper.set_keymaps(_LSP_SIG_CFG.winnr, _LSP_SIG_CFG.bufnr)
     log('sig_cfg new bufnr, winnr ', _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr)
   end
 

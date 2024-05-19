@@ -656,6 +656,26 @@ helper.highlight_parameter = function(s, l)
   end
 end
 
+helper.set_keymaps = function(winnr, bufnr)
+  if _LSP_SIG_CFG.keymaps then
+    local maps = _LSP_SIG_CFG.keymaps
+    if type(_LSP_SIG_CFG.keymaps) == 'function' then
+      maps = _LSP_SIG_CFG.keymaps(bufnr)
+    end
+    if maps and type(maps) == 'table' then
+      for _, map in ipairs(maps) do
+        vim.keymap.set('i', map.lhs, map.rhs, { buffer = bufnr })
+      end
+    end
+  end
+  vim.keymap.set('i', '<M-d>', '<C-o><C-d>', {
+  buffer = bufnr
+  })
+  vim.keymap.set('i', '<M-u>', '<C-o><C-u>', {
+  buffer = bufnr
+  })
+end
+
 helper.remove_doc = function(result)
   for i = 1, #result.signatures do
     log(result.signatures[i])
