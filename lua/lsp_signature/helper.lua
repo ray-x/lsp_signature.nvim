@@ -668,12 +668,8 @@ helper.set_keymaps = function(winnr, bufnr)
       end
     end
   end
-  vim.keymap.set('i', '<M-d>', '<C-o><C-d>', {
-  buffer = bufnr
-  })
-  vim.keymap.set('i', '<M-u>', '<C-o><C-u>', {
-  buffer = bufnr
-  })
+  vim.keymap.set('i', '<M-d>', '<C-o><C-d>', { buffer = bufnr })
+  vim.keymap.set('i', '<M-u>', '<C-o><C-u>', { buffer = bufnr })
 end
 
 helper.remove_doc = function(result)
