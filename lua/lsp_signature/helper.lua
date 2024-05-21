@@ -415,7 +415,7 @@ helper.cal_pos = function(contents, opts)
   -- 1. contents[1] = "```{language_id}", and contents[#contents] = "```", the code fences will be removed
   --    and return language_id
   -- 2. in other cases, no lines will be removed, and return "markdown"
-  local filetype = util.try_trim_markdown_code_blocks(contents)
+  local filetype = helper.try_trim_markdown_code_blocks(contents)
   log(vim.inspect(contents))
 
   local width, height = util._make_floating_popup_size(contents, opts)
