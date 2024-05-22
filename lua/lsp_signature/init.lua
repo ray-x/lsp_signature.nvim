@@ -115,19 +115,20 @@ local function virtual_hint(hint, off_y)
   end
   local pl
   local completion_visible = helper.completion_visible()
-  if off_y ~= nil and off_y < 0 then -- floating win above first
-    if completion_visible then
-      show_at = cur_line -- pum, show at current line
-    else
-      show_at = cur_line - 1 -- show at below line
-    end
-  end
 
-  if off_y ~= nil and off_y > 0 then
+  if off_y and off_y ~= 0 then
+    -- stay out of the way of the pum
     if completion_visible then
-      show_at = cur_line -- pum, show at current line
+      show_at = cur_line
+    end
+
+    -- if no pum, show at user configured line
+    if off_y > 0 then
+      -- line below
+      show_at = cur_line + 1
     else
-      show_at = cur_line + 1 -- show at below line
+      -- line above
+      show_at = cur_line - 1
     end
   end
 
@@ -150,16 +151,15 @@ local function virtual_hint(hint, off_y)
     log('virtual text only :', prev_line, next_line, r, show_at, pl)
   end
 
-  if lines_above == 0 then
-    show_at = cur_line
-  end
   -- get show at line
   if not pl then
     pl = vim.api.nvim_buf_get_lines(0, show_at, show_at + 1, false)[1]
   end
-  if pl == nil then
-    show_at = cur_line -- no lines below
+  -- if there are no lines above the current one
+  if lines_above == 0 and not pl then
+    show_at = cur_line
   end
+  
   pl = pl or ''
   local pad = ''
   local offset = r[2]
