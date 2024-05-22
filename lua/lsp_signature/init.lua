@@ -115,20 +115,30 @@ local function virtual_hint(hint, off_y)
   end
   local pl
   local completion_visible = helper.completion_visible()
+  local hp = type(_LSP_SIG_CFG.hint_prefix) == 'string' and _LSP_SIG_CFG.hint_prefix
 
   if off_y and off_y ~= 0 then
     -- stay out of the way of the pum
     if completion_visible then
       show_at = cur_line
+      if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
+        hp = _LSP_SIG_CFG.hint_prefix.current
+      end
     end
 
     -- if no pum, show at user configured line
     if off_y > 0 then
       -- line below
       show_at = cur_line + 1
+      if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
+        hp = _LSP_SIG_CFG.hint_prefix.below
+      end
     else
       -- line above
       show_at = cur_line - 1
+      if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
+        hp = _LSP_SIG_CFG.hint_prefix.above
+      end
     end
   end
 
@@ -141,25 +151,25 @@ local function virtual_hint(hint, off_y)
     if prev_line and vim.fn.strdisplaywidth(prev_line) < r[2] then
       show_at = cur_line - 1
       pl = prev_line
+      if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
+        hp = _LSP_SIG_CFG.hint_prefix.above
+      end
     elseif next_line and dwidth(next_line) < r[2] + 2 and not completion_visible then
       show_at = cur_line + 1
       pl = next_line
+      if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
+        hp = _LSP_SIG_CFG.hint_prefix.below
+      end
     else
       show_at = cur_line
+      if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
+        hp = _LSP_SIG_CFG.hint_prefix.current
+      end
     end
 
     log('virtual text only :', prev_line, next_line, r, show_at, pl)
   end
 
-  -- get show at line
-  if not pl then
-    pl = vim.api.nvim_buf_get_lines(0, show_at, show_at + 1, false)[1]
-  end
-  -- if there are no lines above the current one
-  if lines_above == 0 and not pl then
-    show_at = cur_line
-  end
-  
   pl = pl or ''
   local pad = ''
   local offset = r[2]
