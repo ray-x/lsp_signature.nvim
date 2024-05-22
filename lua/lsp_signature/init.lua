@@ -122,7 +122,7 @@ local function virtual_hint(hint, off_y)
     if completion_visible then
       show_at = cur_line
       if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
-        hp = _LSP_SIG_CFG.hint_prefix.current
+        hp = _LSP_SIG_CFG.hint_prefix.current or '🐼 '
       end
     end
 
@@ -131,13 +131,13 @@ local function virtual_hint(hint, off_y)
       -- line below
       show_at = cur_line + 1
       if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
-        hp = _LSP_SIG_CFG.hint_prefix.below
+        hp = _LSP_SIG_CFG.hint_prefix.below or '🐼 '
       end
     else
       -- line above
       show_at = cur_line - 1
       if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
-        hp = _LSP_SIG_CFG.hint_prefix.above
+        hp = _LSP_SIG_CFG.hint_prefix.above or '🐼 '
       end
     end
   end
@@ -152,18 +152,18 @@ local function virtual_hint(hint, off_y)
       show_at = cur_line - 1
       pl = prev_line
       if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
-        hp = _LSP_SIG_CFG.hint_prefix.above
+        hp = _LSP_SIG_CFG.hint_prefix.above or '🐼 '
       end
     elseif next_line and dwidth(next_line) < r[2] + 2 and not completion_visible then
       show_at = cur_line + 1
       pl = next_line
       if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
-        hp = _LSP_SIG_CFG.hint_prefix.below
+        hp = _LSP_SIG_CFG.hint_prefix.below or '🐼 '
       end
     else
       show_at = cur_line
       if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
-        hp = _LSP_SIG_CFG.hint_prefix.current
+        hp = _LSP_SIG_CFG.hint_prefix.current or '🐼 '
       end
     end
 
