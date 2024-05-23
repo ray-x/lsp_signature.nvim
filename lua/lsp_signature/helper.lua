@@ -400,6 +400,153 @@ local function get_border_height(opts)
   return height
 end
 
+-- copy neovim internal/private functions accorss as they can be removed without notice
+
+local default_border = {
+  { '', 'NormalFloat' },
+  { '', 'NormalFloat' },
+  { '', 'NormalFloat' },
+  { ' ', 'NormalFloat' },
+  { '', 'NormalFloat' },
+  { '', 'NormalFloat' },
+  { '', 'NormalFloat' },
+  { ' ', 'NormalFloat' },
+}
+
+local function get_border_size(opts)
+  local border = opts and opts.border or default_border
+  local height = 0
+  local width = 0
+
+  if type(border) == 'string' then
+    local border_size = {
+      none = { 0, 0 },
+      single = { 2, 2 },
+      double = { 2, 2 },
+      rounded = { 2, 2 },
+      solid = { 2, 2 },
+      shadow = { 1, 1 },
+    }
+    if border_size[border] == nil then
+      error(
+        string.format(
+          'invalid floating preview border: %s. :help vim.api.nvim_open_win()',
+          vim.inspect(border)
+        )
+      )
+    end
+    height, width = unpack(border_size[border])
+  else
+    if 8 % #border ~= 0 then
+      error(
+        string.format(
+          'invalid floating preview border: %s. :help vim.api.nvim_open_win()',
+          vim.inspect(border)
+        )
+      )
+    end
+    local function border_width(id)
+      id = (id - 1) % #border + 1
+      if type(border[id]) == 'table' then
+        -- border specified as a table of <character, highlight group>
+        return vim.fn.strdisplaywidth(border[id][1])
+      elseif type(border[id]) == 'string' then
+        -- border specified as a list of border characters
+        return vim.fn.strdisplaywidth(border[id])
+      end
+      error(
+        string.format(
+          'invalid floating preview border: %s. :help vim.api.nvim_open_win()',
+          vim.inspect(border)
+        )
+      )
+    end
+    local function border_height(id)
+      id = (id - 1) % #border + 1
+      if type(border[id]) == 'table' then
+        -- border specified as a table of <character, highlight group>
+        return #border[id][1] > 0 and 1 or 0
+      elseif type(border[id]) == 'string' then
+        -- border specified as a list of border characters
+        return #border[id] > 0 and 1 or 0
+      end
+      error(
+        string.format(
+          'invalid floating preview border: %s. :help vim.api.nvim_open_win()',
+          vim.inspect(border)
+        )
+      )
+    end
+    height = height + border_height(2) -- top
+    height = height + border_height(6) -- bottom
+    width = width + border_width(4) -- right
+    width = width + border_width(8) -- left
+  end
+
+  return { height = height, width = width }
+end
+
+-- note: this is a neovim internal function from lsp/util.lua
+local make_floating_popup_size = function(contents, opts)
+  opts = opts or {}
+
+  local width = opts.width
+  local height = opts.height
+  local wrap_at = opts.wrap_at
+  local max_width = opts.max_width
+  local max_height = opts.max_height
+  local line_widths = {}
+
+  if not width then
+    width = 0
+    for i, line in ipairs(contents) do
+      -- TODO(ashkan) use nvim_strdisplaywidth if/when that is introduced.
+      line_widths[i] = vim.fn.strdisplaywidth(line:gsub('%z', '\n'))
+      width = math.max(line_widths[i], width)
+    end
+  end
+
+  local border_width = get_border_size(opts).width
+  local screen_width = api.nvim_win_get_width(0)
+  width = math.min(width, screen_width)
+
+  -- make sure borders are always inside the screen
+  if width + border_width > screen_width then
+    width = width - (width + border_width - screen_width)
+  end
+
+  if wrap_at and wrap_at > width then
+    wrap_at = width
+  end
+
+  if max_width then
+    width = math.min(width, max_width)
+    wrap_at = math.min(wrap_at or max_width, max_width)
+  end
+
+  if not height then
+    height = #contents
+    if wrap_at and width >= wrap_at then
+      height = 0
+      if vim.tbl_isempty(line_widths) then
+        for _, line in ipairs(contents) do
+          local line_width = vim.fn.strdisplaywidth(line:gsub('%z', '\n'))
+          height = height + math.ceil(line_width / wrap_at)
+        end
+      else
+        for i = 1, #contents do
+          height = height + math.max(1, math.ceil(line_widths[i] / wrap_at))
+        end
+      end
+    end
+  end
+  if max_height then
+    height = math.min(height, max_height)
+  end
+
+  return width, height
+end
+
 helper.cal_pos = function(contents, opts)
   local lnum = fn.line('.') - fn.line('w0') + 1
 
@@ -418,7 +565,7 @@ helper.cal_pos = function(contents, opts)
   local filetype = helper.try_trim_markdown_code_blocks(contents)
   log(vim.inspect(contents))
 
-  local width, height = util._make_floating_popup_size(contents, opts)
+  local width, height = make_floating_popup_size(contents, opts)
   -- if the filetype returned is "markdown", and contents contains code fences, the height should minus 2,
   -- because the code fences won't be display
   local code_block_flag = contents[1]:match('^```')
