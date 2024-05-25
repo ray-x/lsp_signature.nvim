@@ -915,7 +915,7 @@ end
 M.on_attach = function(cfg, bufnr)
   bufnr = bufnr or api.nvim_get_current_buf()
 
-  local augroup = api.nvim_create_augroup('Signature', {})
+  local augroup = api.nvim_create_augroup('Signature', { clear = false })
   api.nvim_create_autocmd('InsertEnter', {
     group = augroup,
     buffer = bufnr,
