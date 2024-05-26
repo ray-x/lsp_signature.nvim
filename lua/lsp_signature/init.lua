@@ -180,7 +180,7 @@ local function virtual_hint(hint, off_y)
     if show_at ~= cur_line and line_to_cursor_width > pl_width + 1 then
       pad = string.rep(' ', line_to_cursor_width - pl_width)
       local width = vim.api.nvim_win_get_width(0)
-      local hint_width = dwidth(_LSP_SIG_CFG.hint_prefix .. hint)
+      local hint_width = dwidth(hp .. hint)
       -- todo: 6 is width of sign+linenumber column
       if #pad + pl_width + hint_width + 6 > width then
         pad = string.rep(' ', math.max(1, line_to_cursor_width - pl_width - hint_width - 6))
@@ -211,7 +211,7 @@ local function virtual_hint(hint, off_y)
     log('virtual text: ', cur_line, 'invalid offset')
     return -- no offset found
   end
-  local vt = { pad .. _LSP_SIG_CFG.hint_prefix .. hint, _LSP_SIG_CFG.hint_scheme }
+  local vt = { pad .. hp .. hint, _LSP_SIG_CFG.hint_scheme }
   if inline_display then
     if type(inline_display) == 'boolean' then
       inline_display = 'inline'
