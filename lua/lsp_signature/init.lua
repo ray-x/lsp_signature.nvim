@@ -148,7 +148,6 @@ local function virtual_hint(hint, off_y)
     end
   end
 
-
   if _LSP_SIG_CFG.floating_window == false then
     local prev_line, next_line
     if cur_line > 0 then
