@@ -116,31 +116,38 @@ local function virtual_hint(hint, off_y)
   local pl
   local completion_visible = helper.completion_visible()
   local hp = type(_LSP_SIG_CFG.hint_prefix) == 'string' and _LSP_SIG_CFG.hint_prefix
+    or (type(_LSP_SIG_CFG.hint_prefix) == 'table' and _LSP_SIG_CFG.hint_prefix.current)
+    or '🐼 '
 
   if off_y and off_y ~= 0 then
+    local inline = type(_LSP_SIG_CFG.hint_inline) == 'function'
+        and _LSP_SIG_CFG.hint_inline() == 'inline'
+      or _LSP_SIG_CFG.hint_inline
     -- stay out of the way of the pum
-    if completion_visible then
+    if completion_visible or inline then
       show_at = cur_line
       if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
         hp = _LSP_SIG_CFG.hint_prefix.current or '🐼 '
       end
-    end
-
-    -- if no pum, show at user configured line
-    if off_y > 0 then
-      -- line below
-      show_at = cur_line + 1
-      if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
-        hp = _LSP_SIG_CFG.hint_prefix.below or '🐼 '
-      end
     else
-      -- line above
-      show_at = cur_line - 1
-      if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
-        hp = _LSP_SIG_CFG.hint_prefix.above or '🐼 '
+      -- if no pum, show at user configured line
+      if off_y > 0 then
+        -- line below
+        show_at = cur_line + 1
+        if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
+          hp = _LSP_SIG_CFG.hint_prefix.below or '🐼 '
+        end
+      end
+      if off_y < 0 then
+        -- line above
+        show_at = cur_line - 1
+        if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
+          hp = _LSP_SIG_CFG.hint_prefix.above or '🐼 '
+        end
       end
     end
   end
+
 
   if _LSP_SIG_CFG.floating_window == false then
     local prev_line, next_line
