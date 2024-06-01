@@ -203,6 +203,12 @@ e.g.
   fix_pos = false,  -- set to true, the floating window will not auto-close until finish all parameters
   hint_enable = true, -- virtual hint enable
   hint_prefix = "🐼 ",  -- Panda for parameter, NOTE: for the terminal not support emoji, might crash
+  -- or, provide a table with 3 icons
+  -- hint_prefix = {
+  --     above = "↙ ",  -- when the hint is on the line above the current line
+  --     current = "← ",  -- when the hint is on the same line
+  --     below = "↖ "  -- when the hint is on the line below the current line
+  -- }
   hint_scheme = "String",
   hint_inline = function() return false end,  -- should the hint be inline(nvim 0.10 only)?  default false
   -- return true | 'inline' to show hint inline, return 'eol' to show hint at end of line, return false to disable
