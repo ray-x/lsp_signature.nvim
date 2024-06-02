@@ -573,7 +573,7 @@ helper.inline_string_width = function()
   local width = fn.strdisplaywidth
   local w = 0
   -- if inlay hint enabled
-  if vim.lsp.inlay_hint.is_enabled({bufnr=0}) then
+  if vim.lsp.inlay_hint and vim.lsp.inlay_hint.is_enabled({bufnr=0}) then
     local hints = inlay_hints()
     if hints == nil then
       return w
