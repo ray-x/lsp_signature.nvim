@@ -15,6 +15,15 @@ local function is_special(ch)
   return contains(special_chars, ch)
 end
 
+-- get inlay lsp hints of current line
+local function inlay_hints()
+  local lsp_inlay = vim.api.nvim_create_namespace('vim_lsp_inlayhint')
+  local r = vim.api.nvim_win_get_cursor(0)
+  local start, _end = { r[1] - 1, 0 }, { r[1] - 1, r[2] }
+  local mk = vim.api.nvim_buf_get_extmarks(0, lsp_inlay, start, _end, { details = true })
+  return mk
+end
+
 local function fs_write(path, data)
   local uv = vim.uv or vim.loop
 
@@ -545,6 +554,31 @@ local make_floating_popup_size = function(contents, opts)
   end
 
   return width, height
+end
+
+helper.inline_string_width = function()
+  local width = fn.strdisplaywidth
+  local w = 0
+  -- if inlay hint enabled
+  if vim.lsp.inlay_hint and vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }) then
+    local hints = inlay_hints()
+    if hints == nil then
+      return w
+    end
+    -- virt_text = { { "x:", "LspInlayHint" }, { " " } },
+    for _, value in pairs(hints) do
+      -- helper.log(value)
+      local v = value[4] and value[4].virt_text or nil
+      if v == nil then
+        helper.log('no virt_text', value)
+        return w
+      end
+      for _, v2 in pairs(v) do
+        w = w + width(v2[1])
+      end
+    end
+  end
+  return w
 end
 
 helper.cal_pos = function(contents, opts)

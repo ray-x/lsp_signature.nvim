@@ -55,7 +55,13 @@ _LSP_SIG_CFG = {
   end,
   -- also can be bool value fix floating_window position
   hint_enable = true, -- virtual hint
-  hint_prefix = '🐼 ',
+  disable_lsp_inlay = false,
+  hint_prefix = {
+    default = '🐼 ', -- Panda for parameter
+    --     above = "↙ ",  -- when the hint is on the line above the current line
+    --     current = "← ",  -- when the hint is on the same line
+    --     below = "↖ "  -- when the hint is on the line below the current line
+  },
   hint_scheme = 'String',
   hint_inline = function()
     -- options:
@@ -115,10 +121,19 @@ local function virtual_hint(hint, off_y)
   end
   local pl
   local completion_visible = helper.completion_visible()
-  local hp = type(_LSP_SIG_CFG.hint_prefix) == 'string' and _LSP_SIG_CFG.hint_prefix
-    or (type(_LSP_SIG_CFG.hint_prefix) == 'table' and _LSP_SIG_CFG.hint_prefix.current)
-    or '🐼 '
+  -- local hp = type(_LSP_SIG_CFG.hint_prefix) == 'string' and _LSP_SIG_CFG.hint_prefix
+  --   or (type(_LSP_SIG_CFG.hint_prefix) == 'table' and _LSP_SIG_CFG.hint_prefix.current)
+  --   or '🐼 '
+  local gethp = function(pos)
+    if type(_LSP_SIG_CFG.hint_prefix) == 'string' then
+      -- this should not happen
+      vim.notify('hint_prefix should be a table, please report an issue', vim.log.levels.ERROR)
+      return _LSP_SIG_CFG.hint_prefix
+    end
+    return _LSP_SIG_CFG.hint_prefix[pos] or _LSP_SIG_CFG.hint_prefix.default or '🐼 '
+  end
 
+  local hp = gethp('default')
   if off_y and off_y ~= 0 then
     local inline = type(_LSP_SIG_CFG.hint_inline) == 'function'
         and _LSP_SIG_CFG.hint_inline() == 'inline'
@@ -126,24 +141,18 @@ local function virtual_hint(hint, off_y)
     -- stay out of the way of the pum
     if completion_visible or inline then
       show_at = cur_line
-      if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
-        hp = _LSP_SIG_CFG.hint_prefix.current or '🐼 '
-      end
+      hp = gethp('current')
     else
       -- if no pum, show at user configured line
       if off_y > 0 then
         -- line below
         show_at = cur_line + 1
-        if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
-          hp = _LSP_SIG_CFG.hint_prefix.below or '🐼 '
-        end
+        hp = gethp('below')
       end
       if off_y < 0 then
         -- line above
         show_at = cur_line - 1
-        if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
-          hp = _LSP_SIG_CFG.hint_prefix.above or '🐼 '
-        end
+        hp = gethp('above')
       end
     end
   end
@@ -157,20 +166,13 @@ local function virtual_hint(hint, off_y)
     if prev_line and vim.fn.strdisplaywidth(prev_line) < r[2] then
       show_at = cur_line - 1
       pl = prev_line
-      if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
-        hp = _LSP_SIG_CFG.hint_prefix.above or '🐼 '
-      end
+      hp = gethp('above')
     elseif next_line and dwidth(next_line) < r[2] + 2 and not completion_visible then
       show_at = cur_line + 1
-      pl = next_line
-      if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
-        hp = _LSP_SIG_CFG.hint_prefix.below or '🐼 '
-      end
+      hp = gethp('below')
     else
       show_at = cur_line
-      if type(_LSP_SIG_CFG.hint_prefix) == 'table' then
-        hp = _LSP_SIG_CFG.hint_prefix.current or '🐼 '
-      end
+      hp = gethp('current')
     end
 
     log('virtual text only :', prev_line, next_line, r, show_at, pl)
@@ -183,8 +185,11 @@ local function virtual_hint(hint, off_y)
   if inline_display == false then
     local line_to_cursor_width = dwidth(line_to_cursor)
     local pl_width = dwidth(pl)
+    -- log(pl, pl_width, line_to_cursor_width, r[2])
     if show_at ~= cur_line and line_to_cursor_width > pl_width + 1 then
-      pad = string.rep(' ', line_to_cursor_width - pl_width)
+      local off = line_to_cursor_width - pl_width
+      off = off + helper.inline_string_width()
+      pad = string.rep(' ', off)
       local width = vim.api.nvim_win_get_width(0)
       local hint_width = dwidth(hp .. hint)
       -- todo: 6 is width of sign+linenumber column
@@ -230,9 +235,8 @@ local function virtual_hint(hint, off_y)
       r[1] - 1,
       offset,
       { -- Note: the vt was put after of cursor.
-        -- this seems eaiser to handle in the code also easy to read
+        -- easier to handle in the code also easy to read
         virt_text_pos = inline_display,
-        -- virt_text_pos = 'right_align',
         virt_text = { vt },
         hl_mode = 'combine',
         ephemeral = false,
@@ -240,7 +244,6 @@ local function virtual_hint(hint, off_y)
       }
     )
   else -- I may deprecated this when nvim 0.10 release
-    log('virtual text: ', cur_line, show_at, vt)
     vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, show_at, 0, {
       virt_text = { vt },
       virt_text_pos = 'eol',
@@ -255,7 +258,6 @@ local close_events = { 'InsertLeave', 'BufHidden', 'ModeChanged' }
 -- ----------------------
 -- --  signature help  --
 -- ----------------------
--- Note: 0.6.x   - signature_help(err, {result}, {ctx}, {config})
 local signature_handler = function(err, result, ctx, config)
   if err ~= nil then
     print('lsp_signatur handler', err)
@@ -985,12 +987,6 @@ M.on_attach = function(cfg, bufnr)
   end
   -- stylua ignore end
 
-  if type(cfg) == 'table' then
-    _LSP_SIG_CFG = vim.tbl_extend('keep', cfg, _LSP_SIG_CFG)
-    cleanup_logs(cfg)
-    -- log(_LSP_SIG_CFG)
-  end
-
   if _LSP_SIG_CFG.bind then
     vim.lsp.handlers['textDocument/signatureHelp'] =
       vim.lsp.with(signature_handler, _LSP_SIG_CFG.handler_opts)
@@ -1184,6 +1180,17 @@ M.signature_handler = signature_handler
 M.setup = function(cfg)
   cfg = cfg or {}
   M.deprecated(cfg)
+
+  if type(cfg) == 'table' then
+    if cfg.hint_prefix and type(cfg.hint_prefix) == 'string' then
+      cfg.hint_prefix = {
+        default = cfg.hint_prefix, -- when the hint is on the same line
+      }
+    end
+    _LSP_SIG_CFG = vim.tbl_extend('keep', cfg, _LSP_SIG_CFG)
+    cleanup_logs(cfg)
+    -- log(_LSP_SIG_CFG)
+  end
   log('user cfg:', cfg)
   local _start_client = vim.lsp.start_client
   _LSP_SIG_VT_NS = api.nvim_create_namespace('lsp_signature_vt')
