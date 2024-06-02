@@ -245,14 +245,6 @@ local function virtual_hint(hint, off_y)
       }
     )
   else -- I may deprecated this when nvim 0.10 release
-    local doffset = offset + inlay_offset
-    if show_at == cur_line then
-      doffset = 0
-    else
-      doffset = offset
-    end
-
-    log('virtual text: ', cur_line, show_at, doffset, vt)
     vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, show_at, 0, {
       virt_text = { vt },
       virt_text_pos = 'eol',
@@ -267,7 +259,6 @@ local close_events = { 'InsertLeave', 'BufHidden', 'ModeChanged' }
 -- ----------------------
 -- --  signature help  --
 -- ----------------------
--- Note: 0.6.x   - signature_help(err, {result}, {ctx}, {config})
 local signature_handler = function(err, result, ctx, config)
   if err ~= nil then
     print('lsp_signatur handler', err)
