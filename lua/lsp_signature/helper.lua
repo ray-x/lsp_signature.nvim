@@ -586,8 +586,8 @@ helper.inline_string_width = function()
         helper.log('no virt_text', value)
         return w
       end
-      for _, v in pairs(v) do
-        w = w + width(v[1])
+      for _, v2 in pairs(v) do
+        w = w + width(v2[1])
       end
     end
   end

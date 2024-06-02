@@ -133,6 +133,7 @@ local function virtual_hint(hint, off_y)
     return _LSP_SIG_CFG.hint_prefix[pos] or _LSP_SIG_CFG.hint_prefix.default or '🐼 '
   end
 
+  local hp = gethp('default')
   if off_y and off_y ~= 0 then
     local inline = type(_LSP_SIG_CFG.hint_inline) == 'function'
         and _LSP_SIG_CFG.hint_inline() == 'inline'
@@ -156,7 +157,6 @@ local function virtual_hint(hint, off_y)
     end
   end
 
-  local hp = gethp('default')
   if _LSP_SIG_CFG.floating_window == false then
     local prev_line, next_line
     if cur_line > 0 then
@@ -236,9 +236,8 @@ local function virtual_hint(hint, off_y)
       r[1] - 1,
       offset,
       { -- Note: the vt was put after of cursor.
-        -- this seems eaiser to handle in the code also easy to read
+        -- easier to handle in the code also easy to read
         virt_text_pos = inline_display,
-        -- virt_text_pos = 'right_align',
         virt_text = { vt },
         hl_mode = 'combine',
         ephemeral = false,
@@ -246,14 +245,14 @@ local function virtual_hint(hint, off_y)
       }
     )
   else -- I may deprecated this when nvim 0.10 release
-    local offset = offset + inlay_offset
-
-    log('virtual text: ', cur_line, show_at, offset, vt)
+    local doffset = offset + inlay_offset
     if show_at == cur_line then
-      offset = 0
+      doffset = 0
     else
-      offset = offset
+      doffset = offset
     end
+
+    log('virtual text: ', cur_line, show_at, doffset, vt)
     vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, show_at, 0, {
       virt_text = { vt },
       virt_text_pos = 'eol',
