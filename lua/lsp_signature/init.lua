@@ -222,7 +222,6 @@ local function virtual_hint(hint, off_y)
     log('virtual text: ', cur_line, 'invalid offset')
     return -- no offset found
   end
-  local inlay_offset = helper.inline_string_width()
   local vt = { pad .. hp .. hint, _LSP_SIG_CFG.hint_scheme }
   if inline_display then
     if type(inline_display) == 'boolean' then

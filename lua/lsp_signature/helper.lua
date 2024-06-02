@@ -16,24 +16,11 @@ local function is_special(ch)
 end
 
 -- get inlay lsp hints of current line
--- sample response
---[[
-{ 26, 678, 31, {
-      ns_id = 54,
-      priority = 4096,
-      right_gravity = true,
-      virt_text = { { "x:", "LspInlayHint" }, { " " } },
-      virt_text_hide = false,
-      virt_text_pos = "inline",
-      virt_text_repeat_linebreak = false
-    }
-]] --
 local function inlay_hints()
   local lsp_inlay = vim.api.nvim_create_namespace('vim_lsp_inlayhint')
   local r = vim.api.nvim_win_get_cursor(0)
-  local start, _end = {r[1]-1, 0} , {r[1]-1, r[2]}
-  local mk = vim.api.nvim_buf_get_extmarks(0, lsp_inlay, start, _end,
-  {details=true})
+  local start, _end = { r[1] - 1, 0 }, { r[1] - 1, r[2] }
+  local mk = vim.api.nvim_buf_get_extmarks(0, lsp_inlay, start, _end, { details = true })
   return mk
 end
 
@@ -573,7 +560,7 @@ helper.inline_string_width = function()
   local width = fn.strdisplaywidth
   local w = 0
   -- if inlay hint enabled
-  if vim.lsp.inlay_hint and vim.lsp.inlay_hint.is_enabled({bufnr=0}) then
+  if vim.lsp.inlay_hint and vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }) then
     local hints = inlay_hints()
     if hints == nil then
       return w
@@ -582,7 +569,7 @@ helper.inline_string_width = function()
     for _, value in pairs(hints) do
       -- helper.log(value)
       local v = value[4] and value[4].virt_text or nil
-      if  v == nil then
+      if v == nil then
         helper.log('no virt_text', value)
         return w
       end
