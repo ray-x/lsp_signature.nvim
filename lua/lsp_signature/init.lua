@@ -964,25 +964,7 @@ M.on_attach = function(cfg, bufnr)
     end,
     desc = 'signature on complete done',
   })
-
-  if _LSP_SIG_CFG.cursorhold_update then
-    api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-      group = augroup,
-      buffer = bufnr,
-      callback = function()
-        require('lsp_signature').on_UpdateSignature()
-      end,
-      desc = 'signature on cursor hold',
-    })
-    api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-      group = augroup,
-      buffer = bufnr,
-      callback = function()
-        require('lsp_signature').check_signature_should_close()
-      end,
-      desc = 'signature on cursor hold',
-    })
-  end
+  helper.cursor_hold(_LSP_SIG_CFG.cursorhold_update, bufnr)
   -- stylua ignore end
 
   if type(cfg) == 'table' then
@@ -1152,6 +1134,16 @@ M.toggle_float_win = function()
     if _LSP_SIG_VT_NS then
       vim.api.nvim_buf_clear_namespace(0, _LSP_SIG_VT_NS, 0, -1)
     end
+
+    helper.cursor_hold(false, vim.api.nvim_get_current_buf())
+    vim.api.nvim_create_autocmd('InsertCharPre', {
+      callback = function()
+        -- disable cursor hold event until next insert enter
+        helper.cursor_hold(_LSP_SIG_CFG.cursorhold_update, vim.api.nvim_get_current_buf())
+      end,
+      once = true, -- trigger once
+    })
+    -- disable cursor hold event until next insert enter
     return _LSP_SIG_CFG.floating_window
   end
 

@@ -15,6 +15,41 @@ local function is_special(ch)
   return contains(special_chars, ch)
 end
 
+helper.cursor_hold = function(enabled,bufnr)
+
+  if not  _LSP_SIG_CFG.cursorhold_update then
+    return
+  end
+
+  local augroup = api.nvim_create_augroup('Signature', { clear = false })
+  if enabled then
+    api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+      group = augroup,
+      buffer = bufnr,
+      callback = function()
+        require('lsp_signature').on_UpdateSignature()
+      end,
+      desc = 'signature on cursor hold',
+    })
+    api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+      group = augroup,
+      buffer = bufnr,
+      callback = function()
+        require('lsp_signature').check_signature_should_close()
+      end,
+      desc = 'signature on cursor hold',
+    })
+  end
+  if not enabled then
+    api.nvim_clear_autocmds({
+      buffer = bufnr,
+      group = augroup,
+      event = { 'CursorHold', 'CursorHoldI' },
+    })
+  end
+
+end
+
 local function fs_write(path, data)
   local uv = vim.uv or vim.loop
 
