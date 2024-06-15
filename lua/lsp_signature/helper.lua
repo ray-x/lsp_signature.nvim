@@ -15,9 +15,8 @@ local function is_special(ch)
   return contains(special_chars, ch)
 end
 
-helper.cursor_hold = function(enabled,bufnr)
-
-  if not  _LSP_SIG_CFG.cursorhold_update then
+helper.cursor_hold = function(enabled, bufnr)
+  if not _LSP_SIG_CFG.cursorhold_update then
     return
   end
 
@@ -47,7 +46,6 @@ helper.cursor_hold = function(enabled,bufnr)
       event = { 'CursorHold', 'CursorHoldI' },
     })
   end
-
 end
 
 local function fs_write(path, data)
