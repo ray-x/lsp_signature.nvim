@@ -17,8 +17,15 @@ local manager = {
 local path_sep = vim.loop.os_uname().sysname == 'Windows' and '\\' or '/'
 
 local function path_join(...)
-  return table.concat(vim.tbl_flatten({ ... }), path_sep)
+  local tbl_flatten = function(t)
+    if vim.fn.has('nvim-0.10') == 0 then -- for old versions
+      return vim.tbl_flatten(t)
+    end
+    return vim.iter(t):flatten():totable()
+  end
+  return table.concat(tbl_flatten({ ... }), path_sep)
 end
+
 _LSP_SIG_CFG = {
   bind = true, -- This is mandatory, otherwise border config won't get registered.
   doc_lines = 10, -- how many lines to show in doc, set to 0 if you only want the signature
