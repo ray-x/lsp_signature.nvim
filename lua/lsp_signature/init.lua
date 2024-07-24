@@ -971,7 +971,6 @@ M.on_attach = function(cfg, bufnr)
     end,
     desc = 'signature on complete done',
   })
-  helper.cursor_hold(_LSP_SIG_CFG.cursorhold_update, bufnr)
   -- stylua ignore end
 
   if type(cfg) == 'table' then
@@ -979,6 +978,8 @@ M.on_attach = function(cfg, bufnr)
     cleanup_logs(cfg)
     -- log(_LSP_SIG_CFG)
   end
+
+  helper.cursor_hold(_LSP_SIG_CFG.cursorhold_update, bufnr)
 
   if _LSP_SIG_CFG.bind then
     vim.lsp.handlers['textDocument/signatureHelp'] =
