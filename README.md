@@ -240,7 +240,7 @@ e.g.
   -- e.g. move_cursor_key = '<M-p>',
   -- once moved to floating window, you can use <M-d>, <M-u> to move cursor up and down
   keymaps = {}  -- relate to move_cursor_key; the keymaps inside floating window
-  -- e.g. keymaps = { 'j', '<C-o>j' } this map j to <C-o>j in floating window
+  -- e.g. keymaps = { { 'j', '<C-o>j' }, } this map j to <C-o>j in floating window
   -- <M-d> and <M-u> are default keymaps to move cursor up and down
 }
 
