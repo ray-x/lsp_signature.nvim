@@ -844,7 +844,7 @@ helper.set_keymaps = function(winnr, bufnr)
     end
     if maps and type(maps) == 'table' then
       for _, map in ipairs(maps) do
-        vim.keymap.set('i', map.lhs, map.rhs, { buffer = bufnr })
+        vim.keymap.set('i', map[1], map[2], { buffer = bufnr })
       end
     end
   end
