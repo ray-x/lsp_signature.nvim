@@ -239,7 +239,9 @@ e.g.
   move_cursor_key = nil, -- imap, use nvim_set_current_win to move cursor between current win and floating window
   -- e.g. move_cursor_key = '<M-p>',
   -- once moved to floating window, you can use <M-d>, <M-u> to move cursor up and down
-  keymaps = {}  -- relate to move_cursor_key; the keymaps inside floating window
+  keymaps = {}  -- relate to move_cursor_key; the keymaps inside floating window with arguments of bufnr
+  -- e.g. keymaps = function(bufnr) vim.keymap.set(...) end
+  -- it can be function that set keymaps
   -- e.g. keymaps = { { 'j', '<C-o>j' }, } this map j to <C-o>j in floating window
   -- <M-d> and <M-u> are default keymaps to move cursor up and down
 }

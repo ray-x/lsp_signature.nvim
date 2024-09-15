@@ -7,7 +7,6 @@ local fn = vim.fn
 local special_chars = { '%', '*', '[', ']', '^', '$', '(', ')', '.', '+', '-', '?', '"' }
 
 local contains = vim.tbl_contains
--- local lsp_trigger_chars = {}
 
 local vim_version = vim.version().major * 100 + vim.version().minor * 10 + vim.version().patch
 
@@ -184,7 +183,7 @@ helper.ft2md = function(ft)
   end
 end
 
---  location of active parameter
+-- location of active parameter
 -- return result, next parameter, start of next parameter, end of next parameter
 helper.match_parameter = function(result, config)
   -- log("match para ", result, config)
@@ -754,7 +753,7 @@ function helper.check_lsp_cap(clients, line_to_cursor)
         total_lsp = total_lsp + 1
 
         local h = rslv_cap.hoverProvider
-        if h == true or (h ~= nil and h ~= {}) then
+        if h == true or vim.empty(h) == 0 then
           hover_cap = true
         end
 

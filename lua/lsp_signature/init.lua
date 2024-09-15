@@ -907,19 +907,9 @@ function M.on_UpdateSignature()
   signature({ trigger = 'CursorHold' })
 end
 
-M.deprecated = function(cfg)
+M.validate = function(cfg)
   if cfg.trigger_on_new_line ~= nil or cfg.trigger_on_nomatch ~= nil then
     print('trigger_on_new_line and trigger_on_nomatch deprecated, using always_trigger instead')
-  end
-
-  if cfg.use_lspsaga or cfg.check_3rd_handler ~= nil then
-    print('lspsaga signature and 3rd handler deprecated')
-  end
-  if cfg.floating_window_above_first ~= nil then
-    print('use floating_window_above_cur_line instead')
-  end
-  if cfg.decorator then
-    print('decorator deprecated, use hi_parameter instead')
   end
 end
 
@@ -1186,7 +1176,7 @@ M.signature_handler = signature_handler
 
 M.setup = function(cfg)
   cfg = cfg or {}
-  M.deprecated(cfg)
+  M.validate(cfg)
   log('user cfg:', cfg)
   local _start_client = vim.lsp.start_client
   _LSP_SIG_VT_NS = api.nvim_create_namespace('lsp_signature_vt')
