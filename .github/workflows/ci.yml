@@ -15,7 +15,7 @@ jobs:
           - os: ubuntu-22.04
             url: https://github.com/neovim/neovim/releases/download/v0.9.5/nvim-linux64.tar.gz
           - os: ubuntu-22.04
-            url: https://github.com/neovim/neovim/releases/download/v0.10.0/nvim-linux64.tar.gz
+            url: https://github.com/neovim/neovim/releases/download/v0.10.1/nvim-linux64.tar.gz
     steps:
       - uses: actions/checkout@v2
       - run: date +%F > todays-date
