@@ -110,6 +110,22 @@ vim.api.nvim_create_autocmd("LspAttach", {
 })
 ```
 
+If you using Lazy.nvim, you can pass the config in the `opts` table:
+
+```lua
+{
+  "ray-x/lsp_signature.nvim",
+  event = "InsertEnter",
+  opts = {
+    bind = true,
+    handler_opts = {
+      border = "rounded"
+    }
+  },
+  config = function(_, opts) require'lsp_signature'.setup(opts) end
+}
+```
+
 ## Configure
 
 ### Floating window borders
@@ -122,7 +138,7 @@ local example_setup = {
   on_attach = function(client, bufnr)
     …
     require "lsp_signature".on_attach({
-      bind = true, -- This is mandatory, otherwise border config won't get registered.
+      bind = true,
       handler_opts = {
         border = "rounded"
       }
@@ -138,7 +154,7 @@ Or:
 ```lua
 require'lspconfig'.gopls.setup()
 require "lsp_signature".setup({
-  bind = true, -- This is mandatory, otherwise border config won't get registered.
+  bind = true,
   handler_opts = {
     border = "rounded"
   }
@@ -150,7 +166,7 @@ require "lsp_signature".setup({
 No default keymaps are provided. There are two keymaps available in config:
 
 1. toggle_key: Toggle the signature help window. It manual toggle config.floating_windows on/off
-2. select_signature_key: Select the current signature when mulitple signature is avalible.
+2. select_signature_key: Select the current signature when multiple signature is available.
 
 #### Customize the keymap in your config:
 
