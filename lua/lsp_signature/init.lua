@@ -224,7 +224,10 @@ local function virtual_hint(hint, off_y)
     log('virtual text: ', cur_line, 'invalid offset')
     return -- no offset found
   end
-  local vt = { pad .. hp .. hint, _LSP_SIG_CFG.hint_scheme }
+  local vt = {
+    { pad },
+    { hp .. hint, _LSP_SIG_CFG.hint_scheme },
+  }
   if inline_display then
     if type(inline_display) == 'boolean' then
       inline_display = 'inline'
@@ -240,7 +243,7 @@ local function virtual_hint(hint, off_y)
         -- this seems eaiser to handle in the code also easy to read
         virt_text_pos = inline_display,
         -- virt_text_pos = 'right_align',
-        virt_text = { vt },
+        virt_text = vt,
         hl_mode = 'combine',
         ephemeral = false,
         -- hl_group = _LSP_SIG_CFG.hint_scheme
@@ -249,7 +252,7 @@ local function virtual_hint(hint, off_y)
   else -- I may deprecated this when nvim 0.10 release
     log('virtual text: ', cur_line, show_at, vt)
     vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, show_at, 0, {
-      virt_text = { vt },
+      virt_text = vt,
       virt_text_pos = 'eol',
       hl_mode = 'combine',
       -- virt_lines_above = true,
