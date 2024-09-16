@@ -753,7 +753,7 @@ function helper.check_lsp_cap(clients, line_to_cursor)
         total_lsp = total_lsp + 1
 
         local h = rslv_cap.hoverProvider
-        if h == true or vim.empty(h) == 0 then
+        if h == true or fn.empty(h) == 0 then
           hover_cap = true
         end
 
