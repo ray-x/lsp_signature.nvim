@@ -92,6 +92,7 @@ _LSP_SIG_CFG = {
   select_signature_key = nil, -- cycle to next signature, e.g. '<M-n>' function overloading
   -- internal vars, init here to suppress linter warnings
   move_cursor_key = nil, -- use nvim_set_current_win
+  move_signature_window_key = {}, -- move floating window, default ['<M-j>', '<M-k>']
 
   --- private vars
   winnr = nil,
@@ -265,7 +266,6 @@ local close_events = { 'InsertLeave', 'BufHidden', 'ModeChanged' }
 -- ----------------------
 -- --  signature help  --
 -- ----------------------
--- Note: 0.6.x   - signature_help(err, {result}, {ctx}, {config})
 local signature_handler = function(err, result, ctx, config)
   if err ~= nil then
     print('lsp_signatur handler', err)
@@ -646,6 +646,24 @@ local signature_handler = function(err, result, ctx, config)
   return lines, s, l
 end
 
+---@offset: number: number of lines to move the signature window
+---@offset: table: {x, y} number of lines to move the signature window
+M.move_signature_window = function(offset)
+  if _LSP_SIG_CFG.winnr == nil or not api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
+    return
+  end
+  local offset_y, offset_x = offset, 0
+  if type(offset) == 'table' then
+    offset_x = offset[1]
+    offset_y = offset[2]
+  end
+  local win_cfg = api.nvim_win_get_config(_LSP_SIG_CFG.winnr)
+  win_cfg.row = win_cfg.row + offset_y
+  win_cfg.col = win_cfg.col + offset_x
+  print(vim.inspect(win_cfg))
+  api.nvim_win_set_config(_LSP_SIG_CFG.winnr, win_cfg)
+end
+
 local line_to_cursor_old
 local signature = function(opts)
   opts = opts or {}
@@ -1008,6 +1026,23 @@ M.on_attach = function(cfg, bufnr)
       require('lsp_signature.helper').change_focus()
     end, { silent = true, noremap = true, desc = 'change cursor focus' })
   end
+  if _LSP_SIG_CFG.move_signature_window_key and #_LSP_SIG_CFG.move_signature_window_key >= 2 then
+    vim.keymap.set('i', _LSP_SIG_CFG.move_signature_window_key[1], function()
+      require('lsp_signature').move_signature_window(1)
+    end, { silent = true, noremap = true, desc = 'move signature window up' })
+    vim.keymap.set('i', _LSP_SIG_CFG.move_signature_window_key[2], function()
+      require('lsp_signature').move_signature_window(-1)
+    end, { silent = true, noremap = true, desc = 'move signature window down' })
+    if #_LSP_SIG_CFG.move_signature_window_key == 4 then
+      -- move to left
+      vim.keymap.set('i', _LSP_SIG_CFG.move_signature_window_key[3], function()
+        require('lsp_signature').move_signature_window({ -1, 0 })
+      end, { silent = true, noremap = true, desc = 'move signature window right' })
+      vim.keymap.set('i', _LSP_SIG_CFG.move_signature_window_key[4], function()
+        require('lsp_signature').move_signature_window({ 1, 0 })
+      end, { silent = true, noremap = true, desc = 'move signature window left' })
+    end
+  end
   _LSP_SIG_VT_NS = api.nvim_create_namespace('lsp_signature_vt')
 end
 
@@ -1199,7 +1234,7 @@ M.setup = function(cfg)
     require('lsp_signature.helper').make_floating_popup_options
 
   -- default if not defined
-  vim.cmd([[hi default link LspSignatureActiveParameter Search]])
+  vim.api.nvim_set_hl(0, 'LspSignatureActiveParameter', {link = 'Search'})
 end
 
 return M

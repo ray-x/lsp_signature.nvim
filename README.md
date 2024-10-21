@@ -61,9 +61,10 @@ use {
 " Lazy
 {
   "ray-x/lsp_signature.nvim",
-  event = "VeryLazy",
-  opts = {},
-  config = function(_, opts) require'lsp_signature'.setup(opts) end
+  event = "InsertEnter",
+  opts = {
+    -- cfg options
+  },
 }
 ```
 
@@ -122,7 +123,8 @@ If you using Lazy.nvim, you can pass the config in the `opts` table:
       border = "rounded"
     }
   },
-  config = function(_, opts) require'lsp_signature'.setup(opts) end
+  -- or use config
+  -- config = function(_, opts) require'lsp_signature'.setup({you options}) end
 }
 ```
 
@@ -161,12 +163,13 @@ require "lsp_signature".setup({
 })
 ```
 
-### Keymap
+### Keymaps
 
-No default keymaps are provided. There are two keymaps available in config:
+No default keymaps are provided. Following are keymaps available in config:
 
 1. toggle_key: Toggle the signature help window. It manual toggle config.floating_windows on/off
 2. select_signature_key: Select the current signature when multiple signature is available.
+3. move floating window: move_cursor_key, array of two keymaps, if set, you can use these keymaps to move floating window up and down, default is nil
 
 #### Customize the keymap in your config:
 
@@ -252,6 +255,8 @@ e.g.
      -- may not popup when typing depends on floating_window setting
 
   select_signature_key = nil, -- cycle to next signature, e.g. '<M-n>' function overloading
+  move_signature_window_key = nil, -- move the floating window, e.g. {'<M-k>', '<M-j>'} to move up and down, or
+    -- table of 4 keymaps, e.g. {'<M-k>', '<M-j>', '<M-h>', '<M-l>'} to move up, down, left, right
   move_cursor_key = nil, -- imap, use nvim_set_current_win to move cursor between current win and floating window
   -- e.g. move_cursor_key = '<M-p>',
   -- once moved to floating window, you can use <M-d>, <M-u> to move cursor up and down
