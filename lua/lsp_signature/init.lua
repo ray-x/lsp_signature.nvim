@@ -33,7 +33,7 @@ _LSP_SIG_CFG = {
   max_width = 80, -- max_width of signature floating_window
   wrap = true, -- allow doc/signature wrap inside floating_window, useful if your lsp doc/sig is too long
 
-  floating_window = true, -- show hint in a floating window
+  floating_window = false, -- show hint in a floating window
   floating_window_above_cur_line = true, -- try to place the floating above the current line
   toggle_key_flip_floatwin_setting = false, -- toggle key will enable|disable floating_window flag
   floating_window_off_x = 1, -- adjust float windows x position. or a function return the x offset
@@ -62,7 +62,7 @@ _LSP_SIG_CFG = {
   end,
   -- also can be bool value fix floating_window position
   hint_enable = true, -- virtual hint
-  hint_prefix = '🐼 ',
+  hint_prefix = '🐼a ',
   hint_scheme = 'String',
   hint_inline = function()
     -- options:
@@ -87,7 +87,7 @@ _LSP_SIG_CFG = {
   shadow_blend = 36, -- if you using shadow as border use this set the opacity
   shadow_guibg = 'Black', -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
   timer_interval = 200, -- default timer check interval
-  toggle_key = nil, -- toggle signature on and off in insert mode,  e.g. '<M-x>'
+  toggle_key = '<C-k>', -- toggle signature on and off in insert mode,  e.g. '<M-x>'
   -- set this key also helps if you want see signature in newline
   select_signature_key = nil, -- cycle to next signature, e.g. '<M-n>' function overloading
   -- internal vars, init here to suppress linter warnings
