@@ -757,7 +757,7 @@ function helper.check_lsp_cap(clients, line_to_cursor)
           hover_cap = true
         end
 
-        if sig_provider ~= nil and type(sig_provider) != 'boolean' then
+        if sig_provider ~= nil and type(sig_provider) ~= 'boolean' then
           log(sig_provider, line_to_cursor)
           if sig_provider.triggerCharacters ~= nil then
             triggered_chars = sig_provider.triggerCharacters
