@@ -71,7 +71,7 @@ _LSP_SIG_CFG = {
   end,
   hi_parameter = 'LspSignatureActiveParameter',
   handler_opts = { border = 'rounded' },
-  cursorhold_update = true, -- if cursorhold slows down the completion, set to false to disable it
+  cursorhold_update = false, -- if cursorhold slows down the completion, set to false to disable it
   padding = '', -- character to pad on left and right of signature
   always_trigger = false, -- sometime show signature on new line can be confusing, set it to false for #58
   -- set this to true if you the triggered_chars failed to work
