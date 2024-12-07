@@ -62,7 +62,7 @@ _LSP_SIG_CFG = {
   end,
   -- also can be bool value fix floating_window position
   hint_enable = true, -- virtual hint
-  hint_prefix = '🐼a ',
+  hint_prefix = '🐼 ',
   hint_scheme = 'String',
   hint_inline = function()
     -- options:
