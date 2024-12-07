@@ -34,7 +34,7 @@ _LSP_SIG_CFG = {
   wrap = true, -- allow doc/signature wrap inside floating_window, useful if your lsp doc/sig is too long
 
   floating_window = false, -- show hint in a floating window
-  floating_window_above_cur_line = true, -- try to place the floating above the current line
+  floating_window_above_cur_line = false, -- try to place the floating above the current line
   toggle_key_flip_floatwin_setting = false, -- toggle key will enable|disable floating_window flag
   floating_window_off_x = 1, -- adjust float windows x position. or a function return the x offset
   floating_window_off_y = function(floating_opts) -- adjust float windows y position.
