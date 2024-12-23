@@ -790,6 +790,26 @@ function helper.check_lsp_cap(clients, line_to_cursor)
   return signature_cap, triggered, trigger_position, triggered_chars
 end
 
+---@param extra_params table extends the position parameters
+---@return table|(fun(client: vim.lsp.Client, bufnr: integer): table) final parameters
+helper.make_position_params = function(extra_params)
+  if vim.fn.has('nvim-0.11') == 0 then
+    local params = vim.lsp.util.make_position_params()
+    if extra_params then
+      params = vim.tbl_deep_extend('force', params, extra_params)
+    end
+    return params
+  end
+  ---@param client vim.lsp.Client
+  return function(client, _)
+    local params = vim.lsp.util.make_position_params(0, client.offset_encoding)
+    if extra_params then
+      params = vim.tbl_deep_extend('force', params, extra_params)
+    end
+    return params
+  end
+end
+
 helper.highlight_parameter = function(s, l)
   _LSP_SIG_CFG.ns = api.nvim_create_namespace('lsp_signature_hi_parameter')
   local hi = _LSP_SIG_CFG.hi_parameter
