@@ -708,10 +708,12 @@ local signature = function(opts)
     end
   end
 
-  local params = vim.lsp.util.make_position_params()
-  log('change trigger pos to ', params.position.character, trigger_position)
   local shift = math.max(1, trigger_position - 0)
-  params.position.character = shift
+  local params = helper.make_position_params({
+    position = {
+      character = shift,
+    },
+  })
   if opts.trigger == 'CursorHold' then
     return vim.lsp.buf_request(
       0,
@@ -1074,8 +1076,11 @@ M.check_signature_should_close = function()
       status_line = { hint = '', label = '' }
       return
     end
-    local params = vim.lsp.util.make_position_params()
-    params.position.character = math.max(trigger_position, 1)
+    local params = helper.make_position_params({
+      position = {
+        character = math.max(trigger_position, 1),
+      },
+    })
     line = api.nvim_get_current_line()
     line_to_cursor = line:sub(1, pos[2])
     -- Try using the already binded one, otherwise use it without custom config.
@@ -1148,7 +1153,7 @@ M.toggle_float_win = function()
     return _LSP_SIG_CFG.floating_window
   end
 
-  local params = vim.lsp.util.make_position_params()
+  local params = helper.make_position_params()
   local pos = api.nvim_win_get_cursor(0)
   local line = api.nvim_get_current_line()
   local line_to_cursor = line:sub(1, pos[2])
