@@ -94,22 +94,6 @@ local golang_setup = {
 require'lspconfig'.gopls.setup(golang_setup)
 ```
 
-Or use the newer `LspAttach` autocommands. The following example enables signatures for any attached language server:
-
-```lua
-vim.api.nvim_create_autocmd("LspAttach", {
-  callback = function(args)
-    local bufnr = args.buf
-    local client = vim.lsp.get_client_by_id(args.data.client_id)
-    if vim.tbl_contains({ 'null-ls' }, client.name) then  -- blacklist lsp
-      return
-    end
-    require("lsp_signature").on_attach({
-      -- ... setup options here ...
-    }, bufnr)
-  end,
-})
-```
 
 If you using Lazy.nvim, you can pass the config in the `opts` table:
 

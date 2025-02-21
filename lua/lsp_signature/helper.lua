@@ -1058,4 +1058,9 @@ function helper.get_clients(opts)
   end
 end
 
+function helper.lsp_with(handler, override_config)
+  return function(err, result, ctx, config)
+    return handler(err, result, ctx, vim.tbl_deep_extend('force', config or {}, override_config))
+  end
+end
 return helper
