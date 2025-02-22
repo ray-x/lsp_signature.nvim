@@ -4,7 +4,7 @@ local M = {}
 local helper = require('lsp_signature.helper')
 local log = helper.log
 local match_parameter = helper.match_parameter
-local ms = lsp.protocol.Methods
+local ms = lsp.protocol.Methods or {}
 
 local augroup = api.nvim_create_augroup('Signature', { clear = false })
 local status_line = { hint = '', label = '' }
@@ -17,6 +17,7 @@ local manager = {
 }
 local path_sep = vim.loop.os_uname().sysname == 'Windows' and '\\' or '/'
 
+local sigcap = ms.textDocument_signatureHelp or 'textDocument/signatureHelp'
 local function path_join(...)
   local tbl_flatten = function(t)
     if vim.fn.has('nvim-0.10') == 0 then -- for old versions
@@ -94,6 +95,7 @@ _LSP_SIG_CFG = {
   -- internal vars, init here to suppress linter warnings
   move_cursor_key = nil, -- use nvim_set_current_win
   move_signature_window_key = {}, -- move floating window, default ['<M-j>', '<M-k>']
+  show_struct = { enable = false }, -- experimental: show struct info
 
   --- private vars
   winnr = nil,
@@ -994,22 +996,20 @@ M.on_attach = function(cfg, bufnr)
 
   if _LSP_SIG_CFG.bind then
     vim.lsp.handlers['textDocument/signatureHelp'] =
-      vim.lsp.with(signature_handler, _LSP_SIG_CFG.handler_opts)
+      helper.lsp_with(signature_handler, _LSP_SIG_CFG.handler_opts)
   end
 
-  local shadow_cmd = string.format(
-    'hi default FloatShadow blend=%i guibg=%s',
-    _LSP_SIG_CFG.shadow_blend,
-    _LSP_SIG_CFG.shadow_guibg
+  api.nvim_set_hl(
+    0,
+    'FloatShadow',
+    { blend = _LSP_SIG_CFG.shadow_blend, bg = _LSP_SIG_CFG.shadow_guibg }
   )
-  vim.cmd(shadow_cmd)
 
-  shadow_cmd = string.format(
-    'hi default FloatShadowThrough blend=%i guibg=%s',
-    _LSP_SIG_CFG.shadow_blend + 20,
-    _LSP_SIG_CFG.shadow_guibg
+  api.nvim_set_hl(
+    0,
+    'FloatShadowThrough',
+    { blend = _LSP_SIG_CFG.shadow_blend + 20, bg = _LSP_SIG_CFG.shadow_guibg }
   )
-  vim.cmd(shadow_cmd)
 
   if _LSP_SIG_CFG.toggle_key then
     vim.keymap.set({ 'i', 'v', 's' }, _LSP_SIG_CFG.toggle_key, function()
@@ -1122,7 +1122,7 @@ M.check_signature_should_close = function()
       0,
       'textDocument/signatureHelp',
       params,
-      vim.lsp.with(signature_should_close_handler, {
+      helper.lsp_with(signature_should_close_handler, {
         check_completion_visible = true,
         trigger_from_lsp_sig = true,
         line_to_cursor = line_to_cursor,
@@ -1196,7 +1196,7 @@ M.toggle_float_win = function()
     0,
     'textDocument/signatureHelp',
     params,
-    vim.lsp.with(signature_handler, {
+    helper.lsp_with(signature_handler, {
       check_completion_visible = true,
       trigger_from_lsp_sig = true,
       toggle = true,
@@ -1209,34 +1209,94 @@ M.toggle_float_win = function()
 end
 
 M.signature_handler = signature_handler
+
+local function reattach_if_needed()
+  -- Iterate all active LSP clients
+  for _, client in ipairs(vim.lsp.get_clients()) do
+    -- Check which buffers this client is already attached to
+
+    if not client:supports_method(sigcap) then
+      return
+    end
+    for bufnr in pairs(client.attached_buffers or {}) do
+      M.on_attach({}, bufnr)
+
+      if _LSP_SIG_CFG.show_struct.enable then
+        require('lsp_signature.codeaction').setup({})
+      end
+    end
+  end
+end
+
 -- setup function enable the signature and attach it to client
 -- call it before startup lsp client
 
 M.setup = function(cfg)
+  if vim.fn.has('nvim-0.11') == 0 then -- for old versions
+    return M.setup_legacy(cfg)
+  end
+
   cfg = cfg or {}
   M.validate(cfg)
   _LSP_SIG_VT_NS = api.nvim_create_namespace('lsp_signature_vt')
 
+  if type(cfg) == 'table' then
+    _LSP_SIG_CFG = vim.tbl_extend('keep', cfg, _LSP_SIG_CFG)
+    cleanup_logs(cfg)
+    -- log(_LSP_SIG_CFG)
+  end
   api.nvim_create_autocmd('LspAttach', {
     group = augroup,
     callback = function(args)
       local bufnr = args.buf
-      local client = lsp.get_client_by_id(args.data.client_id)
-      local sigcap = ms.textDocument_signatureHelp or 'textDocument/signatureHelp'
+      local client_id = lsp.get_client_by_id(args.data.client_id)
+      local client = vim.lsp.get_client_by_id(client_id)
 
       if not client or not client:supports_method(sigcap) then
         return
       end
 
-      require('lsp_signature').on_attach(cfg, bufnr)
+      print('lsp attach', vim.inspect(args))
+      require('lsp_signature').on_attach({}, bufnr)
 
       vim.lsp.util.make_floating_popup_options =
         require('lsp_signature.helper').make_floating_popup_options
 
       -- default if not defined
-      vim.api.nvim_set_hl(bufnr, 'LspSignatureActiveParameter', { link = 'Search' })
+      vim.api.nvim_set_hl(0, 'LspSignatureActiveParameter', { link = 'Search' })
+      if _LSP_SIG_CFG.show_struct.enable then
+        require('lsp_signature.codeaction').setup(cfg)
+      end
     end,
   })
+  reattach_if_needed()
 end
 
+M.setup_legacy = function(cfg)
+  cfg = cfg or {}
+  M.validate(cfg)
+  log('user cfg:', cfg)
+  local _start_client = vim.lsp.start_client
+  _LSP_SIG_VT_NS = api.nvim_create_namespace('lsp_signature_vt')
+  vim.lsp.start_client = function(lsp_config)
+    if lsp_config.on_attach == nil then
+      -- lsp_config.on_attach = function(client, bufnr)
+      lsp_config.on_attach = function(_, bufnr)
+        M.on_attach(cfg, bufnr)
+      end
+    else
+      local _on_attach = lsp_config.on_attach
+      lsp_config.on_attach = function(client, bufnr)
+        M.on_attach(cfg, bufnr)
+        _on_attach(client, bufnr)
+      end
+    end
+    return _start_client(lsp_config)
+  end
+  vim.lsp.util.make_floating_popup_options =
+    require('lsp_signature.helper').make_floating_popup_options
+
+  -- default if not defined
+  vim.cmd([[hi default link LspSignatureActiveParameter Search]])
+end
 return M
