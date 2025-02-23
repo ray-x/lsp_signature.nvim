@@ -16,7 +16,7 @@ function M.get_fill_struct_codeaction(callback)
   local client
   local clients = lsp.get_clients({ bufnr = bufnr })
   if not clients then
-    log('No client found for', client_id)
+    log('No client found for', bufnr)
     return
   end
   for _, c in ipairs(clients) do
@@ -45,9 +45,9 @@ function M.get_fill_struct_codeaction(callback)
       log('Found fill-struct code action:', found_action, cactx, bufnr)
       local client_id = cactx.client_id
       local c = lsp.get_client_by_id(client_id)
-      c.request('codeAction/resolve', found_action, function(_err, resolved_action, rectx, config)
-        if _err then
-          log('Error:', _err)
+      c.request('codeAction/resolve', found_action, function(errca, resolved_action, rectx, config)
+        if errca then
+          log('Error:', errca)
           return
         end
         log('codeAction/resolve', resolved_action, rectx, config)
@@ -143,7 +143,7 @@ function M.collect_unfilled_fields_info(final_cb)
     end
 
     -- Step 3: fetch completion items for detailed info
-    M.get_field_completions(function(field_map, ctx)
+    M.get_field_completions(function(field_map, cctx)
       local result = {}
       for _, fieldData in ipairs(unfilled) do
         local name = fieldData.name
@@ -166,14 +166,13 @@ function M.collect_unfilled_fields_info(final_cb)
       log(result)
 
       -- Step 4: final callback
-      final_cb(result, ctx)
+      final_cb(result, cctx)
     end, ctx)
   end)
 end
 
 --- Example function to demonstrate usage: logs unfilled fields to :messages.
-function M.show_unfilled_fields(bufnr)
-  bufnr = bufnr or vim.api.nvim_get_current_buf()
+function M.show_unfilled_fields()
 
   M.collect_unfilled_fields_info(function(fields_info, ctx)
     log('Unfilled fields:', fields_info, ctx)
@@ -239,7 +238,7 @@ function M.show_unfilled_fields_floating(lines, cfg)
   return bufnr, win_id
 end
 
-function debounce(func, wait)
+local function debounce(func, wait)
   local timer_id = nil
   return function(...)
     if timer_id ~= nil then
@@ -262,7 +261,7 @@ function M.setup(cfg)
   local augroup = vim.api.nvim_create_augroup('Signature_fillfields', {
     clear = false,
   })
-  vim.api.nvim_create_autocmd({ 'InsertCharPre', 'CursorMovedI', 'CursorHold' , 'CursorHoldI'}, {
+  vim.api.nvim_create_autocmd({ 'InsertCharPre', 'CursorMovedI', 'CursorHold', 'CursorHoldI' }, {
     -- check if the character before the cursor is `{` or it is all spaces
     group = augroup,
     callback = debounce(function(arg)
