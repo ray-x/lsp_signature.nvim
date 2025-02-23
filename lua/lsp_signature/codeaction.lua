@@ -173,7 +173,6 @@ end
 
 --- Example function to demonstrate usage: logs unfilled fields to :messages.
 function M.show_unfilled_fields()
-
   M.collect_unfilled_fields_info(function(fields_info, ctx)
     log('Unfilled fields:', fields_info, ctx)
     if vim.tbl_isempty(fields_info) then
