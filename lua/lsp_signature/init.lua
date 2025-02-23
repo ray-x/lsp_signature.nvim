@@ -958,7 +958,7 @@ M.on_attach = function(cfg, bufnr)
     group = augroup,
     buffer = bufnr,
     callback = function()
-	  if cfg.auto_show_insert_enter then
+      if cfg.auto_show_insert_enter then
         require('lsp_signature').on_InsertEnter()
       end
     end,
@@ -968,7 +968,7 @@ M.on_attach = function(cfg, bufnr)
     group = augroup,
     buffer = bufnr,
     callback = function()
-	  if cfg.auto_show_insert_enter then
+      if cfg.auto_show_insert_enter then
         require('lsp_signature').on_InsertLeave()
       end
     end,
@@ -1184,9 +1184,9 @@ M.toggle_float_win = function()
     vim.api.nvim_create_autocmd('InsertCharPre', {
       callback = function()
         -- disable cursor hold event until next insert enter
-		if _LSP_SIG_CFG.auto_show_when_typing then
-        helper.cursor_hold(_LSP_SIG_CFG.cursorhold_update, vim.api.nvim_get_current_buf())
-	    end
+        if _LSP_SIG_CFG.auto_show_when_typing then
+          helper.cursor_hold(_LSP_SIG_CFG.cursorhold_update, vim.api.nvim_get_current_buf())
+        end
       end,
       once = true, -- trigger once
     })
