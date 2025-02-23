@@ -9,7 +9,6 @@ local log = helper.log
 -- can be other languages?, e.g. C/python/javascript ?
 function M.get_fill_struct_codeaction(callback)
   local bufnr = vim.api.nvim_get_current_buf()
-  local params = vim.lsp.util.make_range_params()
 
   local found_action = nil
 
@@ -28,8 +27,11 @@ function M.get_fill_struct_codeaction(callback)
   if not client then
     return
   end
+  M.encoding = client.offset_encoding
+
+  local params = vim.lsp.util.make_range_params(0, M.encoding)
   local function on_codeact_result(err, result, cactx, _)
-    if err then
+    if err or not result then
       log('Error:', err, cactx)
       return
     end
@@ -94,7 +96,13 @@ function M.parse_fill_struct_edit(action)
 end
 
 function M.get_field_completions(callback, ctx)
-  local params = util.make_position_params()
+  local gopls = vim.lsp.get_clients({
+    name = 'gopls',
+  })
+  if not gopls then
+    return
+  end
+  local params = util.make_position_params(0, gopls[1].offset_encoding)
 
   local field_map = {}
   local remaining_clients = 0
@@ -273,4 +281,5 @@ function M.setup(cfg)
     end, ms), -- debounce 500ms
   })
 end
+
 return M
