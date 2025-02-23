@@ -96,6 +96,8 @@ _LSP_SIG_CFG = {
   move_cursor_key = nil, -- use nvim_set_current_win
   move_signature_window_key = {}, -- move floating window, default ['<M-j>', '<M-k>']
   show_struct = { enable = false }, -- experimental: show struct info
+  auto_show_insert_enter = true,
+  auto_show_when_typing = true,
 
   --- private vars
   winnr = nil,
@@ -956,7 +958,9 @@ M.on_attach = function(cfg, bufnr)
     group = augroup,
     buffer = bufnr,
     callback = function()
-      require('lsp_signature').on_InsertEnter()
+	  if cfg.auto_show_insert_enter then
+        require('lsp_signature').on_InsertEnter()
+      end
     end,
     desc = 'signature on insert enter',
   })
@@ -964,7 +968,9 @@ M.on_attach = function(cfg, bufnr)
     group = augroup,
     buffer = bufnr,
     callback = function()
-      require('lsp_signature').on_InsertLeave()
+	  if cfg.auto_show_insert_enter then
+        require('lsp_signature').on_InsertLeave()
+      end
     end,
     desc = 'signature on insert leave',
   })
@@ -1013,7 +1019,7 @@ M.on_attach = function(cfg, bufnr)
 
   if _LSP_SIG_CFG.toggle_key then
     vim.keymap.set({ 'i', 'v', 's' }, _LSP_SIG_CFG.toggle_key, function()
-      require('lsp_signature').toggle_float_win()
+      require('lsp_signature').toggle_float_win(cfg)
     end, { silent = true, noremap = true, buffer = bufnr, desc = 'toggle signature' })
   end
   if _LSP_SIG_CFG.select_signature_key then
@@ -1178,7 +1184,9 @@ M.toggle_float_win = function()
     vim.api.nvim_create_autocmd('InsertCharPre', {
       callback = function()
         -- disable cursor hold event until next insert enter
+		if _LSP_SIG_CFG.auto_show_when_typing then
         helper.cursor_hold(_LSP_SIG_CFG.cursorhold_update, vim.api.nvim_get_current_buf())
+	    end
       end,
       once = true, -- trigger once
     })

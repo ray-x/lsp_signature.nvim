@@ -25,7 +25,9 @@ helper.cursor_hold = function(enabled, bufnr)
       group = augroup,
       buffer = bufnr,
       callback = function()
-        require('lsp_signature').on_UpdateSignature()
+        if _LSP_SIG_CFG.auto_show_insert_enter then
+          require('lsp_signature').on_UpdateSignature()
+	    end
       end,
       desc = 'signature on cursor hold',
     })
