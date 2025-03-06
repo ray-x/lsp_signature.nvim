@@ -783,7 +783,7 @@ local signature = function(opts)
       0,
       'textDocument/signatureHelp',
       params,
-      vim.lsp.with(signature_handler, {
+      helper.lsp_with(signature_handler, {
         check_completion_visible = true,
         trigger_from_lsp_sig = true,
         line_to_cursor = line_to_cursor:sub(1, trigger_position),
