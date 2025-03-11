@@ -32,7 +32,10 @@ _LSP_SIG_CFG = {
   bind = true, -- This is mandatory, otherwise border config won't get registered.
   doc_lines = 10, -- how many lines to show in doc, set to 0 if you only want the signature
   max_height = 12, -- max height of signature floating_window
-  max_width = 80, -- max_width of signature floating_window
+  max_width = function()
+    -- get current windows width
+    return math.max(math.floor(vim.api.nvim_win_get_width(0) * 0.8), 128)
+  end, -- max_width of signature floating_window, if it is function of return type int, it will be called
   wrap = true, -- allow doc/signature wrap inside floating_window, useful if your lsp doc/sig is too long
 
   floating_window = true, -- show hint in a floating window
@@ -565,6 +568,8 @@ local signature_handler = function(err, result, ctx, config)
   config.offset_y = off_y + config.offset_y
   config.focusable = true -- allow focus
   config.max_height = display_opts.max_height
+  config.height = display_opts.height
+  config.width = display_opts.width
   config.noautocmd = true
 
   -- try not to overlap with pum autocomplete menu
@@ -766,7 +771,7 @@ local signature = function(opts)
       0,
       'textDocument/signatureHelp',
       params,
-      vim.lsp.with(signature_handler, {
+      helper.lsp_with(signature_handler, {
         check_completion_visible = true,
         trigger_from_next_sig = true,
         activeSignature = actSig,

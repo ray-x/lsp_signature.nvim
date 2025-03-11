@@ -128,7 +128,9 @@ FULL CONFIGURATION (WITH DEFAULT VALUES) *lsp_signature-full_configuration_(with
       hi_parameter = "LspSignatureActiveParameter", -- how your parameter will be highlight
       max_height = 12, -- max height of signature floating_window, if content is more than max_height, you can scroll down
                        -- to view the hiding contents
-      max_width = 120, -- max_width of signature floating_window, line will be wrapped if exceed max_width, the value need >= 40
+      max_width = function(), -- max_width of signature floating_window, line will be wrapped if exceed max_width, the value need >= 40, if max_width is a function, it will be evaluated every time
+        return vim.api.nvim_win_get_width(0) * 0.8
+      end,
       handler_opts = {
         border = "rounded"   -- double, rounded, single, shadow, none
       },

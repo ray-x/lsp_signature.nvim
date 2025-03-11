@@ -188,8 +188,11 @@ e.g.
                  -- mode, 10 by default
 
   max_height = 12, -- max height of signature floating_window
-  max_width = 80, -- max_width of signature floating_window, line will be wrapped if exceed max_width
+  max_width = function()
+    return vim.api.nvim_win_get_width(0) * 0.8
+  end, -- max_width of signature floating_window, line will be wrapped if exceed max_width
                   -- the value need >= 40
+                  -- if max_width is function, it will be called
   wrap = true, -- allow doc/signature text wrap inside floating_window, useful if your lsp return doc/sig is too long
   floating_window = true, -- show hint in a floating window, set to false for virtual text only mode
 

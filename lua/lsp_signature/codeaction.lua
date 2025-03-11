@@ -272,7 +272,7 @@ function M.setup(cfg)
     -- check if the character before the cursor is `{` or it is all spaces
     group = augroup,
     callback = debounce(function(arg)
-      log(arg)
+      -- log(arg)
       local line = vim.fn.getline('.')
       local col = vim.fn.col
       if line:sub(1, col('.') - 1):match('%s*{%s*') or line:sub(1, col('.')):match('^%s*$') then

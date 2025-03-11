@@ -603,16 +603,15 @@ helper.cal_pos = function(contents, opts)
   if filetype == 'markdown' and code_block_flag ~= nil and vim.fn.has('nvim-0.11') == 0 then
     height = height - 2
   end
-  log('floating size: ', width, height)
   local float_option = util.make_floating_popup_options(width, height, opts)
 
-  -- log('popup size:', width, height, float_option)
+  log('popup size:', width, height, opts, float_option)
   local off_y = 0
   local max_height = float_option.height or _LSP_SIG_CFG.max_height
   local border_height = get_border_height(float_option)
   -- shift win above current line
   if float_option.anchor == 'NW' or float_option.anchor == 'NE' then
-    -- note: the floating widnows will be under current line
+    -- note: the floating windows will be under current line
     if lines_above >= float_option.height + border_height + 1 then
       off_y = -(float_option.height + border_height + 1)
       max_height =
@@ -627,11 +626,13 @@ helper.cal_pos = function(contents, opts)
     max_height = math.min(max_height, math.max(lines_above - border_height - 1, border_height + 1))
   end
 
-  log(off_y, lines_above, max_height)
+  log(off_y, lines_above, max_height, width)
   if not float_option.height or float_option.height < 1 then
     float_option.height = 1
   end
   float_option.max_height = max_height
+  float_option.width = width
+  float_option.height = math.min(height, max_height)
   return float_option, off_y, contents, max_height
 end
 
@@ -712,7 +713,12 @@ function helper.update_config(config)
   if config.max_height <= 3 then
     config.separator = false
   end
-  config.max_width = math.max(_LSP_SIG_CFG.max_width, 40)
+  if type(_LSP_SIG_CFG.max_width) == 'number' then
+    config.max_width = math.max(_LSP_SIG_CFG.max_width, 60)
+  end
+  if type(_LSP_SIG_CFG.max_width) == 'function' then
+    config.max_width = _LSP_SIG_CFG.max_width()
+  end
 
   config.focus_id = 'lsp_signature' .. id
   config.stylize_markdown = true
