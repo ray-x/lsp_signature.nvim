@@ -445,81 +445,81 @@ local default_border = {
   { ' ', 'NormalFloat' },
 }
 
+local function border_error(border)
+  error(
+    string.format(
+      'invalid floating preview border: %s. :help vim.api.nvim_open_win()',
+      vim.inspect(border)
+    ),
+    2
+  )
+end
+local border_size = {
+  none = { 0, 0 },
+  single = { 2, 2 },
+  double = { 2, 2 },
+  rounded = { 2, 2 },
+  solid = { 2, 2 },
+  shadow = { 1, 1 },
+}
+
+--- Check the border given by opts or the default border for the additional
+--- size it adds to a float.
+--- @param opts? {border:string|(string|[string,string])[]}
+--- @return integer height
+--- @return integer width
 local function get_border_size(opts)
   local border = opts and opts.border or default_border
-  local height = 0
-  local width = 0
 
   if type(border) == 'string' then
-    local border_size = {
-      none = { 0, 0 },
-      single = { 2, 2 },
-      double = { 2, 2 },
-      rounded = { 2, 2 },
-      solid = { 2, 2 },
-      shadow = { 1, 1 },
-    }
-    if border_size[border] == nil then
-      error(
-        string.format(
-          'invalid floating preview border: %s. :help vim.api.nvim_open_win()',
-          vim.inspect(border)
-        )
-      )
+    if not border_size[border] then
+      border_error(border)
     end
-    height, width = unpack(border_size[border])
-  else
-    if 8 % #border ~= 0 then
-      error(
-        string.format(
-          'invalid floating preview border: %s. :help vim.api.nvim_open_win()',
-          vim.inspect(border)
-        )
-      )
-    end
-    local function border_width(id)
-      id = (id - 1) % #border + 1
-      if type(border[id]) == 'table' then
-        -- border specified as a table of <character, highlight group>
-        return vim.fn.strdisplaywidth(border[id][1])
-      elseif type(border[id]) == 'string' then
-        -- border specified as a list of border characters
-        return vim.fn.strdisplaywidth(border[id])
-      end
-      error(
-        string.format(
-          'invalid floating preview border: %s. :help vim.api.nvim_open_win()',
-          vim.inspect(border)
-        )
-      )
-    end
-    local function border_height(id)
-      id = (id - 1) % #border + 1
-      if type(border[id]) == 'table' then
-        -- border specified as a table of <character, highlight group>
-        return #border[id][1] > 0 and 1 or 0
-      elseif type(border[id]) == 'string' then
-        -- border specified as a list of border characters
-        return #border[id] > 0 and 1 or 0
-      end
-      error(
-        string.format(
-          'invalid floating preview border: %s. :help vim.api.nvim_open_win()',
-          vim.inspect(border)
-        )
-      )
-    end
-    height = height + border_height(2) -- top
-    height = height + border_height(6) -- bottom
-    width = width + border_width(4) -- right
-    width = width + border_width(8) -- left
+    local r = border_size[border]
+    return r[1], r[2]
   end
 
-  return { height = height, width = width }
+  if 8 % #border ~= 0 then
+    border_error(border)
+  end
+
+  --- @param id integer
+  --- @return string
+  local function elem(id)
+    id = (id - 1) % #border + 1
+    local e = border[id]
+    if type(e) == 'table' then
+      -- border specified as a table of <character, highlight group>
+      return e[1]
+    elseif type(e) == 'string' then
+      -- border specified as a list of border characters
+      return e
+    end
+    --- @diagnostic disable-next-line:missing-return
+    border_error(border)
+  end
+
+  --- @param e string
+  local function border_height(e)
+    return #e > 0 and 1 or 0
+  end
+
+  local top, bottom = elem(2), elem(6)
+  local height = border_height(top) + border_height(bottom)
+
+  local right, left = elem(4), elem(8)
+  local width = vim.fn.strdisplaywidth(right) + vim.fn.strdisplaywidth(left)
+
+  return height, width
 end
 
 -- note: this is a neovim internal function from lsp/util.lua
-local make_floating_popup_size = function(contents, opts)
+
+---@param contents string[] of lines to show in window
+---@param opts? vim.lsp.util.open_floating_preview.Opts
+---@return integer width size of float
+---@return integer height size of float
+local function make_floating_popup_size(contents, opts)
   opts = opts or {}
 
   local width = opts.width
@@ -527,7 +527,7 @@ local make_floating_popup_size = function(contents, opts)
   local wrap_at = opts.wrap_at
   local max_width = opts.max_width
   local max_height = opts.max_height
-  local line_widths = {}
+  local line_widths = {} --- @type table<integer,integer>
 
   if not width then
     width = 0
@@ -538,17 +538,15 @@ local make_floating_popup_size = function(contents, opts)
     end
   end
 
-  local border_width = get_border_size(opts).width
+  local _, border_width = get_border_size(opts)
   local screen_width = api.nvim_win_get_width(0)
   width = math.min(width, screen_width)
 
   -- make sure borders are always inside the screen
-  if width + border_width > screen_width then
-    width = width - (width + border_width - screen_width)
-  end
+  width = math.min(width, screen_width - border_width)
 
-  if wrap_at and wrap_at > width then
-    wrap_at = width
+  if wrap_at then
+    wrap_at = math.min(wrap_at, width)
   end
 
   if max_width then
@@ -563,7 +561,7 @@ local make_floating_popup_size = function(contents, opts)
       if vim.tbl_isempty(line_widths) then
         for _, line in ipairs(contents) do
           local line_width = vim.fn.strdisplaywidth(line:gsub('%z', '\n'))
-          height = height + math.ceil(line_width / wrap_at)
+          height = height + math.max(1, math.ceil(line_width / wrap_at))
         end
       else
         for i = 1, #contents do
@@ -598,21 +596,22 @@ helper.cal_pos = function(contents, opts)
   log(vim.inspect(contents))
 
   local width, height = make_floating_popup_size(contents, opts)
-  -- if the filetype returned is "markdown", and contents contains code fences, the height should minus 2,
+  -- if the filetype returned is "markdown", and contents contains code fences, the height should minus 2, note,
+  -- for latests nvim with conceal level 2 there is no need to `-2`
   -- because the code fences won't be display
   local code_block_flag = contents[1]:match('^```')
-  if filetype == 'markdown' and code_block_flag ~= nil then
+  if filetype == 'markdown' and code_block_flag ~= nil and vim.fn.has('nvim-0.11') == 0 then
     height = height - 2
   end
   local float_option = util.make_floating_popup_options(width, height, opts)
 
-  -- log('popup size:', width, height, float_option)
+  log('popup size:', width, height, opts, float_option)
   local off_y = 0
   local max_height = float_option.height or _LSP_SIG_CFG.max_height
   local border_height = get_border_height(float_option)
   -- shift win above current line
   if float_option.anchor == 'NW' or float_option.anchor == 'NE' then
-    -- note: the floating widnows will be under current line
+    -- note: the floating windows will be under current line
     if lines_above >= float_option.height + border_height + 1 then
       off_y = -(float_option.height + border_height + 1)
       max_height =
@@ -627,11 +626,13 @@ helper.cal_pos = function(contents, opts)
     max_height = math.min(max_height, math.max(lines_above - border_height - 1, border_height + 1))
   end
 
-  log(off_y, lines_above, max_height)
+  log(off_y, lines_above, max_height, width)
   if not float_option.height or float_option.height < 1 then
     float_option.height = 1
   end
   float_option.max_height = max_height
+  float_option.width = width
+  float_option.height = math.min(height, max_height)
   return float_option, off_y, contents, max_height
 end
 
@@ -712,7 +713,12 @@ function helper.update_config(config)
   if config.max_height <= 3 then
     config.separator = false
   end
-  config.max_width = math.max(_LSP_SIG_CFG.max_width, 40)
+  if type(_LSP_SIG_CFG.max_width) == 'number' then
+    config.max_width = math.max(_LSP_SIG_CFG.max_width, 60)
+  end
+  if type(_LSP_SIG_CFG.max_width) == 'function' then
+    config.max_width = _LSP_SIG_CFG.max_width()
+  end
 
   config.focus_id = 'lsp_signature' .. id
   config.stylize_markdown = true
@@ -900,7 +906,7 @@ helper.completion_visible = function()
   local hascmp, cmp = pcall(require, 'cmp')
   if hascmp then
     -- reduce timeout from cmp's hardcoded 1000ms:
-    -- https://github.com/ray-x/lsp_signature.nvim/issues/288
+    -- issues #288
     cmp.core.filter:sync(42)
     return cmp.core.view:visible() or fn.pumvisible() == 1
   end
@@ -1058,4 +1064,9 @@ function helper.get_clients(opts)
   end
 end
 
+function helper.lsp_with(handler, override_config)
+  return function(err, result, ctx, config)
+    return handler(err, result, ctx, vim.tbl_deep_extend('force', config or {}, override_config))
+  end
+end
 return helper

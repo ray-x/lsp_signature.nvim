@@ -61,9 +61,10 @@ use {
 " Lazy
 {
   "ray-x/lsp_signature.nvim",
-  event = "VeryLazy",
-  opts = {},
-  config = function(_, opts) require'lsp_signature'.setup(opts) end
+  event = "InsertEnter",
+  opts = {
+    -- cfg options
+  },
 }
 ```
 
@@ -93,22 +94,6 @@ local golang_setup = {
 require'lspconfig'.gopls.setup(golang_setup)
 ```
 
-Or use the newer `LspAttach` autocommands. The following example enables signatures for any attached language server:
-
-```lua
-vim.api.nvim_create_autocmd("LspAttach", {
-  callback = function(args)
-    local bufnr = args.buf
-    local client = vim.lsp.get_client_by_id(args.data.client_id)
-    if vim.tbl_contains({ 'null-ls' }, client.name) then  -- blacklist lsp
-      return
-    end
-    require("lsp_signature").on_attach({
-      -- ... setup options here ...
-    }, bufnr)
-  end,
-})
-```
 
 If you using Lazy.nvim, you can pass the config in the `opts` table:
 
@@ -122,7 +107,8 @@ If you using Lazy.nvim, you can pass the config in the `opts` table:
       border = "rounded"
     }
   },
-  config = function(_, opts) require'lsp_signature'.setup(opts) end
+  -- or use config
+  -- config = function(_, opts) require'lsp_signature'.setup({you options}) end
 }
 ```
 
@@ -161,12 +147,13 @@ require "lsp_signature".setup({
 })
 ```
 
-### Keymap
+### Keymaps
 
-No default keymaps are provided. There are two keymaps available in config:
+No default keymaps are provided. Following are keymaps available in config:
 
 1. toggle_key: Toggle the signature help window. It manual toggle config.floating_windows on/off
 2. select_signature_key: Select the current signature when multiple signature is available.
+3. move floating window: move_cursor_key, array of two keymaps, if set, you can use these keymaps to move floating window up and down, default is nil
 
 #### Customize the keymap in your config:
 
@@ -201,8 +188,11 @@ e.g.
                  -- mode, 10 by default
 
   max_height = 12, -- max height of signature floating_window
-  max_width = 80, -- max_width of signature floating_window, line will be wrapped if exceed max_width
+  max_width = function()
+    return vim.api.nvim_win_get_width(0) * 0.8
+  end, -- max_width of signature floating_window, line will be wrapped if exceed max_width
                   -- the value need >= 40
+                  -- if max_width is function, it will be called
   wrap = true, -- allow doc/signature text wrap inside floating_window, useful if your lsp return doc/sig is too long
   floating_window = true, -- show hint in a floating window, set to false for virtual text only mode
 
@@ -252,6 +242,8 @@ e.g.
      -- may not popup when typing depends on floating_window setting
 
   select_signature_key = nil, -- cycle to next signature, e.g. '<M-n>' function overloading
+  move_signature_window_key = nil, -- move the floating window, e.g. {'<M-k>', '<M-j>'} to move up and down, or
+    -- table of 4 keymaps, e.g. {'<M-k>', '<M-j>', '<M-h>', '<M-l>'} to move up, down, left, right
   move_cursor_key = nil, -- imap, use nvim_set_current_win to move cursor between current win and floating window
   -- e.g. move_cursor_key = '<M-p>',
   -- once moved to floating window, you can use <M-d>, <M-u> to move cursor up and down
