@@ -12,8 +12,8 @@ jobs:
         include:
           - os: ubuntu-latest
             url: https://github.com/neovim/neovim/releases/download/nightly/nvim-linux-x86_64.tar.gz
-          - os: ubuntu-22.04
-            url: https://github.com/neovim/neovim/releases/download/v0.9.5/nvim-linux64.tar.gz
+          - os: ubuntu-latest
+            url: https://github.com/neovim/neovim/releases/download/v0.11.0/nvim-linux-x86_64.tar.gz
           - os: ubuntu-latest
             url: https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz
     steps:

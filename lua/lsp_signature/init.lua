@@ -6,7 +6,7 @@ local log = helper.log
 local match_parameter = helper.match_parameter
 local ms = lsp.protocol.Methods or {}
 
-local augroup = api.nvim_create_augroup('Signature', { clear = false })
+local augroup = api.nvim_create_augroup('lsp_signature', { clear = false })
 local status_line = { hint = '', label = '' }
 local manager = {
   insertChar = false, -- flag for InsertCharPre event, turn off immediately when performing completion
@@ -247,7 +247,7 @@ local function virtual_hint(hint, off_y)
       r[1] - 1,
       offset,
       { -- Note: the vt was put after of cursor.
-        -- this seems eaiser to handle in the code also easy to read
+        -- this seems easier to handle in the code also easy to read
         virt_text_pos = inline_display,
         -- virt_text_pos = 'right_align',
         virt_text = vt,
@@ -1219,15 +1219,12 @@ local function reattach_if_needed()
   -- Iterate all active LSP clients
   for _, client in ipairs(vim.lsp.get_clients()) do
     -- Check which buffers this client is already attached to
-
-    if not client:supports_method(sigcap) then
-      return
-    end
-    for bufnr in pairs(client.attached_buffers or {}) do
-      M.on_attach({}, bufnr)
-
-      if _LSP_SIG_CFG.show_struct.enable then
-        require('lsp_signature.codeaction').setup({})
+    if client:supports_method(sigcap) then
+      for bufnr in pairs(client.attached_buffers or {}) do
+        M.on_attach({}, bufnr)
+        if _LSP_SIG_CFG.show_struct.enable then
+          require('lsp_signature.codeaction').setup({})
+        end
       end
     end
   end
@@ -1261,7 +1258,7 @@ M.setup = function(cfg)
         return
       end
 
-      print('lsp attach', vim.inspect(args))
+      log('lsp attach', args)
       require('lsp_signature').on_attach({}, bufnr)
 
       vim.lsp.util.make_floating_popup_options =
