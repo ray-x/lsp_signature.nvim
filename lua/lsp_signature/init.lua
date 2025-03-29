@@ -1251,8 +1251,7 @@ M.setup = function(cfg)
     group = augroup,
     callback = function(args)
       local bufnr = args.buf
-      local client_id = lsp.get_client_by_id(args.data.client_id)
-      local client = vim.lsp.get_client_by_id(client_id)
+      local client = lsp.get_client_by_id(args.data.client_id)
 
       if not client or not client:supports_method(sigcap) then
         return
