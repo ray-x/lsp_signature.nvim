@@ -259,6 +259,8 @@ helper.match_parameter = function(result, config)
   end
   if nextParameter.documentation and #nextParameter.documentation > 0 then
     nexp = nexp .. ': ' .. nextParameter.documentation
+  elseif nextParameter.documentation.value and #nextParameter.documentation.value > 0 then -- this is to follow when the documentation is a table like {kind= xxx, value= zzz}
+    nexp = nexp .. ': ' .. nextParameter.documentation.value
   end
 
   -- test markdown hl
