@@ -733,7 +733,7 @@ local signature = function(opts)
     end
   end
 
-  local shift = math.max(1, trigger_position - 0)
+  local shift = math.max(0, trigger_position - 0)
   local params = helper.make_position_params({
     position = {
       character = shift,
