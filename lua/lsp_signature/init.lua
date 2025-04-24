@@ -583,7 +583,6 @@ local signature_handler = function(err, result, ctx, config)
     return
   end
 
-  config.noautocmd = true
   log('floating opt', config, display_opts, off_y, lines, _LSP_SIG_CFG.label, label, new_line)
   if _LSP_SIG_CFG._fix_pos and _LSP_SIG_CFG.bufnr and _LSP_SIG_CFG.winnr then
     if
