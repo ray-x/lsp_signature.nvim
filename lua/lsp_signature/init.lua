@@ -1261,9 +1261,6 @@ M.setup = function(cfg)
       log('lsp attach', args)
       require('lsp_signature').on_attach({}, bufnr)
 
-      vim.lsp.util.make_floating_popup_options =
-        require('lsp_signature.helper').make_floating_popup_options
-
       -- default if not defined
       vim.api.nvim_set_hl(0, 'LspSignatureActiveParameter', { link = 'Search' })
       if _LSP_SIG_CFG.show_struct.enable then
@@ -1295,8 +1292,6 @@ M.setup_legacy = function(cfg)
     end
     return _start_client(lsp_config)
   end
-  vim.lsp.util.make_floating_popup_options =
-    require('lsp_signature.helper').make_floating_popup_options
 
   -- default if not defined
   vim.cmd([[hi default link LspSignatureActiveParameter Search]])
