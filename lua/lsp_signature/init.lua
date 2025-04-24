@@ -628,7 +628,9 @@ local signature_handler = function(err, result, ctx, config)
     and _LSP_SIG_CFG.transparency < 100
   then
     if type(_LSP_SIG_CFG.winnr) == 'number' and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
-      vim.api.nvim_win_set_option(_LSP_SIG_CFG.winnr, 'winblend', _LSP_SIG_CFG.transparency)
+      vim.api.nvim_set_option_value('winblend', _LSP_SIG_CFG.transparency, {
+        win = _LSP_SIG_CFG.winnr,
+      })
     end
   end
   local sig = result.signatures
