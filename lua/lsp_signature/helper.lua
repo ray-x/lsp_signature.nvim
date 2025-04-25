@@ -525,11 +525,16 @@ end
 
 -- note: this is a neovim internal function from lsp/util.lua
 
+---@private
+--- Computes size of float needed to show contents (with optional wrapping)
+---
 ---@param contents string[] of lines to show in window
 ---@param opts? vim.lsp.util.open_floating_preview.Opts
 ---@return integer width size of float
 ---@return integer height size of float
 local function make_floating_popup_size(contents, opts)
+  validate('contents', contents, 'table')
+  validate('opts', opts, 'table', true)
   opts = opts or {}
 
   local width = opts.width
@@ -614,14 +619,14 @@ helper.cal_pos = function(contents, opts)
   --    and return language_id
   -- 2. in other cases, no lines will be removed, and return "markdown"
   local filetype = helper.try_trim_markdown_code_blocks(contents)
-  log(vim.inspect(contents), opts)
 
   local width, height = make_floating_popup_size(contents, opts)
+  log('popup size:', width, height, opts)
   -- if the filetype returned is "markdown", and contents contains code fences, the height should minus 2, note,
   -- for latests nvim with conceal level 2 there is no need to `-2`
   -- because the code fences won't be display
   local code_block_flag = contents[1]:match('^```')
-  if filetype == 'markdown' and code_block_flag ~= nil and vim.fn.has('nvim-0.11') == 0 then
+  if filetype == 'markdown' and code_block_flag ~= nil then
     height = height - 2
   end
   local float_option = util.make_floating_popup_options(width, height, opts)
