@@ -2,6 +2,13 @@ local helper = {}
 local api = vim.api
 local fn = vim.fn
 local validate = vim.validate
+local has_nvim11 = vim.fn.has('nvim-0.11') == 1
+
+if not has_nvim11 then
+  -- for nvim 0.10 or earlier validate has changed
+  validate = function(...) end
+end
+
 -- local lua_magic = [[^$()%.[]*+-?]]
 
 local special_chars = { '%', '*', '[', ']', '^', '$', '(', ')', '.', '+', '-', '?', '"' }
@@ -523,8 +530,6 @@ end
 ---@return integer width size of float
 ---@return integer height size of float
 local function make_floating_popup_size(contents, opts)
-  validate('contents', contents, 'table')
-  validate('opts', opts, 'table', true)
   opts = opts or {}
 
   local width = opts.width
@@ -609,7 +614,7 @@ helper.cal_pos = function(contents, opts)
   --    and return language_id
   -- 2. in other cases, no lines will be removed, and return "markdown"
   local filetype = helper.try_trim_markdown_code_blocks(contents)
-  log(vim.inspect(contents))
+  log(vim.inspect(contents), opts)
 
   local width, height = make_floating_popup_size(contents, opts)
   -- if the filetype returned is "markdown", and contents contains code fences, the height should minus 2, note,
