@@ -83,9 +83,9 @@ function M.parse_fill_struct_edit(action)
         local name, val = trimmed:match('^(%w+)%s*:%s*(.-),?$')
         if name and val then
           table.insert(fields, {
-            name = name, -- e.g. "Bar"
+            name = name,         -- e.g. "Bar"
             default_value = val, -- e.g. "0" or "\"\""
-            raw_line = line, -- the entire line for reference
+            raw_line = line,     -- the entire line for reference
           })
         end
       end
@@ -197,7 +197,7 @@ function M.show_unfilled_fields()
       local msg
       if f.type then
         msg =
-          string.format('- %s (type: %s, default: %s)', f.name, f.type, f.default_value or 'nil')
+            string.format('- %s (type: %s, default: %s)', f.name, f.type, f.default_value or 'nil')
       else
         msg = string.format('- ~~%s (default: %s)~~', f.name, f.default_value or 'nil')
       end
@@ -249,11 +249,14 @@ local function debounce(func, wait)
   local timer_id = nil
   return function(...)
     if timer_id ~= nil then
-      vim.loop.timer_stop(timer_id)
+      -- if timer is stil running, lets return, otherwise reset the timer
+      if vim.uv.is_active(timer_id) then
+        return
+      end
     end
     local args = { ... }
-    timer_id = vim.loop.new_timer()
-    vim.loop.timer_start(timer_id, wait, 0, function()
+    timer_id = vim.uv.new_timer()
+    vim.uv.timer_start(timer_id, wait, 0, function()
       vim.schedule(function()
         func(unpack(args))
       end)
