@@ -33,4 +33,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           # CLI arguments
-          args: --color always --quote-style AutoPreferSingle  --column-width 100 --check lua/
+          args: --color always --quote-style AutoPreferSingle  --column-width 120 --indent-type Spaces --collapse-simple-statement Never --check lua/

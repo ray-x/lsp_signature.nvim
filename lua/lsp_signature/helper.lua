@@ -443,7 +443,7 @@ local function get_border_height(opts)
 end
 
 -- copy neovim internal/private functions accorss as they can be removed without notice
-
+-- stylua: ignore start
 local default_border = {
   { '',  'NormalFloat' },
   { '',  'NormalFloat' },
@@ -454,6 +454,7 @@ local default_border = {
   { '',  'NormalFloat' },
   { ' ', 'NormalFloat' },
 }
+-- stylua: ignore end
 
 local function border_error(border)
   error(string.format('invalid floating preview border: %s. :help vim.api.nvim_open_win()', vim.inspect(border)), 2)
@@ -637,7 +638,7 @@ helper.cal_pos = function(contents, opts)
       max_height = math.min(max_height, math.max(lines_above - border_height - 1, border_height + 1))
     else
       -- below
-      max_height =   math.min(max_height, math.max(lines_below - border_height - 1, border_height + 1))
+      max_height = math.min(max_height, math.max(lines_below - border_height - 1, border_height + 1))
     end
   else
     -- above
@@ -686,14 +687,14 @@ function helper.truncate_doc(lines, num_sigs)
   local vmode = api.nvim_get_mode().mode
   -- truncate doc if in insert/replace mode
   if
-      vmode == 'i'
-      or vmode == 'ic'
-      or vmode == 'v'
-      or vmode == 's'
-      or vmode == 'S'
-      or vmode == 'R'
-      or vmode == 'Rc'
-      or vmode == 'Rx'
+    vmode == 'i'
+    or vmode == 'ic'
+    or vmode == 'v'
+    or vmode == 's'
+    or vmode == 'S'
+    or vmode == 'R'
+    or vmode == 'Rc'
+    or vmode == 'Rx'
   then
     -- truncate the doc?
     -- log(#lines, doc_num, num_sigs)
@@ -939,8 +940,8 @@ helper.change_focus = function()
   local winnr = api.nvim_get_current_win()
   if winnr == _LSP_SIG_CFG.winnr then --need to change back to main
     return jump_to_win(_LSP_SIG_CFG.mainwin)
-  else                                -- jump to floating
-    _LSP_SIG_CFG.mainwin = winnr      --need to change back to main
+  else -- jump to floating
+    _LSP_SIG_CFG.mainwin = winnr --need to change back to main
     winnr = _LSP_SIG_CFG.winnr
     if winnr and winnr ~= 0 and api.nvim_win_is_valid(winnr) then
       return jump_to_win(winnr)
