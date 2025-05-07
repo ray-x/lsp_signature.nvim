@@ -266,7 +266,7 @@ helper.match_parameter = function(result, config)
   end
   if nextParameter.documentation and #nextParameter.documentation > 0 then
     nexp = nexp .. ': ' .. nextParameter.documentation
-  -- this is to follow when the documentation is a table like {kind= xxx, value= zzz}
+    -- this is to follow when the documentation is a table like {kind= xxx, value= zzz}
   elseif type(nextParameter.documentation) == 'table' and nextParameter.documentation.value then
     nexp = nexp .. ': ' .. nextParameter.documentation.value
   end
@@ -445,24 +445,18 @@ end
 -- copy neovim internal/private functions accorss as they can be removed without notice
 
 local default_border = {
-  { '', 'NormalFloat' },
-  { '', 'NormalFloat' },
-  { '', 'NormalFloat' },
+  { '',  'NormalFloat' },
+  { '',  'NormalFloat' },
+  { '',  'NormalFloat' },
   { ' ', 'NormalFloat' },
-  { '', 'NormalFloat' },
-  { '', 'NormalFloat' },
-  { '', 'NormalFloat' },
+  { '',  'NormalFloat' },
+  { '',  'NormalFloat' },
+  { '',  'NormalFloat' },
   { ' ', 'NormalFloat' },
 }
 
 local function border_error(border)
-  error(
-    string.format(
-      'invalid floating preview border: %s. :help vim.api.nvim_open_win()',
-      vim.inspect(border)
-    ),
-    2
-  )
+  error(string.format('invalid floating preview border: %s. :help vim.api.nvim_open_win()', vim.inspect(border)), 2)
 end
 local border_size = {
   none = { 0, 0 },
@@ -640,12 +634,10 @@ helper.cal_pos = function(contents, opts)
     -- note: the floating windows will be under current line
     if lines_above >= float_option.height + border_height + 1 then
       off_y = -(float_option.height + border_height + 1)
-      max_height =
-        math.min(max_height, math.max(lines_above - border_height - 1, border_height + 1))
+      max_height = math.min(max_height, math.max(lines_above - border_height - 1, border_height + 1))
     else
       -- below
-      max_height =
-        math.min(max_height, math.max(lines_below - border_height - 1, border_height + 1))
+      max_height =   math.min(max_height, math.max(lines_below - border_height - 1, border_height + 1))
     end
   else
     -- above
@@ -694,14 +686,14 @@ function helper.truncate_doc(lines, num_sigs)
   local vmode = api.nvim_get_mode().mode
   -- truncate doc if in insert/replace mode
   if
-    vmode == 'i'
-    or vmode == 'ic'
-    or vmode == 'v'
-    or vmode == 's'
-    or vmode == 'S'
-    or vmode == 'R'
-    or vmode == 'Rc'
-    or vmode == 'Rx'
+      vmode == 'i'
+      or vmode == 'ic'
+      or vmode == 'v'
+      or vmode == 's'
+      or vmode == 'S'
+      or vmode == 'R'
+      or vmode == 'Rc'
+      or vmode == 'Rx'
   then
     -- truncate the doc?
     -- log(#lines, doc_num, num_sigs)
@@ -947,8 +939,8 @@ helper.change_focus = function()
   local winnr = api.nvim_get_current_win()
   if winnr == _LSP_SIG_CFG.winnr then --need to change back to main
     return jump_to_win(_LSP_SIG_CFG.mainwin)
-  else -- jump to floating
-    _LSP_SIG_CFG.mainwin = winnr --need to change back to main
+  else                                -- jump to floating
+    _LSP_SIG_CFG.mainwin = winnr      --need to change back to main
     winnr = _LSP_SIG_CFG.winnr
     if winnr and winnr ~= 0 and api.nvim_win_is_valid(winnr) then
       return jump_to_win(winnr)
@@ -1011,4 +1003,5 @@ function helper.lsp_with(handler, override_config)
     return handler(err, result, ctx, vim.tbl_deep_extend('force', config or {}, override_config))
   end
 end
+
 return helper

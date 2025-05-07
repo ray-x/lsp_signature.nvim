@@ -196,8 +196,7 @@ function M.show_unfilled_fields()
       -- if f.type and f.name then -- if f.type empty means the field had already filled
       local msg
       if f.type then
-        msg =
-            string.format('- %s (type: %s, default: %s)', f.name, f.type, f.default_value or 'nil')
+        msg = string.format('- %s (type: %s, default: %s)', f.name, f.type, f.default_value or 'nil')
       else
         msg = string.format('- ~~%s (default: %s)~~', f.name, f.default_value or 'nil')
       end
