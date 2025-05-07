@@ -39,6 +39,25 @@ _LSP_SIG_CFG = {
   wrap = true, -- allow doc/signature wrap inside floating_window, useful if your lsp doc/sig is too long
 
   floating_window = true, -- show hint in a floating window
+  ignore_error = function(err, ctx, config) -- provide your ignore callback here
+    -- ignore error for some clients
+    -- this will also make it a bit harder to track issues
+    if ctx and ctx.client_id then
+      -- ignore error for some clients
+      -- get client name by id
+      local client = vim.lsp.get_client_by_id(ctx.client_id)
+      if client and vim.tbl_contains({ 'rust_analyer', 'clangd' }, client.name) then
+        return true
+      end
+    end
+    -- other examples:
+    -- if err.code_name == 'InvalidParams' then
+      -- return true
+    -- end
+    -- if err.code_name == 'ContentModified' then
+      -- return true
+    -- end
+  end,
   floating_window_above_cur_line = true, -- try to place the floating above the current line
   toggle_key_flip_floatwin_setting = false, -- toggle key will enable|disable floating_window flag
   floating_window_off_x = 1, -- adjust float windows x position. or a function return the x offset
@@ -274,11 +293,16 @@ local close_events = { 'InsertLeave', 'BufHidden', 'ModeChanged' }
 -- ----------------------
 local signature_handler = function(err, result, ctx, config)
   if err ~= nil then
+    log('sig result', ctx, result, config)
+    -- ignore the error for some clients
+    if _LSP_SIG_CFG.ignore_error(err, ctx, config) then
+      return
+    end
     print('lsp_signatur handler', err)
     return
   end
 
-  -- log("sig result", ctx, result, config)
+  -- log('sig result', ctx, result, config)
   local client_id = ctx.client_id
   local bufnr = ctx.bufnr
   if result == nil or result.signatures == nil or result.signatures[1] == nil then
