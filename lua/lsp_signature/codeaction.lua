@@ -83,9 +83,9 @@ function M.parse_fill_struct_edit(action)
         local name, val = trimmed:match('^(%w+)%s*:%s*(.-),?$')
         if name and val then
           table.insert(fields, {
-            name = name,         -- e.g. "Bar"
+            name = name, -- e.g. "Bar"
             default_value = val, -- e.g. "0" or "\"\""
-            raw_line = line,     -- the entire line for reference
+            raw_line = line, -- the entire line for reference
           })
         end
       end
@@ -246,17 +246,16 @@ function M.show_unfilled_fields_floating(lines, cfg)
 end
 
 local function debounce(func, wait)
-  local timer_id = nil
   return function(...)
-    if timer_id ~= nil then
+    if M.timer_id ~= nil then
       -- if timer is stil running, lets return, otherwise reset the timer
-      if vim.uv.is_active(timer_id) then
+      if vim.uv.is_active(M.timer_id) then
         return
       end
     end
     local args = { ... }
-    timer_id = vim.uv.new_timer()
-    vim.uv.timer_start(timer_id, wait, 0, function()
+    M.timer_id = vim.uv.new_timer()
+    vim.uv.timer_start(M.timer_id, wait, 0, function()
       vim.schedule(function()
         func(unpack(args))
       end)
@@ -271,7 +270,7 @@ function M.setup(cfg)
   local augroup = vim.api.nvim_create_augroup('Signature_fillfields', {
     clear = false,
   })
-  vim.api.nvim_create_autocmd({ 'InsertCharPre', 'CursorMovedI', 'CursorHold', 'CursorHoldI' }, {
+  vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI', 'CursorHold', 'CursorHoldI' }, {
     -- check if the character before the cursor is `{` or it is all spaces
     group = augroup,
     callback = debounce(function(arg)
