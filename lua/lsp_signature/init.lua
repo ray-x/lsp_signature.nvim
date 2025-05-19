@@ -236,7 +236,10 @@ local function virtual_hint(hint, off_y)
       end
     end
     offset = closest_index
-    hint = hint .. ': '
+
+    if inline_display == true or inline_display == 'inline' then
+      hint = hint .. ': '
+    end
   end
   _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace('lsp_signature_vt')
 
@@ -254,7 +257,7 @@ local function virtual_hint(hint, off_y)
     if type(inline_display) == 'boolean' then
       inline_display = 'inline'
     end
-    inline_display = inline_display and 'inline'
+    inline_display = inline_display or 'inline'
     log('virtual text: ', cur_line, r[1] - 1, r[2], vt)
     vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, r[1] - 1, offset, { -- Note: the vt was put after of cursor.
       -- this seems easier to handle in the code also easy to read
