@@ -1143,6 +1143,15 @@ M.toggle_float_win = function()
   if _LSP_SIG_CFG.toggle_key_flip_floatwin_setting == true then
     _LSP_SIG_CFG.floating_window = not _LSP_SIG_CFG.floating_window
   end
+
+  -- close the code action win, TODO: reopen it
+  -- if _LSP_SIG_CFG.code_action_win and _LSP_SIG_CFG.code_action_win.winnr > 0 and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.code_action_win.winnr) then
+  if _LSP_SIG_CFG.code_action_win then
+    log('close code action win', _LSP_SIG_CFG.code_action_win.winnr)
+    vim.api.nvim_win_close(_LSP_SIG_CFG.code_action_win.winnr, true)
+    _LSP_SIG_CFG.code_action_win = nil
+    return
+  end
   if _LSP_SIG_CFG.winnr and _LSP_SIG_CFG.winnr > 0 and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.winnr) then
     vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
     _LSP_SIG_CFG.winnr = nil

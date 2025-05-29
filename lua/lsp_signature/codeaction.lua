@@ -47,7 +47,7 @@ function M.get_fill_struct_codeaction(callback)
       log('Found fill-struct code action:', found_action, cactx, bufnr)
       local client_id = cactx.client_id
       local c = lsp.get_client_by_id(client_id)
-      c.request('codeAction/resolve', found_action, function(errca, resolved_action, rectx, config)
+      c:request('codeAction/resolve', found_action, function(errca, resolved_action, rectx, config)
         if errca then
           log('Error:', errca)
           return
@@ -179,7 +179,7 @@ function M.collect_unfilled_fields_info(final_cb)
   end)
 end
 
---- Example function to demonstrate usage: logs unfilled fields to :messages.
+--- Show unfilled fields in a struct using a floating window.
 function M.show_unfilled_fields()
   M.collect_unfilled_fields_info(function(fields_info, ctx)
     log('Unfilled fields:', fields_info, ctx)
@@ -207,26 +207,24 @@ function M.show_unfilled_fields()
       contents[#contents + 1] = msg
       -- end
     end
-    M.show_unfilled_fields_floating(contents, {
+    local cabufnr, cawinnr = M.show_unfilled_fields_floating(contents, {
       width = math.min(line_length + 5, 80),
       height = #contents,
       row = 1,
       col = 1,
     })
+    if _LSP_SIG_CFG.toggle_key then -- if toggle_key is set, we can toggle the floating window
+      _LSP_SIG_CFG.code_action_win = {
+        bufnr = cabufnr,
+        winnr = cawinnr,
+      }
+    end
   end)
 end
 
 -- display contents in a floating window
 function M.show_unfilled_fields_floating(lines, cfg)
-  local bufnr = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_set_option_value('bufhidden', 'wipe', { buf = bufnr })
-  vim.api.nvim_set_option_value('buftype', 'nofile', { buf = bufnr })
-  vim.api.nvim_set_option_value('filetype', 'lsp_signature', { buf = bufnr })
-
-  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
-
-  vim.api.nvim_set_option_value('modifiable', false, { buf = bufnr })
-  local win_id = vim.lsp.util.open_floating_preview(lines, 'markdown', {
+  local bufnr, win_id = vim.lsp.util.open_floating_preview(lines, 'markdown', {
     relative = 'cursor',
     width = cfg.width or 40,
     height = cfg.height or #lines,
@@ -234,13 +232,18 @@ function M.show_unfilled_fields_floating(lines, cfg)
     col = cfg.col or 1,
   })
 
-  -- the floating should be auto-closed when cursor moves
-  vim.api.nvim_buf_attach(bufnr, false, {
-    on_detach = function()
-      vim.api.nvim_win_close(win_id, true)
+  -- the floating should be auto-closed when cusror moved
+  local augroup = vim.api.nvim_create_augroup('Signature_fillfields', { clear = false })
+  vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI', 'BufLeave' }, {
+    group = augroup,
+    callback = function(arg)
+      if arg.buf == bufnr then
+        log('Closing floating window for unfilled fields')
+        vim.api.nvim_win_close(win_id, true)
+        vim.api.nvim_del_augroup_by_id(augroup)
+      end
     end,
   })
-
   return bufnr, win_id
 end
 
