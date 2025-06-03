@@ -1,6 +1,13 @@
 local helper = {}
 local api = vim.api
 local fn = vim.fn
+local validate = vim.validate
+local has_nvim11 = vim.fn.has('nvim-0.11') == 1
+
+if not has_nvim11 then
+  -- for nvim 0.10 or earlier validate has changed
+  validate = function(...) end
+end
 
 -- local lua_magic = [[^$()%.[]*+-?]]
 
@@ -259,7 +266,7 @@ helper.match_parameter = function(result, config)
   end
   if nextParameter.documentation and #nextParameter.documentation > 0 then
     nexp = nexp .. ': ' .. nextParameter.documentation
-  -- this is to follow when the documentation is a table like {kind= xxx, value= zzz}
+    -- this is to follow when the documentation is a table like {kind= xxx, value= zzz}
   elseif type(nextParameter.documentation) == 'table' and nextParameter.documentation.value then
     nexp = nexp .. ': ' .. nextParameter.documentation.value
   end
@@ -394,7 +401,7 @@ end
 
 helper.cleanup_async = function(close_float_win, delay, force)
   -- log(debug.traceback())
-  vim.validate({ delay = { delay, 'number' } })
+  validate('delay', delay, 'number')
   vim.defer_fn(function()
     local mode = api.nvim_get_mode().mode
     if not force and (mode == 'i' or mode == 's') then
@@ -436,26 +443,21 @@ local function get_border_height(opts)
 end
 
 -- copy neovim internal/private functions accorss as they can be removed without notice
-
+-- stylua: ignore start
 local default_border = {
-  { '', 'NormalFloat' },
-  { '', 'NormalFloat' },
-  { '', 'NormalFloat' },
+  { '',  'NormalFloat' },
+  { '',  'NormalFloat' },
+  { '',  'NormalFloat' },
   { ' ', 'NormalFloat' },
-  { '', 'NormalFloat' },
-  { '', 'NormalFloat' },
-  { '', 'NormalFloat' },
+  { '',  'NormalFloat' },
+  { '',  'NormalFloat' },
+  { '',  'NormalFloat' },
   { ' ', 'NormalFloat' },
 }
+-- stylua: ignore end
 
 local function border_error(border)
-  error(
-    string.format(
-      'invalid floating preview border: %s. :help vim.api.nvim_open_win()',
-      vim.inspect(border)
-    ),
-    2
-  )
+  error(string.format('invalid floating preview border: %s. :help vim.api.nvim_open_win()', vim.inspect(border)), 2)
 end
 local border_size = {
   none = { 0, 0 },
@@ -518,11 +520,16 @@ end
 
 -- note: this is a neovim internal function from lsp/util.lua
 
+---@private
+--- Computes size of float needed to show contents (with optional wrapping)
+---
 ---@param contents string[] of lines to show in window
 ---@param opts? vim.lsp.util.open_floating_preview.Opts
 ---@return integer width size of float
 ---@return integer height size of float
 local function make_floating_popup_size(contents, opts)
+  validate('contents', contents, 'table')
+  validate('opts', opts, 'table', true)
   opts = opts or {}
 
   local width = opts.width
@@ -547,6 +554,17 @@ local function make_floating_popup_size(contents, opts)
 
   -- make sure borders are always inside the screen
   width = math.min(width, screen_width - border_width)
+
+  -- Make sure that the width is large enough to fit the title.
+  local title_length = 0
+  local chunks = type(opts.title) == 'string' and { { opts.title } } or opts.title or {}
+  for _, chunk in
+    ipairs(chunks --[=[@as [string, string][]]=])
+  do
+    title_length = title_length + vim.fn.strdisplaywidth(chunk[1])
+  end
+
+  width = math.max(width, title_length)
 
   if wrap_at then
     wrap_at = math.min(wrap_at, width)
@@ -596,14 +614,14 @@ helper.cal_pos = function(contents, opts)
   --    and return language_id
   -- 2. in other cases, no lines will be removed, and return "markdown"
   local filetype = helper.try_trim_markdown_code_blocks(contents)
-  log(vim.inspect(contents))
 
   local width, height = make_floating_popup_size(contents, opts)
+  log('popup size:', width, height, opts)
   -- if the filetype returned is "markdown", and contents contains code fences, the height should minus 2, note,
   -- for latests nvim with conceal level 2 there is no need to `-2`
   -- because the code fences won't be display
   local code_block_flag = contents[1]:match('^```')
-  if filetype == 'markdown' and code_block_flag ~= nil and vim.fn.has('nvim-0.11') == 0 then
+  if filetype == 'markdown' and code_block_flag ~= nil then
     height = height - 2
   end
   local float_option = util.make_floating_popup_options(width, height, opts)
@@ -617,12 +635,10 @@ helper.cal_pos = function(contents, opts)
     -- note: the floating windows will be under current line
     if lines_above >= float_option.height + border_height + 1 then
       off_y = -(float_option.height + border_height + 1)
-      max_height =
-        math.min(max_height, math.max(lines_above - border_height - 1, border_height + 1))
+      max_height = math.min(max_height, math.max(lines_above - border_height - 1, border_height + 1))
     else
       -- below
-      max_height =
-        math.min(max_height, math.max(lines_below - border_height - 1, border_height + 1))
+      max_height = math.min(max_height, math.max(lines_below - border_height - 1, border_height + 1))
     end
   else
     -- above
@@ -832,16 +848,12 @@ helper.highlight_parameter = function(s, l)
     end
     local line = 0
 
-    if vim.fn.has('nvim-0.10') == 1 then
-      local lines = vim.api.nvim_buf_get_lines(_LSP_SIG_CFG.bufnr, 0, 3, false)
-      if lines[1]:find([[```]]) then -- it is strange that the first line is not signatures, it is ```language_id
-        -- open_floating_preview changed display ```language_id
-        log(
-          'Check: first line is ```language_id, it may not be behavior of release version of nvim'
-        )
-        log('first two lines: ', lines)
-        line = 1
-      end
+    local lines = vim.api.nvim_buf_get_lines(_LSP_SIG_CFG.bufnr, 0, 3, false)
+    if lines[1]:find([[```]]) then -- it is strange that the first line is not signatures, it is ```language_id
+      -- open_floating_preview changed display ```language_id
+      log('first line is ```language_id')
+      log('first two lines: ', lines)
+      line = 1
     end
     if line == 1 then
       -- scroll to top
@@ -979,91 +991,11 @@ function helper.try_trim_markdown_code_blocks(lines)
   return 'markdown'
 end
 
-local validate = vim.validate
---- Creates a table with sensible default options for a floating window. The
---- table can be passed to |nvim_open_win()|.
----
----@param width (integer) window width (in character cells)
----@param height (integer) window height (in character cells)
----@param opts (table, optional)
----        - offset_x (integer) offset to add to `col`
----        - offset_y (integer) offset to add to `row`
----        - border (string or table) override `border`
----        - focusable (string or table) override `focusable`
----        - zindex (string or table) override `zindex`, defaults to 50
----        - relative ("mouse"|"cursor") defaults to "cursor"
----        - noautocmd (boolean) defaults to "false"
-
----@returns (table) Options
-function helper.make_floating_popup_options(width, height, opts)
-  validate({
-    opts = { opts, 't', true },
-  })
-  opts = opts or {}
-  validate({
-    ['opts.offset_x'] = { opts.offset_x, 'n', true },
-    ['opts.offset_y'] = { opts.offset_y, 'n', true },
-  })
-
-  local anchor = ''
-  local row, col
-
-  local lines_above = opts.relative == 'mouse' and vim.fn.getmousepos().line - 1
-    or vim.fn.winline() - 1
-  local lines_below = vim.fn.winheight(0) - lines_above
-
-  if lines_above < lines_below then
-    anchor = anchor .. 'N'
-    height = math.min(lines_below, height)
-    row = 1
-  else
-    anchor = anchor .. 'S'
-    height = math.min(lines_above, height)
-    row = 0
-  end
-
-  local wincol = opts.relative == 'mouse' and vim.fn.getmousepos().column or vim.fn.wincol()
-
-  if wincol + width + (opts.offset_x or 0) <= api.nvim_get_option('columns') then
-    anchor = anchor .. 'W'
-    col = 0
-  else
-    anchor = anchor .. 'E'
-    col = 1
-  end
-
-  local title = (opts.border and opts.title) and opts.title or nil
-  local title_pos
-
-  if title then
-    title_pos = opts.title_pos or 'center'
-  end
-  if opts.noautocmd == nil then
-    opts.noautocmd = false
-  end
-
-  return {
-    anchor = anchor,
-    col = col + (opts.offset_x or 0),
-    height = height,
-    focusable = opts.focusable,
-    relative = opts.relative == 'mouse' and 'mouse' or 'cursor',
-    row = row + (opts.offset_y or 0),
-    style = 'minimal',
-    width = width,
-    border = opts.border or default_border,
-    zindex = opts.zindex or 50,
-    title = title,
-    title_pos = title_pos,
-    noautocmd = opts.noautocmd,
-  }
-end
-
 function helper.get_clients(opts)
   if vim.lsp.get_clients then
     return vim.lsp.get_clients(opts)
   else
-    return vim.lsp.get_active_clients(opts)
+    vim.notify('unsupported neovim version, please update to nvim 0.10')
   end
 end
 
@@ -1072,4 +1004,5 @@ function helper.lsp_with(handler, override_config)
     return handler(err, result, ctx, vim.tbl_deep_extend('force', config or {}, override_config))
   end
 end
+
 return helper

@@ -2,8 +2,8 @@
 
 Show function signature when you type
 
-- This nvim plugin is made for completion plugins that do not support signature help. Need neovim-0.8+ and enable
-  nvim-lsp. (check neovim-0.5/neovim-0.6/neovim-0.9 branch for earlier version support)
+- This nvim plugin is made for completion plugins that do not support signature help. Need neovim-0.10+. (check
+  neovim-0.5/neovim-0.6/neovim-0.9 branch for earlier version support)
 
 - Inspired by [completion-nvim](https://github.com/nvim-lua/completion-nvim), which does have lots of cool features.
 
@@ -94,7 +94,6 @@ local golang_setup = {
 require'lspconfig'.gopls.setup(golang_setup)
 ```
 
-
 If you using Lazy.nvim, you can pass the config in the `opts` table:
 
 ```lua
@@ -153,7 +152,8 @@ No default keymaps are provided. Following are keymaps available in config:
 
 1. toggle_key: Toggle the signature help window. It manual toggle config.floating_windows on/off
 2. select_signature_key: Select the current signature when multiple signature is available.
-3. move floating window: move_cursor_key, array of two keymaps, if set, you can use these keymaps to move floating window up and down, default is nil
+3. move floating window: move_cursor_key, array of two keymaps, if set, you can use these keymaps to move floating
+   window up and down, default is nil
 
 #### Customize the keymap in your config:
 
@@ -187,7 +187,7 @@ e.g.
                  -- This setting only take effect in insert mode, it does not affect signature help in normal
                  -- mode, 10 by default
 
-  max_height = 12, -- max height of signature floating_window
+  max_height = 12, -- max height of signature floating_window, include borders
   max_width = function()
     return vim.api.nvim_win_get_width(0) * 0.8
   end, -- max_width of signature floating_window, line will be wrapped if exceed max_width
@@ -204,6 +204,7 @@ e.g.
                              -- can be either a number or function
   floating_window_off_y = 0, -- adjust float windows y position. e.g -2 move window up 2 lines; 2 move down 2 lines
                               -- can be either number or function, see examples
+  ignore_error = func(err, ctx, config), -- this scilence errors, check init.lua for more details
 
   close_timeout = 4000, -- close floating window after ms when laster parameter is entered
   fix_pos = false,  -- set to true, the floating window will not auto-close until finish all parameters

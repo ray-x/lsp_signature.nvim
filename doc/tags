@@ -1,0 +1,10 @@
+lsp_signature-attach_the_plugin	lsp_signature.txt	/*lsp_signature-attach_the_plugin*
+lsp_signature-configure	lsp_signature.txt	/*lsp_signature-configure*
+lsp_signature-contents	lsp_signature.txt	/*lsp_signature-contents*
+lsp_signature-floating_window_borders	lsp_signature.txt	/*lsp_signature-floating_window_borders*
+lsp_signature-full_configuration_(with_default_values)	lsp_signature.txt	/*lsp_signature-full_configuration_(with_default_values)*
+lsp_signature-install:	lsp_signature.txt	/*lsp_signature-install:*
+lsp_signature-lsp_signature.nvim	lsp_signature.txt	/*lsp_signature-lsp_signature.nvim*
+lsp_signature-q&a:	lsp_signature.txt	/*lsp_signature-q&a:*
+lsp_signature-sample_config_with_cmp,_luasnipet_and_autopair	lsp_signature.txt	/*lsp_signature-sample_config_with_cmp,_luasnipet_and_autopair*
+lsp_signature-should_signature_floating_windows_fixed	lsp_signature.txt	/*lsp_signature-should_signature_floating_windows_fixed*
