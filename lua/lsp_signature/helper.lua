@@ -277,15 +277,15 @@ helper.match_parameter = function(result, config)
   return result, nexp, s, e
 end
 
-helper.check_trigger_char = function(line_to_cursor, trigger_characters)
+helper.check_trigger_char = function(line_to_cursor, trigger_characters, offset_encoding)
   if trigger_characters == nil then
-    return false, #line_to_cursor
+    return false, vim.str_utfindex(line_to_cursor, offset_encoding)
   end
   local no_ws_line_to_cursor = string.gsub(line_to_cursor, '%s+', '')
-  -- log("newline: ", #line_to_cursor, line_to_cursor)
+  -- log("newline: ", vim.str_utfindex(line_to_cursor, encoding), line_to_cursor)
   if #no_ws_line_to_cursor < 1 then
     log('newline, lets try signature based on setup')
-    return _LSP_SIG_CFG.always_trigger, #line_to_cursor
+    return _LSP_SIG_CFG.always_trigger, vim.str_utfindex(line_to_cursor, offset_encoding)
   end
 
   local includes = ''
@@ -328,18 +328,18 @@ helper.check_trigger_char = function(line_to_cursor, trigger_characters)
       local line_to_last_trigger = line_to_cursor:sub(1, last_trigger_char_index)
       -- seems gopls does not handle this well, mightbe other language too
       if last_trigger_char == '(' and vim.tbl_contains({ 'go' }, vim.bo.filetype) then
-        return true, #line_to_last_trigger - 1
+        return true, vim.str_utfindex(line_to_last_trigger, offset_encoding) - 1
       end
-      return true, #line_to_last_trigger
+      return true, vim.str_utfindex(line_to_last_trigger, offset_encoding)
     else
-      return true, #line_to_cursor
+      return true, vim.str_utfindex(line_to_cursor, offset_encoding)
     end
   end
 
   -- when there is no trigger character, still trigger if always_trigger is set
   -- and let the lsp decide if there should be a signature useful in
   -- multi-line function calls.
-  return _LSP_SIG_CFG.always_trigger, #line_to_cursor
+  return _LSP_SIG_CFG.always_trigger, vim.str_utfindex(line_to_cursor, offset_encoding)
 end
 
 helper.check_closer_char = function(line_to_cursor, trigger_chars)
@@ -798,7 +798,8 @@ function helper.check_lsp_cap(clients, line_to_cursor)
         end
 
         if triggered == false then
-          triggered, trigger_position = helper.check_trigger_char(line_to_cursor, triggered_chars)
+          triggered, trigger_position =
+            helper.check_trigger_char(line_to_cursor, triggered_chars, value.offset_encoding)
         end
       end
     end
