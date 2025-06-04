@@ -150,8 +150,12 @@ local function virtual_hint(hint, off_y)
     or '🐼 '
 
   if off_y and off_y ~= 0 then
-    local inline = type(_LSP_SIG_CFG.hint_inline) == 'function' and _LSP_SIG_CFG.hint_inline() == 'inline'
-      or _LSP_SIG_CFG.hint_inline
+    local inline
+    if type(_LSP_SIG_CFG.hint_inline) == 'function' then
+      inline = vim.tbl_contains({ 'inline', 'eol', 'right_align' }, _LSP_SIG_CFG.hint_inline())
+    else
+      inline = _LSP_SIG_CFG.hint_inline
+    end
     -- stay out of the way of the pum
     if completion_visible or inline then
       show_at = cur_line
