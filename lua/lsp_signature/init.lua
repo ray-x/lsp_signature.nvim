@@ -1246,7 +1246,10 @@ M.setup = function(cfg)
       require('lsp_signature').on_attach({}, bufnr)
 
       -- default if not defined
-      vim.api.nvim_set_hl(0, 'LspSignatureActiveParameter', { link = 'Search' })
+      local hi_parameter_hl = vim.api.nvim_get_hl(0, { name = _LSP_SIG_CFG.hi_parameter })
+      if hi_parameter_hl == nil or next(hi_parameter_hl) == nil then
+        vim.api.nvim_set_hl(0, _LSP_SIG_CFG.hi_parameter, { link = 'Search' })
+      end
       if _LSP_SIG_CFG.show_struct.enable then
         require('lsp_signature.codeaction').setup(cfg)
       end
