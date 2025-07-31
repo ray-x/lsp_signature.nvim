@@ -1038,9 +1038,11 @@ M.on_attach = function(cfg, bufnr)
   _LSP_SIG_VT_NS = api.nvim_create_namespace('lsp_signature_vt')
 end
 
-local signature_should_close_handler = function(err, result, ctx, _)
+local signature_should_close_handler = function(err, result, ctx, config)
   if err ~= nil then
-    print(err)
+    if not _LSP_SIG_CFG.ignore_error(err, ctx, config) then
+      print(err)
+    end
     helper.cleanup_async(true, 0.01, true)
     status_line = { hint = '', label = '' }
     return
