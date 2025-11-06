@@ -46,7 +46,7 @@ _LSP_SIG_CFG = {
       -- ignore error for some clients
       -- get client name by id
       local client = vim.lsp.get_client_by_id(ctx.client_id)
-      if client and vim.tbl_contains({ 'rust_analyer', 'clangd' }, client.name) then
+      if client and vim.tbl_contains({ 'rust-analyzer', 'clangd' }, client.name) then
         return true
       end
     end
