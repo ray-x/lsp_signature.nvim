@@ -210,7 +210,7 @@ helper.match_parameter = function(result, config)
     return result, '', 0, 0
   end
 
-  local activeParameter = signature.activeParameter or result.activeParameter
+  local activeParameter = result.activeParameter
 
   if activeParameter == nil or activeParameter < 0 then
     log('incorrect signature response?', result, config)

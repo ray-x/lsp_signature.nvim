@@ -119,12 +119,11 @@ local result_csharp = {
 }
 
 local result_pyright = {
-  activeParameter = 5,
+  activeParameter = 0,
   activeSignature = 0,
   cfgActiveSignature = 0,
   signatures = {
     {
-      activeParameter = 0,
       label = '(*values: object, sep: str | None = ..., end: str | None = ..., file: SupportsWrite[str] | None = ..., flush: Literal[False] = ...) -> None',
       parameters = {
         {
@@ -145,7 +144,6 @@ local result_pyright = {
       },
     },
     {
-      activeParameter = 0,
       label = '(*values: object, sep: str | None = ..., end: str | None = ..., file: _SupportsWriteAndFlush[str] | None = ..., flush: bool) -> None',
       parameters = {
         {
