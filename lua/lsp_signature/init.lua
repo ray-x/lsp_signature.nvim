@@ -46,7 +46,7 @@ _LSP_SIG_CFG = {
       -- ignore error for some clients
       -- get client name by id
       local client = vim.lsp.get_client_by_id(ctx.client_id)
-      if client and vim.tbl_contains({ 'rust_analyer', 'clangd' }, client.name) then
+      if client and vim.tbl_contains({ 'rust-analyzer', 'clangd' }, client.name) then
         return true
       end
     end
@@ -1038,9 +1038,11 @@ M.on_attach = function(cfg, bufnr)
   _LSP_SIG_VT_NS = api.nvim_create_namespace('lsp_signature_vt')
 end
 
-local signature_should_close_handler = function(err, result, ctx, _)
+local signature_should_close_handler = function(err, result, ctx, config)
   if err ~= nil then
-    print(err)
+    if not _LSP_SIG_CFG.ignore_error(err, ctx, config) then
+      print(err)
+    end
     helper.cleanup_async(true, 0.01, true)
     status_line = { hint = '', label = '' }
     return
@@ -1246,7 +1248,10 @@ M.setup = function(cfg)
       require('lsp_signature').on_attach({}, bufnr)
 
       -- default if not defined
-      vim.api.nvim_set_hl(0, 'LspSignatureActiveParameter', { link = 'Search' })
+      local hi_parameter_hl = vim.api.nvim_get_hl(0, { name = _LSP_SIG_CFG.hi_parameter })
+      if hi_parameter_hl == nil or next(hi_parameter_hl) == nil then
+        vim.api.nvim_set_hl(0, _LSP_SIG_CFG.hi_parameter, { link = 'Search' })
+      end
       if _LSP_SIG_CFG.show_struct.enable then
         require('lsp_signature.codeaction').setup(cfg)
       end
