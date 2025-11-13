@@ -59,7 +59,7 @@ function M.get_fill_struct_codeaction(callback)
   end
 
   -- Send requests to all LSP clients attached to this buffer
-  client.request('textDocument/codeAction', params, on_codeact_result, bufnr)
+  client:request('textDocument/codeAction', params, on_codeact_result, bufnr)
 end
 
 --- Parse a "Fill <struct>" code action (WorkspaceEdit) to extract unfilled fields.
