@@ -129,7 +129,7 @@ function M.get_field_completions(callback, ctx)
     callback(field_map, cpctx)
   end
 
-  client.request('textDocument/completion', params, on_result, ctx.bufnr)
+  client:request('textDocument/completion', params, on_result, ctx.bufnr)
 end
 
 function M.collect_unfilled_fields_info(final_cb)
