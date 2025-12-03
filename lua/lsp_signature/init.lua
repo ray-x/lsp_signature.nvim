@@ -53,6 +53,8 @@ _LSP_SIG_CFG = {
     -- other examples:
     -- if err.code_name == 'InvalidParams' then return true end
     -- if err.code_name == 'ContentModified' then return true end
+    -- if err.code == -32801 then return true end
+    -- if err.message == 'content modified' then return true end
   end,
   floating_window_above_cur_line = true,          -- try to place the floating above the current line
   toggle_key_flip_floatwin_setting = false,       -- toggle key will enable|disable floating_window flag
