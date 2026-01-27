@@ -99,7 +99,7 @@ _LSP_SIG_CFG = {
   auto_close_after = nil,                                             -- autoclose signature after x sec, disabled if nil.
   check_completion_visible = true,                                    -- adjust position of signature window relative to completion popup
   debug = false,
-  log_path = path_join(vim.fn.stdpath('log'), 'lsp_signature.log'),   -- log dir when debug is no
+  log_path = path_join(vim.fn.stdpath('log'), 'lsp_signature.log'),   -- log dir when debug is true
   verbose = false,                                                    -- debug show code line number
   extra_trigger_chars = {},                                           -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   zindex = 200,
@@ -937,7 +937,7 @@ M.validate = function(cfg)
 end
 
 local function cleanup_logs(cfg)
-  if _LSP_SIG_CFG.debug ~= true then
+  if _LSP_SIG_CFG.debug == false then
     return
   end
   local log_path = cfg.log_path or _LSP_SIG_CFG.log_path or nil
