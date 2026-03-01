@@ -151,13 +151,13 @@ local function virtual_hint(hint, off_y)
     or (type(_LSP_SIG_CFG.hint_prefix) == 'table' and _LSP_SIG_CFG.hint_prefix.current)
     or '🐼 '
 
+  local inline_display = _LSP_SIG_CFG.hint_inline()
+  -- note overlay support is bad atm
+  local inline = vim.tbl_contains({ 'inline', 'overlay' }, inline_display) or inline_display == true
+  if type(inline_display) == 'boolean' then
+    inline_display = inline and 'inline' or 'eol'
+  end
   if off_y and off_y ~= 0 then
-    local inline
-    if type(_LSP_SIG_CFG.hint_inline) == 'function' then
-      inline = vim.tbl_contains({ 'inline', 'eol', 'right_align' }, _LSP_SIG_CFG.hint_inline())
-    else
-      inline = _LSP_SIG_CFG.hint_inline
-    end
     -- stay out of the way of the pum
     if completion_visible or inline then
       show_at = cur_line
@@ -214,8 +214,7 @@ local function virtual_hint(hint, off_y)
   pl = pl or ''
   local pad = ''
   local offset = r[2]
-  local inline_display = _LSP_SIG_CFG.hint_inline()
-  if inline_display == false then
+  if inline == false then
     local line_to_cursor_width = dwidth(line_to_cursor)
     local pl_width = dwidth(pl)
     if show_at ~= cur_line and line_to_cursor_width > pl_width + 1 then
@@ -242,10 +241,7 @@ local function virtual_hint(hint, off_y)
       end
     end
     offset = closest_index
-
-    if inline_display == true or inline_display == 'inline' then
-      hint = hint .. ': '
-    end
+    hint = hint .. ': '
   end
   _LSP_SIG_VT_NS = _LSP_SIG_VT_NS or vim.api.nvim_create_namespace('lsp_signature_vt')
 
@@ -259,11 +255,8 @@ local function virtual_hint(hint, off_y)
     { pad },
     { hp .. hint, _LSP_SIG_CFG.hint_scheme },
   }
-  if inline_display then
-    if type(inline_display) == 'boolean' then
-      inline_display = 'inline'
-    end
-    inline_display = inline_display or 'inline'
+
+  if inline then
     log('virtual text: ', cur_line, r[1] - 1, r[2], vt)
     vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, r[1] - 1, offset, { -- Note: the vt was put after of cursor.
       -- this seems easier to handle in the code also easy to read
@@ -278,7 +271,7 @@ local function virtual_hint(hint, off_y)
     log('virtual text: ', cur_line, show_at, vt)
     vim.api.nvim_buf_set_extmark(0, _LSP_SIG_VT_NS, show_at, 0, {
       virt_text = vt,
-      virt_text_pos = 'eol',
+      virt_text_pos = inline_display,
       hl_mode = 'combine',
       -- virt_lines_above = true,
       -- hl_group = _LSP_SIG_CFG.hint_scheme
@@ -1260,6 +1253,15 @@ M.setup = function(cfg)
     end,
   })
   reattach_if_needed()
+
+  -- some overriding
+  if type(_LSP_SIG_CFG.hint_inline) ~= 'function' then
+    print('lsp_signature hint_inline should be a function') -- for backward compatibility
+    local val = _LSP_SIG_CFG.hint_inline
+    _LSP_SIG_CFG.hint_inline = function()
+      return val
+    end
+  end
 end
 
 M.setup_legacy = function(cfg)

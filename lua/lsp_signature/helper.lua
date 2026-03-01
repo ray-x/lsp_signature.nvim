@@ -419,11 +419,11 @@ local function get_border_height(opts)
   local border = opts.border
   local height = 0
   if border == nil then
-    return
+    return height
   end
 
   if type(border) == 'string' then
-    height = border_height[border]
+    height = border_height[border] or 0
   else
     local function _border_height(id)
       id = (id - 1) % #border + 1

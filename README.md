@@ -218,8 +218,8 @@ e.g.
   -- }
   hint_scheme = "String",
   hint_inline = function() return false end,  -- should the hint be inline(nvim 0.10 only)?  default false
-  -- return true | 'inline' to show hint inline, return 'eol' to show hint at end of line, return false to disable
-  -- return 'right_align' to display hint right aligned in the current line
+  -- return true | 'inline' to show hint inline, return false | 'eol' to show hint at end of line
+  -- return one of: true|false|virt_text_pos: 'eol', 'eol_right_align', 'overlay', 'right_align', 'inline'
   hi_parameter = "LspSignatureActiveParameter", -- how your parameter will be highlight
   handler_opts = {
     border = "rounded"   -- double, rounded, single, shadow, none, or a table of borders
