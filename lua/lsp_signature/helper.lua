@@ -212,7 +212,7 @@ helper.match_parameter = function(result, config)
 
   local activeParameter = signature.activeParameter or result.activeParameter
 
-  if activeParameter == nil or activeParameter < 0 then
+  if type(activeParameter) ~= 'number' or activeParameter < 0 then
     log('incorrect signature response?', result, config)
     activeParameter = helper.fallback(config.triggered_chars or { '(', ',' })
   end
@@ -227,7 +227,7 @@ helper.match_parameter = function(result, config)
     return result, '', 0, 0
   end
 
-  if activeParameter > #signature.parameters then
+  if type(activeParameter) ~= 'number' or activeParameter > #signature.parameters then
     activeParameter = 0
   end
 

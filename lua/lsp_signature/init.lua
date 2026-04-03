@@ -634,10 +634,11 @@ local signature_handler = function(err, result, ctx, config)
   local sig = result.signatures
   -- if it is last parameter, close windows after cursor moved
 
-  local actPar = sig.activeParameter or result.activeParameter or 0
+  local actPar = (type(sig.activeParameter) == 'number' and sig.activeParameter)
+    or (type(result.activeParameter) == 'number' and result.activeParameter)
+    or 0
   if
     sig and sig[activeSignature].parameters == nil
-    or actPar == nil
     or actPar + 1 == #sig[activeSignature].parameters
   then
     log('last para', close_events)
