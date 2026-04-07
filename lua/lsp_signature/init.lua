@@ -98,24 +98,24 @@ _LSP_SIG_CFG = {
   always_trigger = false,   -- sometime show signature on new line can be confusing, set it to false for #58
   -- set this to true if you the triggered_chars failed to work
   -- this will allow lsp server decide show signature or not
-  auto_close_after = nil,                                             -- autoclose signature after x sec, disabled if nil.
-  check_completion_visible = true,                                    -- adjust position of signature window relative to completion popup
+  auto_close_after = nil,                                           -- autoclose signature after x sec, disabled if nil.
+  check_completion_visible = true,                                  -- adjust position of signature window relative to completion popup
   debug = false,
-  log_path = path_join(vim.fn.stdpath('log'), 'lsp_signature.log'),   -- log dir when debug is true
-  verbose = false,                                                    -- debug show code line number
-  extra_trigger_chars = {},                                           -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
+  log_path = path_join(vim.fn.stdpath('log'), 'lsp_signature.log'), -- log dir when debug is true
+  verbose = false,                                                  -- debug show code line number
+  extra_trigger_chars = {},                                         -- Array of extra characters that will trigger signature completion, e.g., {"(", ","}
   zindex = 200,
-  transparency = nil,                                                 -- disabled by default
-  shadow_blend = 36,                                                  -- if you using shadow as border use this set the opacity
-  shadow_guibg = 'Black',                                             -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
-  timer_interval = 200,                                               -- default timer check interval
-  toggle_key = nil,                                                   -- toggle signature on and off in insert mode,  e.g. '<M-x>'
+  transparency = nil,                                               -- disabled by default
+  shadow_blend = 36,                                                -- if you using shadow as border use this set the opacity
+  shadow_guibg = 'Black',                                           -- if you using shadow as border use this set the color e.g. 'Green' or '#121315'
+  timer_interval = 200,                                             -- default timer check interval
+  toggle_key = nil,                                                 -- toggle signature on and off in insert mode,  e.g. '<M-x>'
   -- set this key also helps if you want see signature in newline
-  select_signature_key = nil,                                         -- cycle to next signature, e.g. '<M-n>' function overloading
+  select_signature_key = nil,                                       -- cycle to next signature, e.g. '<M-n>' function overloading
   -- internal vars, init here to suppress linter warnings
-  move_cursor_key = nil,                                              -- use nvim_set_current_win
-  move_signature_window_key = {},                                     -- move floating window, default ['<M-j>', '<M-k>']
-  show_struct = { enable = false },                                   -- experimental: show struct info
+  move_cursor_key = nil,                                            -- use nvim_set_current_win
+  move_signature_window_key = {},                                   -- move floating window, default ['<M-j>', '<M-k>']
+  show_struct = { enable = false },                                 -- experimental: show struct info
 
   --- private vars
   winnr = nil,
@@ -637,10 +637,7 @@ local signature_handler = function(err, result, ctx, config)
   local actPar = (type(sig.activeParameter) == 'number' and sig.activeParameter)
     or (type(result.activeParameter) == 'number' and result.activeParameter)
     or 0
-  if
-    sig and sig[activeSignature].parameters == nil
-    or actPar + 1 == #sig[activeSignature].parameters
-  then
+  if sig and sig[activeSignature].parameters == nil or actPar + 1 == #sig[activeSignature].parameters then
     log('last para', close_events)
     if _LSP_SIG_CFG._fix_pos == false then
       vim.lsp.util.close_preview_autocmd(close_events, _LSP_SIG_CFG.winnr)

@@ -559,7 +559,7 @@ local function make_floating_popup_size(contents, opts)
   local title_length = 0
   local chunks = type(opts.title) == 'string' and { { opts.title } } or opts.title or {}
   for _, chunk in
-    ipairs(chunks --[=[@as [string, string][]]=])
+  ipairs(chunks --[=[@as [string, string][]]=])
   do
     title_length = title_length + vim.fn.strdisplaywidth(chunk[1])
   end
@@ -687,14 +687,14 @@ function helper.truncate_doc(lines, num_sigs)
   local vmode = api.nvim_get_mode().mode
   -- truncate doc if in insert/replace mode
   if
-    vmode == 'i'
-    or vmode == 'ic'
-    or vmode == 'v'
-    or vmode == 's'
-    or vmode == 'S'
-    or vmode == 'R'
-    or vmode == 'Rc'
-    or vmode == 'Rx'
+      vmode == 'i'
+      or vmode == 'ic'
+      or vmode == 'v'
+      or vmode == 's'
+      or vmode == 'S'
+      or vmode == 'R'
+      or vmode == 'Rc'
+      or vmode == 'Rx'
   then
     -- truncate the doc?
     -- log(#lines, doc_num, num_sigs)
@@ -799,7 +799,7 @@ function helper.check_lsp_cap(clients, line_to_cursor)
 
         if triggered == false then
           triggered, trigger_position =
-            helper.check_trigger_char(line_to_cursor, triggered_chars, value.offset_encoding)
+              helper.check_trigger_char(line_to_cursor, triggered_chars, value.offset_encoding)
         end
       end
     end
@@ -941,8 +941,8 @@ helper.change_focus = function()
   local winnr = api.nvim_get_current_win()
   if winnr == _LSP_SIG_CFG.winnr then --need to change back to main
     return jump_to_win(_LSP_SIG_CFG.mainwin)
-  else -- jump to floating
-    _LSP_SIG_CFG.mainwin = winnr --need to change back to main
+  else                                -- jump to floating
+    _LSP_SIG_CFG.mainwin = winnr      --need to change back to main
     winnr = _LSP_SIG_CFG.winnr
     if winnr and winnr ~= 0 and api.nvim_win_is_valid(winnr) then
       return jump_to_win(winnr)
