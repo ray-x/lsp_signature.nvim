@@ -226,6 +226,22 @@ describe('should show signature ', function()
     eq(40, e)
   end)
 
+  it('match should not crash when activeParameter is vim.NIL (Nvim 0.12 null)', function()
+    local result1 = vim.deepcopy(result)
+    result1.activeParameter = vim.NIL
+    -- Should not raise an error; falls back to position 0 (first parameter)
+    local ok, err = pcall(match_parameter, result1, cfg)
+    assert.is_true(ok, 'match_parameter crashed with vim.NIL: ' .. tostring(err))
+  end)
+
+  it('match should not crash when signature.activeParameter is vim.NIL', function()
+    local result1 = vim.deepcopy(result)
+    result1.activeParameter = 0
+    result1.signatures[1].activeParameter = vim.NIL
+    local ok, err = pcall(match_parameter, result1, cfg)
+    assert.is_true(ok, 'match_parameter crashed with vim.NIL on signature: ' .. tostring(err))
+  end)
+
   it('match should get signature for ccls multi ', function()
     local result1 = vim.deepcopy(result_ccls)
     result1.activeParameter = 1
@@ -443,5 +459,44 @@ describe('should show signature ', function()
     end
 
     eq('HandleFunc(path string, f func(http.ResponseWriter,  *http.Request)) *mux.Route', lines[2])
+  end)
+
+  it('should not crash when sig.activeParameter is vim.NIL (init.lua:641)', function()
+    _LSP_SIG_CFG.debug = false
+    _LSP_SIG_CFG.floating_window = true
+
+    local r = {
+      activeParameter = vim.NIL,
+      activeSignature = 0,
+      signatures = {
+        {
+          activeParameter = vim.NIL,
+          label = 'fn add(left: i32, right: i32) -> i32',
+          parameters = { { label = { 7, 16 } }, { label = { 18, 28 } } },
+        },
+      },
+    }
+
+    local c = {
+      check_completion_visible = true,
+      check_client_handlers = true,
+      trigger_from_lsp_sig = true,
+      line_to_cursor = '    add(1, ',
+      triggered_chars = { '(', ',' },
+    }
+
+    local ctx = {
+      method = 'textDocument/signatureHelp',
+      client_id = 1,
+      bufnr = vim.api.nvim_get_current_buf(),
+    }
+
+    local ok, err
+    if nvim_6 then
+      ok, err = pcall(signature.signature_handler, nil, r, ctx, c)
+    else
+      ok, err = pcall(signature.signature_handler, nil, '', r, 1, 1, c)
+    end
+    assert.is_true(ok, 'signature_handler crashed with vim.NIL activeParameter: ' .. tostring(err))
   end)
 end)
