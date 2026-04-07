@@ -20,9 +20,6 @@ local path_sep = vim.loop.os_uname().sysname == 'Windows' and '\\' or '/'
 local sigcap = ms.textDocument_signatureHelp or 'textDocument/signatureHelp'
 local function path_join(...)
   local tbl_flatten = function(t)
-    if vim.fn.has('nvim-0.10') == 0 then -- for old versions
-      return vim.tbl_flatten(t)
-    end
     return vim.iter(t):flatten():totable()
   end
   return table.concat(tbl_flatten({ ... }), path_sep)

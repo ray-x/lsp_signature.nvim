@@ -686,16 +686,7 @@ function helper.truncate_doc(lines, num_sigs)
   local doc_num = 2 + _LSP_SIG_CFG.doc_lines -- 3: markdown code signature
   local vmode = api.nvim_get_mode().mode
   -- truncate doc if in insert/replace mode
-  if
-    vmode == 'i'
-    or vmode == 'ic'
-    or vmode == 'v'
-    or vmode == 's'
-    or vmode == 'S'
-    or vmode == 'R'
-    or vmode == 'Rc'
-    or vmode == 'Rx'
-  then
+  if vim.list_contains({ 'i', 'ic', 'v', 's', 'S', 'R', 'Rc', 'Rx' }, vmode) then
     -- truncate the doc?
     -- log(#lines, doc_num, num_sigs)
     if #lines > doc_num + num_sigs then -- for markdown doc start with ```text and end with ```
@@ -948,8 +939,6 @@ helper.change_focus = function()
       return jump_to_win(winnr)
     end
   end
-
-  -- vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(_LSP_SIG_CFG.move_cursor_key, true, true, true), "i", true)
 end
 
 -- from vim.lsp.util deprecated function
