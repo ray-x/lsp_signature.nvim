@@ -806,7 +806,8 @@ local signature = function(opts)
     if _LSP_SIG_CFG.signature_result and _LSP_SIG_CFG.signature_result.signatures ~= nil then
       local sig = _LSP_SIG_CFG.signature_result.signatures
       local actSig = _LSP_SIG_CFG.signature_result.activeSignature or 0
-      local actPar = _LSP_SIG_CFG.signature_result.activeParameter or 0
+      local actPar = (type(_LSP_SIG_CFG.signature_result.activeParameter) == 'number' and _LSP_SIG_CFG.signature_result.activeParameter)
+        or 0
       actSig, actPar = actSig + 1, actPar + 1
       if sig[actSig] ~= nil and sig[actSig].parameters ~= nil and #sig[actSig].parameters == actPar then
         M.on_CompleteDone()
