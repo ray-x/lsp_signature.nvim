@@ -364,7 +364,9 @@ local signature_handler = function(err, result, ctx, config)
     for i = #result.signatures, 1, -1 do
       local sig = result.signatures[i]
       -- hack for lua
-      local actPar = sig.activeParameter or result.activeParameter or 0
+      local actPar = (type(sig.activeParameter) == 'number' and sig.activeParameter)
+        or (type(result.activeParameter) == 'number' and result.activeParameter)
+        or 0
       if actPar > 0 and actPar + 1 > #(sig.parameters or {}) then
         log('invalid lsp response, active parameter out of boundary')
         -- reset active parameter to last parameter
