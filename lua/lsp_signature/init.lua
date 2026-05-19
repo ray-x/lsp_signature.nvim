@@ -1149,7 +1149,9 @@ M.toggle_float_win = function()
   -- if _LSP_SIG_CFG.code_action_win and _LSP_SIG_CFG.code_action_win.winnr > 0 and vim.api.nvim_win_is_valid(_LSP_SIG_CFG.code_action_win.winnr) then
   if _LSP_SIG_CFG.code_action_win then
     log('close code action win', _LSP_SIG_CFG.code_action_win.winnr)
-    vim.api.nvim_win_close(_LSP_SIG_CFG.code_action_win.winnr, true)
+    if vim.api.nvim_win_is_valid(_LSP_SIG_CFG.code_action_win.winnr) then
+      vim.api.nvim_win_close(_LSP_SIG_CFG.code_action_win.winnr, true)
+    end
     _LSP_SIG_CFG.code_action_win = nil
     return
   end

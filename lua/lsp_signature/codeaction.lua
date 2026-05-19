@@ -240,6 +240,7 @@ function M.show_unfilled_fields_floating(lines, cfg)
       if arg.buf == bufnr then
         log('Closing floating window for unfilled fields')
         vim.api.nvim_win_close(win_id, true)
+        _LSP_SIG_CFG.code_action_win = nil
         vim.api.nvim_del_augroup_by_id(augroup)
       end
     end,
