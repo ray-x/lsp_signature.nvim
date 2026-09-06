@@ -47,6 +47,15 @@ _LSP_SIG_CFG = {
         return true
       end
     end
+
+    -- Some servers misuse RequestFailed to mean "no signature help available
+    -- here" instead of returning a valid empty/null result as the LSP spec
+    -- requires (e.g. asm-lsp does this for every position it has no signature
+    -- info for). That's a "no result" signal, not an actionable error, so
+    -- ignore it by default when there is no extra `data` payload to inspect.
+    if err.code_name == 'RequestFailed' and err.data == nil then
+      return true
+    end
     -- other examples:
     -- if err.code_name == 'InvalidParams' then return true end
     -- if err.code_name == 'ContentModified' then return true end
@@ -144,9 +153,7 @@ local function virtual_hint(hint, off_y)
   end
   local pl
   local completion_visible = helper.completion_visible()
-  local hp = type(_LSP_SIG_CFG.hint_prefix) == 'string' and _LSP_SIG_CFG.hint_prefix
-    or (type(_LSP_SIG_CFG.hint_prefix) == 'table' and _LSP_SIG_CFG.hint_prefix.current)
-    or '🐼 '
+  local hp = type(_LSP_SIG_CFG.hint_prefix) == 'string' and _LSP_SIG_CFG.hint_prefix or (type(_LSP_SIG_CFG.hint_prefix) == 'table' and _LSP_SIG_CFG.hint_prefix.current) or '🐼 '
 
   local inline_display = _LSP_SIG_CFG.hint_inline()
   -- note overlay support is bad atm
@@ -287,7 +294,7 @@ local signature_handler = function(err, result, ctx, config)
     if _LSP_SIG_CFG.ignore_error(err, ctx, config) then
       return
     end
-    print('lsp_signatur handler', err)
+    print('lsp_signature handler:', err)
     return
   end
 
@@ -364,9 +371,7 @@ local signature_handler = function(err, result, ctx, config)
     for i = #result.signatures, 1, -1 do
       local sig = result.signatures[i]
       -- hack for lua
-      local actPar = (type(sig.activeParameter) == 'number' and sig.activeParameter)
-        or (type(result.activeParameter) == 'number' and result.activeParameter)
-        or 0
+      local actPar = (type(sig.activeParameter) == 'number' and sig.activeParameter) or (type(result.activeParameter) == 'number' and result.activeParameter) or 0
       if actPar > 0 and actPar + 1 > #(sig.parameters or {}) then
         log('invalid lsp response, active parameter out of boundary')
         -- reset active parameter to last parameter
@@ -383,11 +388,7 @@ local signature_handler = function(err, result, ctx, config)
 
   local mode = vim.api.nvim_get_mode().mode
   local insert_mode = (mode == 'niI' or mode == 'i')
-  local floating_window_on = (
-    _LSP_SIG_CFG.winnr ~= nil
-    and _LSP_SIG_CFG.winnr ~= 0
-    and api.nvim_win_is_valid(_LSP_SIG_CFG.winnr)
-  )
+  local floating_window_on = (_LSP_SIG_CFG.winnr ~= nil and _LSP_SIG_CFG.winnr ~= 0 and api.nvim_win_is_valid(_LSP_SIG_CFG.winnr))
   if config.trigger_from_cursor_hold and not floating_window_on and not insert_mode then
     log('trigger from cursor hold, no need to update floating window')
     return
@@ -459,14 +460,7 @@ local signature_handler = function(err, result, ctx, config)
   end
   label = label:gsub('%s+$', ''):gsub('\r', ' '):gsub('\n', ' ')
 
-  log(
-    'label:',
-    label,
-    result.activeSignature,
-    activeSignature,
-    result.activeParameter,
-    result.signatures[activeSignature]
-  )
+  log('label:', label, result.activeSignature, activeSignature, result.activeParameter, result.signatures[activeSignature])
 
   -- truncate empty document it
   if
@@ -581,12 +575,7 @@ local signature_handler = function(err, result, ctx, config)
   config.noautocmd = true
 
   -- try not to overlap with pum autocomplete menu
-  if
-    config.check_completion_visible
-    and helper.completion_visible()
-    and ((display_opts.anchor == 'NW' or display_opts.anchor == 'NE') and off_y == 0)
-    and _LSP_SIG_CFG.zindex < 50
-  then
+  if config.check_completion_visible and helper.completion_visible() and ((display_opts.anchor == 'NW' or display_opts.anchor == 'NE') and off_y == 0) and _LSP_SIG_CFG.zindex < 50 then
     log('completion is visible, no need to show off_y', off_y)
     return
   end
@@ -599,14 +588,7 @@ local signature_handler = function(err, result, ctx, config)
       -- vim.api.nvim_win_close(_LSP_SIG_CFG.winnr, true)
 
       -- vim.api.nvim_buf_set_option(_LSP_SIG_CFG.bufnr, "filetype", "")
-      log(
-        'sig_cfg bufnr, winnr not valid recreate',
-        _LSP_SIG_CFG.bufnr,
-        _LSP_SIG_CFG.winnr,
-        label == _LSP_SIG_CFG.label,
-        api.nvim_win_is_valid(_LSP_SIG_CFG.winnr),
-        not new_line
-      )
+      log('sig_cfg bufnr, winnr not valid recreate', _LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.winnr, label == _LSP_SIG_CFG.label, api.nvim_win_is_valid(_LSP_SIG_CFG.winnr), not new_line)
       _LSP_SIG_CFG.label = label
       _LSP_SIG_CFG.client_id = client_id
 
@@ -633,9 +615,7 @@ local signature_handler = function(err, result, ctx, config)
   local sig = result.signatures
   -- if it is last parameter, close windows after cursor moved
 
-  local actPar = (type(sig.activeParameter) == 'number' and sig.activeParameter)
-    or (type(result.activeParameter) == 'number' and result.activeParameter)
-    or 0
+  local actPar = (type(sig.activeParameter) == 'number' and sig.activeParameter) or (type(result.activeParameter) == 'number' and result.activeParameter) or 0
   if sig and sig[activeSignature].parameters == nil or actPar + 1 == #sig[activeSignature].parameters then
     log('last para', close_events)
     if _LSP_SIG_CFG._fix_pos == false then
@@ -806,10 +786,7 @@ local signature = function(opts)
     if _LSP_SIG_CFG.signature_result and _LSP_SIG_CFG.signature_result.signatures ~= nil then
       local sig = _LSP_SIG_CFG.signature_result.signatures
       local actSig = _LSP_SIG_CFG.signature_result.activeSignature or 0
-      local actPar = (
-        type(_LSP_SIG_CFG.signature_result.activeParameter) == 'number'
-        and _LSP_SIG_CFG.signature_result.activeParameter
-      ) or 0
+      local actPar = (type(_LSP_SIG_CFG.signature_result.activeParameter) == 'number' and _LSP_SIG_CFG.signature_result.activeParameter) or 0
       actSig, actPar = actSig + 1, actPar + 1
       if sig[actSig] ~= nil and sig[actSig].parameters ~= nil and #sig[actSig].parameters == actPar then
         M.on_CompleteDone()
