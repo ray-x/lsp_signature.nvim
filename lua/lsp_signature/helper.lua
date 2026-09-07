@@ -789,8 +789,7 @@ function helper.check_lsp_cap(clients, line_to_cursor)
         end
 
         if triggered == false then
-          triggered, trigger_position =
-            helper.check_trigger_char(line_to_cursor, triggered_chars, value.offset_encoding)
+          triggered, trigger_position = helper.check_trigger_char(line_to_cursor, triggered_chars, value.offset_encoding)
         end
       end
     end
@@ -853,13 +852,7 @@ helper.highlight_parameter = function(s, l)
     end
     if _LSP_SIG_CFG.bufnr and api.nvim_buf_is_valid(_LSP_SIG_CFG.bufnr) then
       log('extmark', _LSP_SIG_CFG.bufnr, s, l, #_LSP_SIG_CFG.padding)
-      _LSP_SIG_CFG.markid = api.nvim_buf_set_extmark(
-        _LSP_SIG_CFG.bufnr,
-        _LSP_SIG_CFG.ns,
-        line,
-        s,
-        { end_line = line, end_col = l, hl_group = hi, strict = false }
-      )
+      _LSP_SIG_CFG.markid = api.nvim_buf_set_extmark(_LSP_SIG_CFG.bufnr, _LSP_SIG_CFG.ns, line, s, { end_line = line, end_col = l, hl_group = hi, strict = false })
 
       log('extmark_id', _LSP_SIG_CFG.markid)
     end
