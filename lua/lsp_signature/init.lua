@@ -313,6 +313,22 @@ local signature_handler = function(err, result, ctx, config)
 
     return
   end
+
+  -- Neovim's vim.lsp.util.convert_signature_help_to_markdown_lines does not
+  -- guard against `activeParameter == vim.NIL` on core < 0.12 (it crashes in
+  -- math.max/math.min with "number expected, got userdata"). Servers that
+  -- explicitly send `activeParameter: null` decode to vim.NIL over RPC, so
+  -- normalize it to Lua nil here, before result ever reaches vim.lsp.util,
+  -- regardless of which Neovim version is running.
+  if result.activeParameter == vim.NIL then
+    result.activeParameter = nil
+  end
+  for _, sig in ipairs(result.signatures) do
+    if sig.activeParameter == vim.NIL then
+      sig.activeParameter = nil
+    end
+  end
+
   if api.nvim_get_current_buf() ~= bufnr then
     log('ignore outdated signature result')
     return
